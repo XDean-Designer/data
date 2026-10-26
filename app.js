@@ -54,6 +54,21 @@
     historyReimportIntent: null, /* append | replace */
     viewReturn: null,
     pendingStockApply: false,
+    /* v2.0 标准表转换 + 数据概览 */
+    checkData: null,
+    checkTab: 'member',
+    checkFilter: 'all',
+    checkQuery: '',
+    checkLimit: 24,
+    checkOpen: null,
+    checkProbIdx: 0,
+    convertDone: false,
+    convertRunning: false,
+    convertTimers: [],
+    wechatTipShown: false,
+    ceremonyRunning: false,
+    ceremonyCounts: null,
+    ceremonyCode: '',
     legacy: {
       failId: null,
       cardFailId: null,
@@ -488,6 +503,7 @@
   }
 
   function enterMigrate() {
+    maybeShowWechatTip();
     if (hasP0Stock()) go('import-overview');
     else go('import-guide');
   }
@@ -1500,8 +1516,14 @@
     if (flow === 'import-queue') {
       state.queueBusy = false;
       var qbtn = $('#btnQueueStart');
-      if (qbtn) { qbtn.disabled = false; qbtn.textContent = '开始识别'; }
+      if (qbtn) { qbtn.disabled = false; qbtn.textContent = '开始转换'; }
       renderQueue();
+    }
+    if (flow === 'import-convert') {
+      runConversion();
+    }
+    if (flow === 'import-check') {
+      renderCheck();
     }
     if (flow === 'import-preview') {
       setImportLoading(false);
@@ -2120,7 +2142,7 @@
     ['member', 'card', 'price'].forEach(function (k) {
       if (!state.importSelection[k]) return;
       var mode = state.reimportMode[k];
-      var batch = BATCH_DEMO[k];
+      var batch = batchCount(k);
       if (mode === 'replace' || !state.storeStock[k]) {
         state.storeStock[k] = batch;
       } else if (mode === 'merge') {
@@ -2470,7 +2492,7 @@
         }
         done.textContent = next
           ? '完成，下一类：' + IMPORT_CAT_SHORT[next]
-          : (cats.length > 1 ? '完成，进入识别' : '完成');
+          : (cats.length > 1 ? '完成，进入待识别' : '完成');
       }
     }
   }
@@ -2519,7 +2541,7 @@
         catFiles(k).forEach(function (f, i) {
           rows.push('<div class="queue-file">' +
             '<span class="queue-file__ico">XLS</span>' +
-            '<span class="queue-file__body"><b>' + f.name + '</b><span>' + IMPORT_CAT_SHORT[k] + ' · ' + f.size + ' · 需对齐列名</span></span>' +
+            '<span class="queue-file__body"><b>' + f.name + '</b><span>' + IMPORT_CAT_SHORT[k] + ' · ' + f.size + ' · 将转标准表</span></span>' +
             '<button type="button" class="queue-file__act" data-queue-file-change="' + k + '">' + (catFiles(k).length > 1 ? '管理' : '更换') + '</button>' +
             '<button type="button" class="queue-file__act queue-file__act--del" data-clear-file="' + k + '" data-file-idx="' + i + '">删除</button>' +
           '</div>');
@@ -2550,10 +2572,10 @@
     var note = $('#queueNote');
     if (note) {
       note.textContent = (files.length && plan.photo.length)
-        ? 'Excel 会在下一步对齐列名；照片自动识别，结果一起进入核对页。'
+        ? 'Excel 与照片都会先转成官方标准表，转换后进「数据概览」逐行核对；照片转换在后台完成。'
         : (plan.photo.length
-          ? '照片自动识别列，不需要指定字段；识别结果进入核对页。'
-          : 'Excel 会在下一步对齐列名。');
+          ? '照片在后台转成标准表，转换后进「数据概览」逐行核对。'
+          : 'Excel 会先转成官方标准表，转换后进「数据概览」逐行核对。');
     }
   }
 
@@ -2564,33 +2586,22 @@
     var fileTotal = totalFiles(plan.excel);
     var shots = plan.photo.reduce(function (s, k) { return s + state.importPhotos[k].length; }, 0);
     if (!files.length && !shots) {
-      showToast('还没有可识别的内容');
+      showToast('还没有可转换的内容');
       return;
     }
     state.queueBusy = true;
-    var btn = $('#btnQueueStart');
-    var parts = [];
-    if (files.length) parts.push(fileTotal + ' 个 Excel');
-    if (shots) parts.push(shots + ' 张照片');
-    if (btn) { btn.disabled = true; btn.textContent = '识别中…'; }
-
-    runImportProgress({
-      title: 'AI 正在识别',
-      sub: '共 ' + parts.join(' 与 ') + '，识别完会进入下一步',
-      stages: [
-        { at: 0, label: '读取文件' },
-        { at: 30, label: '识别列名与字段' },
-        { at: 66, label: '生成预览' }
-      ],
-      duration: Math.min(2800, 1500 + (fileTotal + shots) * 220),
-      doneLabel: '识别完成',
-      onDone: function () {
-        state.queueBusy = false;
-        if (btn) { btn.disabled = false; btn.textContent = '开始识别'; }
-        if (mapExcelCats().length) go('import-map');
-        else go('import-preview');
-      }
-    });
+    // 本批重来：清掉上一批的转换结果与核对数据
+    state.checkData = null;
+    state.convertDone = false;
+    state.convertRunning = false;
+    state.checkOpen = null;
+    state.checkFilter = 'all';
+    state.checkQuery = '';
+    state.checkProbIdx = 0;
+    state.convertTimers.forEach(function (t) { clearTimeout(t); });
+    state.convertTimers = [];
+    state.queueBusy = false;
+    go('import-convert');
   }
 
   /* ---- 映射（按类别 tab） ---- */
@@ -3033,11 +3044,1008 @@
     var parts = [];
     if (files) parts.push('Excel ' + files + ' 个');
     if (shots) parts.push('照片 ' + shots + ' 张');
-    if (!state.importSelection.card) {
-      var auto = tplCount();
-      if (auto > 0) parts.push('自动生成卡模板 ' + auto + ' 张');
-    }
+    if (files || shots) parts.push('AI 转标准表');
     el.textContent = '本批来源：' + (parts.join(' · ') || '演示数据');
+  }
+
+  /* ===== v2.0 标准表转换 · 数据概览 · 仪式感传输 ===== */
+
+  var CHECK_CARD_TYPES = ['储值卡', '计次卡', '折扣卡', '套餐卡', '周期卡'];
+  // 店内已有的卡模板（官方样例 + 常见卡种）；卡名称不在这里就是「店内无此卡」
+  var CHECK_CARD_NAMES = ['八折银卡', '剪发5次卡', '尊享折扣卡', '护理套餐卡', '季卡', '黄金卡', '7折卡', '8折卡', '6折卡', '5折卡'];
+  var CHECK_CHANNELS = [
+    { v: '1', label: '1 上门顾客' },
+    { v: '2', label: '2 朋友介绍' },
+    { v: '3', label: '3 微信小程序' },
+    { v: '4', label: '4 支付宝' },
+    { v: '5', label: '5 美团/点评' },
+    { v: '6', label: '6 抖音' },
+    { v: '7', label: '7 异业推广' },
+    { v: '8', label: '8 活动推广' },
+    { v: '9', label: '9 优惠券转赠' }
+  ];
+  var CHECK_UNIT = { member: '行', card: '行', price: '项' };
+  var CHECK_LV_LABEL = { error: '需修正', warn: '建议确认', ignored: '已忽略', ok: '可导入' };
+
+  // 字段定义：more=true 的收进「更多字段」，不占默认编辑区高度
+  var CHECK_FIELDS = {
+    member: [
+      { key: 'memberNo', label: '会员编号', ph: '如 0001', req: true },
+      { key: 'cardNo', label: '会员卡号', ph: '必填，每张卡唯一', req: true },
+      { key: 'name', label: '会员姓名', ph: '必填', req: true },
+      { key: 'phone', label: '手机号', ph: '11 位数字', req: true },
+      { key: 'gender', label: '性别', type: 'select', opts: [{ v: '男', label: '男' }, { v: '女', label: '女' }] },
+      { key: 'birthday', label: '生日', ph: '1990/2/11' },
+      { key: 'cardType', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }), req: true },
+      { key: 'cardName', label: '卡名称', type: 'select', dynamic: 'cards', req: true },
+      { key: 'expiry', label: '有效期限', ph: '永久 / 2027/01/17' },
+      { key: 'recharge', label: '充值余额', type: 'money' },
+      { key: 'bonus', label: '赠送余额', type: 'money' },
+      { key: 'remain', label: '卡剩余价值', type: 'money' },
+      { key: 'countLeft', label: '计次剩余次数', type: 'number' },
+      { key: 'channel', label: '来源渠道', type: 'select', opts: CHECK_CHANNELS, req: true },
+      { key: 'gift', label: '赠送项目', ph: '小气泡:1;基础护理:2', more: true, wide: true },
+      { key: 'special', label: '特殊项目', ph: '理发:打折,9.9;洗吹:固定金额,50', more: true, wide: true },
+      { key: 'shopCode', label: '开卡店铺编码', ph: '单店可不填', more: true },
+      { key: 'note', label: '备注', more: true, wide: true }
+    ],
+    card: [
+      { key: 'type', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }), req: true },
+      { key: 'name', label: '卡名', ph: '必填，店内唯一', req: true },
+      { key: 'price', label: '购买价格 / 充值', type: 'money' },
+      { key: 'discount', label: '享受折扣', ph: '如 8.5，留空不打折' },
+      { key: 'times', label: '次数', type: 'number' },
+      { key: 'scope', label: '适用大类 / 范围', ph: '留空为全部' },
+      { key: 'validity', label: '有效期限（月）', ph: '留空为永久' },
+      { key: 'gift', label: '赠送项目', ph: '小气泡:1;基础护理:2', more: true, wide: true },
+      { key: 'memberPrice', label: '会员价项目', ph: '理发:打折,9.9', more: true, wide: true },
+      { key: 'desc', label: '卡项说明', more: true, wide: true }
+    ],
+    price: [
+      { key: 'name', label: '项目名', ph: '必填，导入后唯一', req: true },
+      { key: 'group', label: '项目组', ph: '不存在会新建' },
+      { key: 'price', label: '价格', type: 'money', req: true },
+      { key: 'bookable', label: '可开单', type: 'select', opts: [{ v: '是', label: '是' }, { v: '否', label: '否' }] },
+      { key: 'top', label: '置顶', type: 'select', opts: [{ v: '否', label: '否' }, { v: '是', label: '是' }] },
+      { key: 'duration', label: '服务时长（分钟）', type: 'number' },
+      { key: 'shopCode', label: '连锁店编码', more: true }
+    ]
+  };
+
+  function escHtml(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function padNum(n, len) {
+    var s = String(n);
+    while (s.length < len) s = '0' + s;
+    return s;
+  }
+
+  // 空 → ''；可解析 → 数字；不可解析 → null
+  function parseMoney(v) {
+    var s = String(v === null || v === undefined ? '' : v).replace(/[¥,\s]/g, '');
+    if (s === '') return '';
+    if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
+    return Number(s);
+  }
+
+  function isPastDate(str) {
+    var m = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/.exec(String(str || '').trim());
+    if (!m) return false;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    if (d.getFullYear() !== Number(m[1]) || d.getMonth() !== Number(m[2]) - 1 || d.getDate() !== Number(m[3])) return false;
+    return d.getTime() < new Date(2026, 9, 26).getTime();
+  }
+
+  function checkRows(cat) {
+    return (state.checkData && state.checkData[cat]) || [];
+  }
+
+  function checkCats() {
+    return ['member', 'card', 'price'].filter(function (k) {
+      return checkRows(k).length > 0;
+    });
+  }
+
+  function checkFindRow(cat, id) {
+    var rows = checkRows(cat);
+    for (var i = 0; i < rows.length; i += 1) if (rows[i].id === id) return rows[i];
+    return null;
+  }
+
+  function rowHasLevel(row, level) {
+    for (var i = 0; i < row.problems.length; i += 1) if (row.problems[i].level === level) return true;
+    return false;
+  }
+
+  function rowIssues(row) {
+    return (row.problems || []).filter(function (p) { return p.level === 'error' || p.level === 'warn'; });
+  }
+
+  /* --- 造数：官方模板口径（会员一行一张卡） --- */
+
+  function buildMemberRows() {
+    var list = [];
+    var total = 1433;
+    var base = 1100;
+    var i;
+    for (i = 0; i < total; i += 1) {
+      var mi = i < base ? i : ((i - base) * 4) % base;
+      var surname = SURNAME_LIST[mi % SURNAME_LIST.length];
+      var female = mi % 3 !== 0;
+      var pool = female ? GIVEN_FEMALE : GIVEN_MALE;
+      var name = surname + pool[mi % pool.length] + (female ? '女士' : '先生');
+      var type = CHECK_CARD_TYPES[mi % CHECK_CARD_TYPES.length];
+      var cardName = ['八折银卡', '剪发5次卡', '尊享折扣卡', '护理套餐卡', '季卡'][mi % 5];
+      var gender = deriveGenderFromName(name).value || '女';
+      var f = {
+        memberNo: padNum(mi + 1, 4),
+        cardNo: padNum(i + 1, 4),
+        name: name,
+        phone: '1' + String(3 + (mi % 7)) + String(900000000 + mi * 137).slice(0, 9),
+        gender: gender,
+        birthday: '1990/' + (1 + (mi % 12)) + '/' + (1 + (mi % 27)),
+        cardType: type,
+        cardName: cardName,
+        expiry: type === '储值卡' ? '永久' : '2027/' + padNum(1 + (mi % 12), 2) + '/' + padNum(1 + (mi % 27), 2),
+        recharge: type === '储值卡' ? (360 + (mi % 12) * 50).toFixed(2) : '',
+        bonus: type === '储值卡' ? String((mi % 4) * 20) + '.00' : '',
+        remain: type === '储值卡' ? '' : (400 + (mi % 8) * 80).toFixed(2),
+        countLeft: type === '计次卡' ? String(2 + (mi % 8)) : '',
+        channel: String(1 + (mi % 9)),
+        gift: mi % 3 === 0 ? '小气泡:1;基础护理:2' : '',
+        special: '',
+        shopCode: '',
+        note: ''
+      };
+      list.push({
+        id: 'm' + i,
+        f: f,
+        problems: [],
+        ignored: false,
+        aiFields: i % 5 === 0 ? ['channel'] : []
+      });
+    }
+
+    // 预置问题行：让概览一进来就能看到「能发现、能就地改」
+    list[12].f.phone = '1380013abc';
+    list[27].f.name = '';
+    list[48].f.cardNo = list[7].f.cardNo;
+    list[63].f.cardName = 'VIP金卡';
+    list[77].f.recharge = '¥—';
+    list[91].f.channel = '';
+    list[104].f.gender = '';
+    list[118].f.expiry = '2019/01/17';
+    list[133].f.birthday = '1990-2-30';
+    list[150].f.cardType = '年卡';
+    list[166].f.cardType = '储值卡';
+    list[166].f.recharge = '0';
+    list[181].f.gift = '小气泡';
+    return list;
+  }
+
+  function buildCardRows() {
+    var seed = [
+      { type: '储值卡', name: '八折银卡', price: '500.00', discount: '8.5', gift: '小气泡:1;基础护理:2', memberPrice: '理发:打折,9.9;洗吹:固定金额,50', validity: '', desc: '老顾客主推' },
+      { type: '储值卡', name: '黄金卡', price: '1000.00', discount: '', gift: '', memberPrice: '', validity: '12', desc: '' },
+      { type: '计次卡', name: '剪发5次卡', price: '500.00', times: '5', scope: '剪发', validity: '', desc: '' },
+      { type: '计次卡', name: '头皮护理次卡', price: '680.00', times: '6', scope: '头皮护理', validity: '12', desc: '' },
+      { type: '折扣卡', name: '尊享折扣卡', price: '300.00', discount: '5.5', validity: '6', desc: '' },
+      { type: '折扣卡', name: '员工亲友卡', price: '0.00', discount: '8', validity: '', desc: '仅限亲友' },
+      { type: '套餐卡', name: '护理套餐卡', price: '310.00', scope: '全场通用:4', validity: '3', desc: '' },
+      { type: '套餐卡', name: '烫染护套餐', price: '688.00', scope: '小气泡:1;基础护理:2', validity: '6', desc: '' },
+      { type: '周期卡', name: '季卡', price: '510.00', scope: '小气泡;基础护理', validity: '3', desc: '' },
+      { type: '周期卡', name: '年卡', price: '1980.00', scope: '', validity: '12', desc: '' },
+      { type: '储值卡', name: '体验卡', price: '100.00', discount: '', validity: '', desc: '新客体验' },
+      { type: '计次卡', name: '洗吹次卡', price: '200.00', times: '10', scope: '洗吹', validity: '', desc: '' }
+    ];
+    var list = seed.map(function (s, i) {
+      var f = {
+        type: s.type, name: s.name, price: s.price, discount: s.discount || '',
+        times: s.times || '', scope: s.scope || '', validity: s.validity || '',
+        gift: s.gift || '', memberPrice: s.memberPrice || '', desc: s.desc || ''
+      };
+      return { id: 'c' + i, f: f, problems: [], ignored: false, aiFields: [] };
+    });
+    // 预置问题：折扣越界 / 有效期非数字 / 赠送项目格式 / 卡名重复 / 金额不可解析
+    list[5].f.discount = '12';
+    list[7].f.validity = '半年';
+    list[9].f.gift = '小气泡';
+    list[10].f.name = '八折银卡';
+    list[11].f.price = '两百';
+    return list;
+  }
+
+  function buildPriceRows() {
+    var names = ['剪发', '洗吹', '烫发', '染发', '护理', '头皮护理', '造型设计', '接发', '眉型设计', '护发套餐', '美甲', '美睫', '修手', '去角质'];
+    var groups = ['剪发', '洗吹', '烫染', '护理', '造型', '美甲'];
+    var list = [];
+    var i;
+    for (i = 0; i < 42; i += 1) {
+      list.push({
+        id: 'p' + i,
+        f: {
+          name: names[i % names.length] + (i >= names.length ? ' · ' + (Math.floor(i / names.length) + 1) : ''),
+          group: groups[i % groups.length],
+          price: String(68 + i * 20) + '.00',
+          bookable: '是',
+          top: i % 6 === 0 ? '是' : '否',
+          duration: String(30 + (i % 4) * 15),
+          shopCode: ''
+        },
+        problems: [],
+        ignored: false,
+        aiFields: []
+      });
+    }
+    // 预置问题
+    list[5].f.price = '-20.00';
+    list[11].f.duration = '一小时';
+    list[17].f.name = '';
+    list[23].f.group = '';
+    list[29].f.bookable = 'maybe';
+    list[35].f.price = '面议';
+    return list;
+  }
+
+  function ensureCheckData() {
+    if (state.checkData) return state.checkData;
+    var data = {};
+    if (state.importSelection.member) data.member = buildMemberRows();
+    if (state.importSelection.card) data.card = buildCardRows();
+    if (state.importSelection.price) data.price = buildPriceRows();
+    if (!data.member && !data.card && !data.price) data.member = buildMemberRows();
+    state.checkData = data;
+    ['member', 'card', 'price'].forEach(function (k) { if (data[k]) recomputeCheck(k); });
+    return data;
+  }
+
+  function checkCtx(cat, rows) {
+    var ctx = { cardNos: {}, phones: {}, names: {}, cardNames: {} };
+    CHECK_CARD_NAMES.forEach(function (n) { ctx.cardNames[n] = true; });
+    checkRows('card').forEach(function (r) { if (r.f && r.f.name) ctx.cardNames[r.f.name] = true; });
+    rows.forEach(function (r) {
+      var f = r.f || {};
+      if (cat === 'member') {
+        if (f.cardNo) ctx.cardNos[f.cardNo] = (ctx.cardNos[f.cardNo] || 0) + 1;
+        if (f.phone) {
+          if (!ctx.phones[f.phone]) ctx.phones[f.phone] = [];
+          var no = f.memberNo || '';
+          if (ctx.phones[f.phone].indexOf(no) === -1) ctx.phones[f.phone].push(no);
+        }
+      }
+      if (cat === 'card' && f.name) ctx.names[f.name] = (ctx.names[f.name] || 0) + 1;
+      if (cat === 'price' && f.name) ctx.names[f.name] = (ctx.names[f.name] || 0) + 1;
+    });
+    return ctx;
+  }
+
+  function checkProblems(cat, row, ctx) {
+    var f = row.f || {};
+    var out = [];
+    function add(field, level, msg) { out.push({ field: field, level: level, msg: msg }); }
+    var dsl = /^[^:;]+:\d+(;\s*[^:;]+:\d+)*$/;
+    var priceDsl = /^[^:;]+:(打折|固定金额),\d+(\.\d+)?(;\s*[^:;]+:(打折|固定金额),\d+(\.\d+)?)*$/;
+
+    if (cat === 'member') {
+      if (!f.memberNo) add('memberNo', 'error', '会员编号为空');
+      if (!f.cardNo) add('cardNo', 'error', '会员卡号为空');
+      else if (ctx.cardNos[f.cardNo] > 1) add('cardNo', 'error', '会员卡号与其他行重复');
+      if (!f.name) add('name', 'error', '会员姓名为空');
+      if (!f.phone) add('phone', 'error', '手机号为空');
+      else if (!/^1\d{10}$/.test(f.phone)) add('phone', 'error', '手机号应为 11 位数字');
+      else if (ctx.phones[f.phone] && ctx.phones[f.phone].length > 1) add('phone', 'warn', '同一手机号对应多个会员编号');
+      if (!f.gender) add('gender', 'warn', '性别为空，按「女」导入');
+      if (f.birthday && !/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(f.birthday)) add('birthday', 'warn', '生日格式建议 1990/2/11');
+      if (!f.cardType) add('cardType', 'error', '卡类型为空');
+      else if (CHECK_CARD_TYPES.indexOf(f.cardType) === -1) add('cardType', 'error', '卡类型须为储值 / 计次 / 折扣 / 套餐 / 周期卡');
+      if (!f.cardName) add('cardName', 'error', '卡名称为空');
+      else if (!ctx.cardNames[f.cardName]) add('cardName', 'error', '店内无此卡，改成已有卡名或忽略此行');
+      var rc = parseMoney(f.recharge);
+      if (f.cardType === '储值卡' && (f.recharge === '' || f.recharge === null || f.recharge === undefined)) add('recharge', 'error', '储值卡充值余额必填');
+      else if (rc === null) add('recharge', 'error', '金额无法解析');
+      else if (rc === 0) add('recharge', 'warn', '充值余额为 0');
+      if (parseMoney(f.bonus) === null) add('bonus', 'error', '赠送余额无法解析');
+      if (parseMoney(f.remain) === null) add('remain', 'error', '卡剩余价值无法解析');
+      if (f.countLeft && !/^\d+$/.test(f.countLeft)) add('countLeft', 'error', '计次剩余次数应为整数');
+      if (!f.channel) add('channel', 'error', '来源渠道必填');
+      else if (!/^[1-9]$/.test(f.channel)) add('channel', 'warn', '来源渠道须为 1–9');
+      if (f.expiry && f.expiry !== '永久' && isPastDate(f.expiry)) add('expiry', 'warn', '卡已过期');
+      if (f.gift && !dsl.test(f.gift)) add('gift', 'warn', '赠送项目格式应为「项目:次数」');
+      if (f.special && !priceDsl.test(f.special)) add('special', 'warn', '特殊项目格式应为「项目:打折,9.9」');
+      return out;
+    }
+
+    if (cat === 'card') {
+      if (!f.type) add('type', 'error', '卡类型为空');
+      else if (CHECK_CARD_TYPES.indexOf(f.type) === -1) add('type', 'error', '卡类型不在 5 类之内');
+      if (!f.name) add('name', 'error', '卡名为空');
+      else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名卡，导入会跳过后者');
+      var pr = parseMoney(f.price);
+      if (f.price !== '' && pr === null) add('price', 'error', '金额无法解析');
+      if (f.type === '储值卡' && (f.price === '' || f.price === null)) add('price', 'error', '储值卡充值余额必填');
+      if (f.discount !== '' && f.discount !== undefined) {
+        var d = parseMoney(f.discount);
+        if (d === null) add('discount', 'error', '折扣无法解析');
+        else if (d <= 0 || d > 10) add('discount', 'error', '折扣须在 0–10 之间');
+      }
+      if (f.times && !/^\d+$/.test(f.times)) add('times', 'error', '次数应为整数');
+      if (f.validity && !/^\d+$/.test(f.validity)) add('validity', 'error', '有效期限填月份数字，留空为永久');
+      if (f.gift && !dsl.test(f.gift)) add('gift', 'warn', '赠送项目格式应为「项目:次数」');
+      if (f.memberPrice && !priceDsl.test(f.memberPrice)) add('memberPrice', 'warn', '会员价格式应为「项目:打折,9.9」');
+      return out;
+    }
+
+    // price
+    if (!f.name) add('name', 'error', '项目名为空');
+    else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名项目，导入会跳过后者');
+    if (f.price === '' || f.price === null || f.price === undefined) add('price', 'error', '价格为空');
+    else if (parseMoney(f.price) === null) add('price', 'error', '价格无法解析');
+    else if (parseMoney(f.price) < 0) add('price', 'error', '价格不能为负');
+    if (!f.group) add('group', 'warn', '项目组为空，将作为自定义新增');
+    if (f.duration && !/^\d+$/.test(f.duration)) add('duration', 'error', '服务时长填分钟数');
+    if (f.bookable && f.bookable !== '是' && f.bookable !== '否') add('bookable', 'warn', '可开单填「是 / 否」，按「是」处理');
+    if (f.top && f.top !== '是' && f.top !== '否') add('top', 'warn', '置顶填「是 / 否」，按「否」处理');
+    return out;
+  }
+
+  function recomputeCheck(cat) {
+    var rows = checkRows(cat);
+    var ctx = checkCtx(cat, rows);
+    rows.forEach(function (r) { r.problems = checkProblems(cat, r, ctx); });
+  }
+
+  function checkStats(cat) {
+    var rows = checkRows(cat);
+    var st = { total: rows.length, ok: 0, warn: 0, error: 0, ignored: 0, importable: 0 };
+    rows.forEach(function (r) {
+      if (r.ignored) { st.ignored += 1; return; }
+      if (rowHasLevel(r, 'error')) st.error += 1;
+      else if (rowHasLevel(r, 'warn')) st.warn += 1;
+      else st.ok += 1;
+    });
+    st.importable = st.total - st.ignored - st.error;
+    return st;
+  }
+
+  function checkAllStats() {
+    var all = { total: 0, ok: 0, warn: 0, error: 0, ignored: 0, importable: 0 };
+    checkCats().forEach(function (k) {
+      var st = checkStats(k);
+      all.total += st.total;
+      all.ok += st.ok;
+      all.warn += st.warn;
+      all.error += st.error;
+      all.ignored += st.ignored;
+      all.importable += st.importable;
+    });
+    return all;
+  }
+
+  /* --- 概览渲染 --- */
+
+  function checkFieldOpts(field, row) {
+    if (field.dynamic === 'cards') {
+      var names = CHECK_CARD_NAMES.slice();
+      var cur = row.f.cardName || '';
+      if (cur && names.indexOf(cur) === -1) names.unshift(cur);
+      return names.map(function (n) { return { v: n, label: n }; });
+    }
+    return field.opts || [];
+  }
+
+  function checkFieldHtml(cat, row, field) {
+    var val = row.f[field.key] === null || row.f[field.key] === undefined ? '' : row.f[field.key];
+    var prob = null;
+    (row.problems || []).forEach(function (p) { if (p.field === field.key && !prob) prob = p; });
+    var cls = 'check-field' + (field.wide ? ' is-wide' : '') +
+      (prob ? (prob.level === 'error' ? ' is-error' : ' is-warn') : '');
+    var input;
+    if (field.type === 'select') {
+      var opts = checkFieldOpts(field, row);
+      var found = opts.some(function (o) { return o.v === val; });
+      input = '<select data-check-field="' + field.key + '">' +
+        (val === '' ? '<option value="" selected>请选择</option>' : '') +
+        (!found && val !== '' ? '<option value="' + escHtml(val) + '" selected>' + escHtml(val) + '</option>' : '') +
+        opts.map(function (o) {
+          return '<option value="' + escHtml(o.v) + '"' + (o.v === val ? ' selected' : '') + '>' + escHtml(o.label) + '</option>';
+        }).join('') +
+      '</select>';
+    } else {
+      var mode = field.type === 'money' ? 'decimal' : (field.type === 'number' ? 'numeric' : 'text');
+      input = '<input type="text" inputmode="' + mode + '" data-check-field="' + field.key + '"' +
+        ' value="' + escHtml(val) + '" placeholder="' + escHtml(field.ph || '') + '" autocomplete="off">';
+    }
+    return '<label class="' + cls + '">' +
+      '<span class="check-field__label">' + escHtml(field.label) + (field.req ? '<i>必填</i>' : '') + '</span>' +
+      input +
+      (prob ? '<em class="check-field__msg">' + escHtml(prob.msg) + '</em>' : '') +
+    '</label>';
+  }
+
+  function checkEditorHtml(cat, row) {
+    var fields = CHECK_FIELDS[cat] || [];
+    var main = fields.filter(function (f) { return !f.more; });
+    var more = fields.filter(function (f) { return f.more; });
+    return '<div class="check-editor">' +
+      '<div class="check-editor__grid">' + main.map(function (f) { return checkFieldHtml(cat, row, f); }).join('') + '</div>' +
+      (more.length
+        ? '<details class="check-editor__more"><summary>更多字段（' + more.length + '）</summary>' +
+          '<div class="check-editor__grid">' + more.map(function (f) { return checkFieldHtml(cat, row, f); }).join('') + '</div></details>'
+        : '') +
+      '<div class="check-editor__acts">' +
+        '<button type="button" class="check-editor__save" data-check-save="' + row.id + '">保存</button>' +
+        '<button type="button" class="check-editor__ghost" data-check-ignore="' + row.id + '">' + (row.ignored ? '取消忽略' : '忽略此行') + '</button>' +
+        '<button type="button" class="check-editor__del" data-check-del="' + row.id + '">删除</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function checkRowTitle(cat, row) {
+    var f = row.f || {};
+    if (cat === 'member') return f.name || '未填姓名';
+    if (cat === 'card') return f.name || '未命名卡';
+    return f.name || '未命名项目';
+  }
+
+  function checkRowSub(cat, row) {
+    var f = row.f || {};
+    if (cat === 'member') return [f.memberNo, f.cardNo, f.phone, f.cardName].filter(Boolean).join(' · ');
+    if (cat === 'card') return [f.type, f.price ? '¥' + f.price : '', f.validity ? f.validity + ' 个月' : '永久', f.scope].filter(Boolean).join(' · ');
+    return [f.group, f.price ? '¥' + f.price : '', f.duration ? f.duration + ' 分钟' : ''].filter(Boolean).join(' · ');
+  }
+
+  function checkRowTag(cat, row) {
+    var f = row.f || {};
+    if (cat === 'member') return f.cardType || '';
+    if (cat === 'card') return f.type || '';
+    return f.bookable === '否' ? '不可开单' : '可开单';
+  }
+
+  function checkRowHtml(cat, row) {
+    var lvl = row.ignored ? 'ignored' : (rowHasLevel(row, 'error') ? 'error' : (rowIssues(row).length ? 'warn' : 'ok'));
+    var issues = rowIssues(row);
+    var issue = issues.length
+      ? '<span class="check-row__issue">' + escHtml(issues[0].msg) + (issues.length > 1 ? ' 等 ' + issues.length + ' 处' : '') + '</span>'
+      : '';
+    var ai = (row.aiFields && row.aiFields.length) ? '<i class="check-tag is-ai">AI 推断</i>' : '';
+    var tag = checkRowTag(cat, row);
+    var open = state.checkOpen === row.id;
+    var initial = checkRowTitle(cat, row).charAt(0) || '?';
+    return '<div class="check-row is-' + lvl + (open ? ' is-open' : '') + '" id="checkRow-' + row.id + '" data-check-row="' + row.id + '">' +
+      '<button type="button" class="check-row__main" data-check-open="' + row.id + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+        '<span class="check-row__avatar" aria-hidden="true">' + escHtml(initial) + '</span>' +
+        '<span class="check-row__body">' +
+          '<span class="check-row__line1"><b>' + escHtml(checkRowTitle(cat, row)) + '</b>' +
+            (tag ? '<i class="check-tag">' + escHtml(tag) + '</i>' : '') + ai +
+          '</span>' +
+          '<span class="check-row__line2">' + escHtml(checkRowSub(cat, row)) + '</span>' +
+          issue +
+        '</span>' +
+        '<span class="check-row__state">' + CHECK_LV_LABEL[lvl] + '</span>' +
+      '</button>' +
+      (open ? checkEditorHtml(cat, row) : '') +
+    '</div>';
+  }
+
+  function checkVisibleRows() {
+    var rows = checkRows(state.checkTab).slice();
+    if (state.checkFilter === 'issue') {
+      rows = rows.filter(function (r) { return !r.ignored && rowIssues(r).length > 0; });
+    } else if (state.checkFilter === 'ignored') {
+      rows = rows.filter(function (r) { return !!r.ignored; });
+    }
+    var q = (state.checkQuery || '').trim().toLowerCase();
+    if (q) {
+      rows = rows.filter(function (r) {
+        var f = r.f || {};
+        return [f.name, f.phone, f.cardNo, f.memberNo, f.cardName, f.group, f.type].join(' ').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    return rows;
+  }
+
+  function checkProblemRows(cat) {
+    return checkRows(cat).filter(function (r) { return !r.ignored && rowIssues(r).length > 0; });
+  }
+
+  function scrollCheckRow(id) {
+    var el = document.getElementById('checkRow-' + id);
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
+  }
+
+  function renderCheckStats() {
+    var cats = checkCats();
+    var all = checkAllStats();
+    var pct = all.total ? Math.round(all.importable / all.total * 100) : 0;
+
+    var totalEl = $('#checkTotal');
+    if (totalEl) totalEl.textContent = all.total.toLocaleString('zh-CN');
+    var catsEl = $('#checkCats');
+    if (catsEl) {
+      catsEl.textContent = cats.length + ' 类' + (all.ignored ? ' · 已忽略 ' + all.ignored.toLocaleString('zh-CN') : '');
+    }
+    var okEl = $('#checkOk');
+    if (okEl) okEl.textContent = all.ok.toLocaleString('zh-CN');
+    var warnEl = $('#checkWarn');
+    if (warnEl) warnEl.textContent = all.warn.toLocaleString('zh-CN');
+    var errEl = $('#checkErr');
+    if (errEl) errEl.textContent = all.error.toLocaleString('zh-CN');
+    var pctEl = $('#checkDonutPct');
+    if (pctEl) pctEl.textContent = pct + '%';
+    var donut = $('#checkDonut');
+    if (donut) donut.style.background = 'conic-gradient(#F32F41 0% ' + pct + '%, #F0E9E9 ' + pct + '% 100%)';
+
+    var bars = $('#checkBars');
+    if (bars) {
+      var maxN = 1;
+      cats.forEach(function (k) { maxN = Math.max(maxN, checkStats(k).total); });
+      bars.innerHTML = cats.map(function (k) {
+        var st = checkStats(k);
+        var issues = st.error + st.warn;
+        return '<button type="button" class="check-bar' + (k === state.checkTab ? ' is-on' : '') + '" data-check-tab-jump="' + k + '">' +
+          '<span class="check-bar__label">' + IMPORT_CAT_SHORT[k] + '</span>' +
+          '<span class="check-bar__track"><i class="is-' + k + '" style="width:' + Math.round(st.total / maxN * 100) + '%"></i></span>' +
+          '<span class="check-bar__val">' + st.total.toLocaleString('zh-CN') + '</span>' +
+          (issues ? '<span class="check-bar__badge">' + issues + ' 处</span>' : '<span class="check-bar__badge is-ok">✓</span>') +
+        '</button>';
+      }).join('');
+    }
+
+    var tabs = $('#checkTabs');
+    if (tabs) {
+      tabs.innerHTML = cats.map(function (k) {
+        var st = checkStats(k);
+        var on = k === state.checkTab;
+        return '<button type="button" class="check-tab' + (on ? ' is-on' : '') + '" role="tab" aria-selected="' + (on ? 'true' : 'false') + '" data-check-tab="' + k + '">' +
+          '<b>' + IMPORT_CAT_SHORT[k] + '</b>' +
+          '<span>' + st.total.toLocaleString('zh-CN') + ' ' + CHECK_UNIT[k] +
+            (st.error + st.warn ? '<i>' + (st.error + st.warn) + '</i>' : '') +
+          '</span>' +
+        '</button>';
+      }).join('');
+      tabs.style.gridTemplateColumns = 'repeat(' + Math.max(cats.length, 1) + ', minmax(0, 1fr))';
+    }
+
+    var chips = $('#checkChips');
+    if (chips) {
+      var st = checkStats(state.checkTab);
+      var issueN = st.error + st.warn;
+      var defs = [
+        { k: 'all', label: '全部', n: st.total },
+        { k: 'issue', label: '只看问题', n: issueN },
+        { k: 'ignored', label: '已忽略', n: st.ignored }
+      ];
+      chips.innerHTML = defs.map(function (d) {
+        return '<button type="button" class="check-chip' + (state.checkFilter === d.k ? ' is-on' : '') + '" data-check-filter="' + d.k + '">' +
+          d.label + '<i>' + d.n + '</i></button>';
+      }).join('');
+    }
+
+    var nav = $('#checkProbNav');
+    var probs = checkProblemRows(state.checkTab);
+    if (nav) {
+      nav.classList.toggle('hidden', probs.length === 0);
+      if (probs.length) {
+        if (state.checkProbIdx >= probs.length) state.checkProbIdx = 0;
+        var txt = $('#checkProbText');
+        if (txt) txt.textContent = '第 ' + (state.checkProbIdx + 1) + ' / ' + probs.length + ' 个问题';
+      }
+    }
+  }
+
+  function renderCheckList() {
+    var host = $('#checkList');
+    if (!host) return;
+    var rows = checkVisibleRows();
+    var limit = state.checkFilter === 'issue' || state.checkFilter === 'ignored' ? 999 : state.checkLimit;
+    var shown = rows.slice(0, limit);
+
+    host.innerHTML = shown.map(function (r) { return checkRowHtml(state.checkTab, r); }).join('');
+
+    var more = $('#btnCheckMore');
+    if (more) {
+      var rest = rows.length - shown.length;
+      more.classList.toggle('hidden', rest <= 0);
+      more.textContent = rest > 0 ? '加载更多（还有 ' + rest + ' 行）' : '加载更多';
+    }
+    var empty = $('#checkEmpty');
+    if (empty) empty.classList.toggle('hidden', rows.length > 0);
+
+    var clear = $('#btnCheckSearchClear');
+    if (clear) clear.classList.toggle('hidden', !state.checkQuery);
+  }
+
+  function renderCheck() {
+    ensureCheckData();
+    var cats = checkCats();
+    if (cats.indexOf(state.checkTab) === -1) state.checkTab = cats[0] || 'member';
+    var input = $('#checkSearch');
+    if (input && input.value !== state.checkQuery) input.value = state.checkQuery;
+    renderCheckStats();
+    renderCheckList();
+  }
+
+  function saveCheckRow(cat, id) {
+    var row = checkFindRow(cat, id);
+    if (!row) return;
+    var wrap = document.getElementById('checkRow-' + id);
+    if (wrap) {
+      $all('[data-check-field]', wrap).forEach(function (el) {
+        var key = el.getAttribute('data-check-field');
+        row.f[key] = String(el.value || '').trim();
+        if (row.aiFields && row.aiFields.length) {
+          row.aiFields = row.aiFields.filter(function (k) { return k !== key; });
+        }
+      });
+    }
+    if (row.isNew) delete row.isNew;
+    if (row.f.name === undefined) row.f.name = '';
+    recomputeCheck(cat);
+    state.checkOpen = id;
+    renderCheckStats();
+    renderCheckList();
+    showToast('已保存，问题标记已更新');
+  }
+
+  function toggleCheckIgnore(cat, id) {
+    var row = checkFindRow(cat, id);
+    if (!row) return;
+    row.ignored = !row.ignored;
+    recomputeCheck(cat);
+    state.checkOpen = id;
+    renderCheckStats();
+    renderCheckList();
+    showToast(row.ignored ? '已忽略此行，不会计入传输' : '已恢复此行');
+  }
+
+  function deleteCheckRow(cat, id) {
+    if (!state.checkData || !state.checkData[cat]) return;
+    state.checkData[cat] = checkRows(cat).filter(function (r) { return r.id !== id; });
+    recomputeCheck(cat);
+    state.checkOpen = null;
+    renderCheckStats();
+    renderCheckList();
+    showToast('已删除这一行');
+  }
+
+  function addCheckRow() {
+    var cat = state.checkTab;
+    var row = {
+      id: cat + '-new-' + Date.now(),
+      f: {},
+      problems: [],
+      ignored: false,
+      isNew: true,
+      aiFields: []
+    };
+    if (cat === 'member') {
+      row.f.cardType = '储值卡';
+      row.f.cardName = CHECK_CARD_NAMES[0];
+      row.f.gender = '女';
+      row.f.expiry = '永久';
+      row.f.channel = '1';
+    } else if (cat === 'card') {
+      row.f.type = '储值卡';
+    } else {
+      row.f.bookable = '是';
+      row.f.top = '否';
+    }
+    if (!state.checkData) state.checkData = {};
+    if (!state.checkData[cat]) state.checkData[cat] = [];
+    state.checkData[cat].unshift(row);
+    state.checkOpen = row.id;
+    state.checkFilter = 'all';
+    state.checkQuery = '';
+    state.checkLimit = Math.max(state.checkLimit, 24);
+    recomputeCheck(cat);
+    var input = $('#checkSearch');
+    if (input) input.value = '';
+    renderCheckStats();
+    renderCheckList();
+    setTimeout(function () { scrollCheckRow(row.id); }, 40);
+  }
+
+  function jumpCheckProblem(dir) {
+    var cat = state.checkTab;
+    var list = checkProblemRows(cat);
+    if (!list.length) {
+      showToast('当前类别没有待处理问题');
+      return;
+    }
+    if (state.checkFilter !== 'issue') {
+      state.checkFilter = 'issue';
+      state.checkProbIdx = 0;
+    }
+    if (dir === 'next') state.checkProbIdx = (state.checkProbIdx + 1) % list.length;
+    else if (dir === 'prev') state.checkProbIdx = (state.checkProbIdx - 1 + list.length) % list.length;
+    else state.checkProbIdx = 0;
+    var row = list[state.checkProbIdx];
+    state.checkOpen = row.id;
+    renderCheckStats();
+    renderCheckList();
+    setTimeout(function () { scrollCheckRow(row.id); }, 40);
+  }
+
+  /* --- 标准表转换 --- */
+
+  function resetConvertUI() {
+    var next = $('#btnConvertNext');
+    if (next) { next.disabled = true; next.textContent = '转换中…'; }
+    var title = $('#convertTitle');
+    if (title) title.textContent = '正在把表格转成标准模板';
+    var lead = $('#convertLead');
+    if (lead) lead.textContent = '任意列名、多 sheet、合并单元格都能转；照片在后台转好，不单独展示。';
+    var host = $('#convertResult');
+    if (host) { host.innerHTML = ''; host.classList.add('hidden'); }
+    var orbit = $('#convertOrbit');
+    if (orbit) orbit.classList.remove('is-done');
+    $all('[data-conv-step]').forEach(function (el) { el.classList.remove('is-on', 'is-done'); });
+  }
+
+  function runConversion() {
+    if (state.convertRunning) return;
+    if (state.convertDone) {
+      renderConvertResult();
+      return;
+    }
+    state.convertRunning = true;
+    resetConvertUI();
+    var steps = $all('[data-conv-step]');
+    // 第一步立即点亮，避免开场 0.4s 四步全灭的空档
+    if (steps[0]) steps[0].classList.add('is-on');
+    var timers = [];
+    [420, 960, 1500, 2020].forEach(function (ms, i) {
+      timers.push(setTimeout(function () {
+        steps.forEach(function (el, j) {
+          el.classList.toggle('is-on', j === i);
+          el.classList.toggle('is-done', j < i);
+        });
+      }, ms));
+    });
+    timers.push(setTimeout(function () {
+      state.convertRunning = false;
+      state.convertDone = true;
+      state.convertTimers = [];
+      steps.forEach(function (el) { el.classList.remove('is-on'); el.classList.add('is-done'); });
+      var orbit = $('#convertOrbit');
+      if (orbit) orbit.classList.add('is-done');
+      var title = $('#convertTitle');
+      if (title) title.textContent = '已转成官方标准模板';
+      var lead = $('#convertLead');
+      if (lead) lead.textContent = '原表不改；未识别的字段已标成「待补充 / 建议确认」，进概览逐行核对。';
+      ensureCheckData();
+      renderConvertResult();
+      var all = checkAllStats();
+      var next = $('#btnConvertNext');
+      if (next) {
+        next.disabled = false;
+        next.textContent = all.importable ? '去核对 ' + all.importable.toLocaleString('zh-CN') + ' 行' : '去核对数据';
+      }
+    }, 2480));
+    state.convertTimers = timers;
+  }
+
+  function renderConvertResult() {
+    var host = $('#convertResult');
+    if (!host) return;
+    var cats = checkCats();
+    var cards = cats.map(function (k) {
+      var st = checkStats(k);
+      var issues = st.error + st.warn;
+      var cls = st.error ? 'is-warn' : (st.warn ? 'is-warn' : 'is-ok');
+      var pill = st.error ? (st.error + ' 行需修正') : (st.warn ? (st.warn + ' 行建议确认') : '已对齐标准模板');
+      var okPct = st.total ? Math.round((st.total - st.error - st.ignored) / st.total * 100) : 100;
+      return '<div class="conv-card ' + cls + '">' +
+        '<div class="conv-card__head">' +
+          '<span class="conv-card__ico" aria-hidden="true">' + (CAT_ICO[k] || '') + '</span>' +
+          '<span class="conv-card__name">' + IMPORT_CAT[k] + '</span>' +
+          '<span class="conv-card__pill ' + cls + '">' + pill + '</span>' +
+        '</div>' +
+        '<p class="conv-card__meta">' + st.total.toLocaleString('zh-CN') + ' ' + CHECK_UNIT[k] + ' · 已按官方模板对齐 · ' +
+          (issues ? '进概览可逐行改' : '无需处理') + '</p>' +
+        '<div class="conv-card__bar"><i style="width:' + okPct + '%"></i></div>' +
+      '</div>';
+    }).join('');
+
+    var photoCats = collectPlan().photo;
+    var photoNote = photoCats.length
+      ? '<p class="conv-photo-note">拍照 ' + photoCats.reduce(function (s, k) { return s + state.importPhotos[k].length; }, 0) +
+        ' 张已在后台转成标准表，转换过程不在页面展开。</p>'
+      : '';
+
+    host.innerHTML = cards + photoNote +
+      '<div class="conv-fallback">' +
+        '<div class="conv-fallback__title"><b>转换不完整？数据不会丢</b><span>兜底</span></div>' +
+        '<p>AI 尽力转，个别列或整表识别不了时：</p>' +
+        '<div class="conv-fallback__acts">' +
+          '<button type="button" data-conv-act="tpl"><b>下载标准模板</b><span>按模板重填后重传</span></button>' +
+          '<button type="button" data-conv-act="reupload"><b>重新上传</b><span>换个文件再转一次</span></button>' +
+          '<button type="button" data-conv-act="manual"><b>提交人工代导</b><span>运营代整理（演示占位）</span></button>' +
+        '</div>' +
+        '<p class="conv-fallback__note">也可以直接在数据概览里逐格改，或把整行忽略。</p>' +
+      '</div>';
+    host.classList.remove('hidden');
+  }
+
+  /* --- 仪式感：校验 → 封存 → 传输 --- */
+
+  function ceremonyDateFormat() {
+    var d = new Date();
+    return String(d.getFullYear()) + padNum(d.getMonth() + 1, 2) + padNum(d.getDate(), 2);
+  }
+
+  function hideCeremony() {
+    var box = $('#ceremony');
+    if (box) {
+      box.classList.add('hidden');
+      box.setAttribute('aria-hidden', 'true');
+    }
+    state.ceremonyRunning = false;
+  }
+
+  function openCheckCeremony() {
+    if (state.ceremonyRunning) return;
+    if (!state.checkData) ensureCheckData();
+    var blocking = [];
+    checkCats().forEach(function (cat) {
+      checkRows(cat).forEach(function (r) {
+        if (!r.ignored && rowHasLevel(r, 'error')) blocking.push({ cat: cat, row: r });
+      });
+    });
+    if (blocking.length) {
+      var b = blocking[0];
+      state.checkTab = b.cat;
+      state.checkFilter = 'issue';
+      state.checkProbIdx = 0;
+      state.checkOpen = b.row.id;
+      renderCheckStats();
+      renderCheckList();
+      setTimeout(function () { scrollCheckRow(b.row.id); }, 40);
+      showToast('还有 ' + blocking.length + ' 行需修正，已跳到第一处');
+      return;
+    }
+
+    var counts = {};
+    var total = 0;
+    checkCats().forEach(function (k) {
+      var n = checkStats(k).importable;
+      counts[k] = n;
+      total += n;
+    });
+    if (!total) {
+      showToast('没有可传输的数据');
+      return;
+    }
+
+    state.ceremonyRunning = true;
+    state.ceremonyCounts = counts;
+    state.ceremonyCode = 'RTB-' + ceremonyDateFormat() + '-' + padNum(Math.floor(Math.random() * 9000) + 1000, 4);
+
+    var box = $('#ceremony');
+    if (!box) return;
+    box.classList.remove('hidden');
+    box.setAttribute('aria-hidden', 'false');
+    var done = $('#ceremonyDone');
+    if (done) done.classList.add('hidden');
+    var seal = $('#ceremonySeal');
+    if (seal) seal.classList.remove('is-on', 'is-done');
+    var title = $('#ceremonyTitle');
+    if (title) title.textContent = '正在校验本批数据';
+    var eyebrow = $('#ceremonyEyebrow');
+    if (eyebrow) eyebrow.textContent = '确认传输';
+
+    $all('[data-cer-step]').forEach(function (el) { el.classList.remove('is-on', 'is-done'); });
+    var lis = $all('[data-cer-step]');
+    var labels = [
+      { t: '正在逐行校验', s: '必填 / 格式 / 卡名称' },
+      { t: '校验通过，正在封存', s: '生成本次传输编号' },
+      { t: '封存完成，正在写入本店', s: '会员 / 卡模板 / 价目' }
+    ];
+    var timers = [];
+    [0, 780, 1560].forEach(function (ms, i) {
+      timers.push(setTimeout(function () {
+        lis.forEach(function (el, j) {
+          el.classList.toggle('is-on', j === i);
+          el.classList.toggle('is-done', j < i);
+        });
+        if (title) title.textContent = labels[i].t;
+        if (seal) seal.classList.toggle('is-on', i === 1);
+      }, ms));
+    });
+
+    timers.push(setTimeout(function () {
+      lis.forEach(function (el) { el.classList.remove('is-on'); el.classList.add('is-done'); });
+      var sealEl = $('#ceremonySeal');
+      if (sealEl) sealEl.classList.add('is-done');
+      var eyebrowEl = $('#ceremonyEyebrow');
+      if (eyebrowEl) eyebrowEl.textContent = '已封存';
+      var titleEl = $('#ceremonyTitle');
+      if (titleEl) titleEl.textContent = '本批已封存';
+      var doneEl = $('#ceremonyDone');
+      if (doneEl) doneEl.classList.remove('hidden');
+      var dt = $('#ceremonyDoneTitle');
+      if (dt) dt.textContent = '已封存并传输 ' + total.toLocaleString('zh-CN') + ' 条';
+      var ds = $('#ceremonyDoneSub');
+      if (ds) {
+        ds.textContent = checkCats().map(function (k) {
+          return IMPORT_CAT_SHORT[k] + ' ' + counts[k].toLocaleString('zh-CN');
+        }).join(' · ');
+      }
+      var code = $('#ceremonyCode');
+      if (code) code.textContent = state.ceremonyCode;
+      state.pendingStockApply = true;
+    }, 2380));
+    state.ceremonyTimers = timers;
+  }
+
+  /* --- 微信「文件传输助手」引导 --- */
+
+  function wechatTipMuted() {
+    try { return localStorage.getItem('rtb_wechat_tip_muted') === '1'; } catch (e) { return false; }
+  }
+
+  function showWechatTip() {
+    var mask = $('#wechatTipMask');
+    var tip = $('#wechatTip');
+    if (!mask || !tip) return;
+    mask.classList.add('show');
+    tip.classList.add('show');
+    tip.setAttribute('aria-hidden', 'false');
+    mask.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideWechatTip() {
+    var mask = $('#wechatTipMask');
+    var tip = $('#wechatTip');
+    if (mask) mask.classList.remove('show');
+    if (tip) {
+      tip.classList.remove('show');
+      tip.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function maybeShowWechatTip() {
+    if (state.wechatTipShown) return;
+    state.wechatTipShown = true;
+    if (document.documentElement.classList.contains('capture-mode')) return;
+    if (wechatTipMuted()) return;
+    setTimeout(showWechatTip, 360);
+  }
+
+  function openTplSheet() {
+    var mask = $('#tplMask');
+    var sheet = $('#tplSheet');
+    if (mask) mask.classList.add('show');
+    if (sheet) sheet.classList.add('show');
+  }
+
+  function hideTplSheet() {
+    var mask = $('#tplMask');
+    var sheet = $('#tplSheet');
+    if (mask) mask.classList.remove('show');
+    if (sheet) sheet.classList.remove('show');
+  }
+
+  function openCheckHelp() {
+    var mask = $('#checkHelpMask');
+    var sheet = $('#checkHelpSheet');
+    if (mask) mask.classList.add('show');
+    if (sheet) sheet.classList.add('show');
+  }
+
+  function hideCheckHelp() {
+    var mask = $('#checkHelpMask');
+    var sheet = $('#checkHelpSheet');
+    if (mask) mask.classList.remove('show');
+    if (sheet) sheet.classList.remove('show');
+  }
+
+  function batchCount(k) {
+    if (state.checkData && checkRows(k).length) return checkStats(k).importable;
+    return BATCH_DEMO[k];
   }
 
   /* ===== 历史订单（只读旁路） ===== */
@@ -3953,6 +4961,170 @@
     if (failCancel) failCancel.addEventListener('click', hideFailFix);
     var failMask = $('#failFixMask');
     if (failMask) failMask.addEventListener('click', hideFailFix);
+
+    /* ---- v2.0 转换 / 概览 / 仪式 / 微信引导 ---- */
+
+    var convertResult = $('#convertResult');
+    if (convertResult) {
+      convertResult.addEventListener('click', function (e) {
+        var act = e.target.closest('[data-conv-act]');
+        if (!act) return;
+        var kind = act.getAttribute('data-conv-act');
+        if (kind === 'tpl') openTplSheet();
+        else if (kind === 'reupload') {
+          state.convertDone = false;
+          go('import-source');
+        } else if (kind === 'manual') {
+          showToast('已记录，运营会在 1 个工作日内联系（演示占位）');
+        }
+      });
+    }
+
+    var convertNext = $('#btnConvertNext');
+    if (convertNext) {
+      convertNext.addEventListener('click', function () {
+        if (convertNext.disabled) return;
+        go('import-check');
+      });
+    }
+    var convertBack = $('#btnConvertBack');
+    if (convertBack) convertBack.addEventListener('click', function () { go('import-queue'); });
+    var convertReupload = $('#btnConvertReupload');
+    if (convertReupload) {
+      convertReupload.addEventListener('click', function () {
+        state.convertDone = false;
+        go('import-source');
+      });
+    }
+
+    var checkScreen = $('#screen-import-check');
+    if (checkScreen) {
+      checkScreen.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-check-tab]') || e.target.closest('[data-check-tab-jump]');
+        if (tab) {
+          var nextTab = tab.getAttribute('data-check-tab') || tab.getAttribute('data-check-tab-jump');
+          if (nextTab && nextTab !== state.checkTab) {
+            state.checkTab = nextTab;
+            state.checkFilter = 'all';
+            state.checkQuery = '';
+            state.checkLimit = 24;
+            state.checkOpen = null;
+            state.checkProbIdx = 0;
+            var inp = $('#checkSearch');
+            if (inp) inp.value = '';
+            renderCheck();
+          }
+          return;
+        }
+        var chip = e.target.closest('[data-check-filter]');
+        if (chip) {
+          state.checkFilter = chip.getAttribute('data-check-filter');
+          state.checkOpen = null;
+          state.checkProbIdx = 0;
+          renderCheckStats();
+          renderCheckList();
+          return;
+        }
+        var openBtn = e.target.closest('[data-check-open]');
+        if (openBtn) {
+          var oid = openBtn.getAttribute('data-check-open');
+          state.checkOpen = state.checkOpen === oid ? null : oid;
+          renderCheckStats();
+          renderCheckList();
+          return;
+        }
+        var saveBtn = e.target.closest('[data-check-save]');
+        if (saveBtn) {
+          saveCheckRow(state.checkTab, saveBtn.getAttribute('data-check-save'));
+          return;
+        }
+        var ignoreBtn = e.target.closest('[data-check-ignore]');
+        if (ignoreBtn) {
+          toggleCheckIgnore(state.checkTab, ignoreBtn.getAttribute('data-check-ignore'));
+          return;
+        }
+        var delBtn = e.target.closest('[data-check-del]');
+        if (delBtn) {
+          deleteCheckRow(state.checkTab, delBtn.getAttribute('data-check-del'));
+          return;
+        }
+        var probBtn = e.target.closest('[data-check-prob]');
+        if (probBtn) {
+          jumpCheckProblem(probBtn.getAttribute('data-check-prob'));
+        }
+      });
+    }
+
+    var checkBack = $('#btnCheckBack');
+    if (checkBack) checkBack.addEventListener('click', function () { go('import-convert'); });
+    var checkAdd = $('#btnCheckAdd');
+    if (checkAdd) checkAdd.addEventListener('click', addCheckRow);
+    var checkMore = $('#btnCheckMore');
+    if (checkMore) {
+      checkMore.addEventListener('click', function () {
+        state.checkLimit += 24;
+        renderCheckList();
+      });
+    }
+    var checkSearch = $('#checkSearch');
+    if (checkSearch) {
+      checkSearch.addEventListener('input', function () {
+        state.checkQuery = checkSearch.value;
+        state.checkOpen = null;
+        renderCheckList();
+      });
+    }
+    var checkSearchClear = $('#btnCheckSearchClear');
+    if (checkSearchClear) {
+      checkSearchClear.addEventListener('click', function () {
+        state.checkQuery = '';
+        if (checkSearch) { checkSearch.value = ''; checkSearch.focus(); }
+        renderCheckList();
+      });
+    }
+    var checkSubmit = $('#btnCheckSubmit');
+    if (checkSubmit) checkSubmit.addEventListener('click', openCheckCeremony);
+
+    var checkHelp = $('#btnCheckHelp');
+    if (checkHelp) checkHelp.addEventListener('click', openCheckHelp);
+    var checkHelpClose = $('#btnCheckHelpClose');
+    if (checkHelpClose) checkHelpClose.addEventListener('click', hideCheckHelp);
+    var checkHelpMask = $('#checkHelpMask');
+    if (checkHelpMask) checkHelpMask.addEventListener('click', hideCheckHelp);
+
+    var ceremonyDone = $('#btnCeremonyDone');
+    if (ceremonyDone) {
+      ceremonyDone.addEventListener('click', function () {
+        hideCeremony();
+        go('import-result');
+      });
+    }
+
+    var wechatHow = $('#btnWechatHow');
+    if (wechatHow) wechatHow.addEventListener('click', showWechatTip);
+    var wechatTipOk = $('#btnWechatTipOk');
+    if (wechatTipOk) {
+      wechatTipOk.addEventListener('click', function () {
+        var mute = $('#wechatTipMute');
+        if (mute && mute.checked) {
+          try { localStorage.setItem('rtb_wechat_tip_muted', '1'); } catch (err) { /* 忽略 */ }
+        }
+        var from = state.flow;
+        hideWechatTip();
+        if (from === 'import-guide') go('import-select');
+      });
+    }
+    var wechatTipClose = $('#btnWechatTipClose');
+    if (wechatTipClose) wechatTipClose.addEventListener('click', hideWechatTip);
+    var wechatTipMask = $('#wechatTipMask');
+    if (wechatTipMask) wechatTipMask.addEventListener('click', hideWechatTip);
+
+    var tplDownload = $('#btnTplDownload');
+    if (tplDownload) tplDownload.addEventListener('click', openTplSheet);
+    var tplClose = $('#btnTplClose');
+    if (tplClose) tplClose.addEventListener('click', hideTplSheet);
+    var tplMask = $('#tplMask');
+    if (tplMask) tplMask.addEventListener('click', hideTplSheet);
 
     bindLegacyCard();
 

@@ -37,10 +37,8 @@
     <button type="button" class="nav-item" data-flow="import-source"><span class="idx">II</span>上传表格</button>
     <button type="button" class="nav-item" data-flow="import-camera"><span class="idx">📷</span>拍照演示</button>
     <button type="button" class="nav-item" data-flow="import-queue"><span class="idx">III</span>待识别内容</button>
-    <button type="button" class="nav-item" data-flow="import-map"><span class="idx">IV</span>映射确认</button>
-    <button type="button" class="nav-item" data-flow="import-tpl-gen"><span class="idx">IV·</span>确认卡模板</button>
-    <button type="button" class="nav-item" data-flow="import-preview"><span class="idx">V</span>核对数据</button>
-    <button type="button" class="nav-item" data-flow="import-preview-detail"><span class="idx">V·</span>预览明细</button>
+    <button type="button" class="nav-item" data-flow="import-convert"><span class="idx">转</span>标准表转换</button>
+    <button type="button" class="nav-item" data-flow="import-check"><span class="idx">核</span>数据概览</button>
     <button type="button" class="nav-item" data-flow="import-result"><span class="idx">VI</span>导入结果</button>
     <button type="button" class="nav-item" data-flow="import-fail"><span class="idx">VII</span>失败明细</button>
     <button type="button" class="nav-item" data-flow="legacy-card"><span class="idx">C</span>添加卡</button>
@@ -592,15 +590,15 @@
             <li class="guide-step">
               <span class="guide-step__num" aria-hidden="true">3</span>
               <span class="guide-step__body">
-                <b>确认字段对应</b>
-                <span>核对列名，逐类确认</span>
+                <b>AI 转成标准表</b>
+                <span>乱表头、多 sheet 都能转</span>
               </span>
             </li>
             <li class="guide-step">
               <span class="guide-step__num" aria-hidden="true">4</span>
               <span class="guide-step__body">
-                <b>核对并导入</b>
-                <span>抽查无误后导入</span>
+                <b>概览核对后传输</b>
+                <span>问题行就地改，确认后封存入库</span>
               </span>
             </li>
           </ol>
@@ -609,7 +607,7 @@
             <div class="guide-notes__title">开始前请注意</div>
             <ul>
               <li>卡模板与价目表要<strong>同批导入</strong>，但请<strong>分成两个表</strong>分别上传</li>
-              <li>同类最多 3 个 Excel，共用一套字段映射</li>
+              <li>同类最多 3 个 Excel，AI 会合并后一起转成标准表</li>
               <li>历史消费<strong>单独导入</strong>，不进订单流水</li>
             </ul>
           </div>
@@ -678,7 +676,7 @@
               </button>
             </div>
             <div class="import-card__thumbs hidden" id="thumbs-card" data-thumbs-for="card"></div>
-            <p class="import-card__dep" id="depCard">需与价目表同批导入，但要分成两个表分别上传</p>
+            <p class="import-card__dep" id="depCard">需与价目表同批导入；卡名称店内不存在会标为待修正</p>
           </div>
           <div class="import-card on" data-import-card="price">
             <button type="button" class="import-card__main" data-import-check="price">
@@ -725,17 +723,30 @@
           </div>
           <div class="up-steps" id="uploadSteps"></div>
           <div class="upload-list" id="importUploadList"></div>
-          <div class="hdr-card" id="hdrCard">
-            <div class="hdr-card__head">
-              <span class="hdr-card__title">标准表头</span>
-              <span class="hdr-card__tag" id="hdrTag">当前类别</span>
+          <div class="ai-conv-card">
+            <div class="ai-conv-card__head">
+              <span class="ai-conv-card__badge" aria-hidden="true">AI</span>
+              <span class="ai-conv-card__text">
+                <b>不用改表头，AI 转成标准模板</b>
+                <span>标准模板直接识别；其他格式由 AI 先转成标准表，再逐行核对</span>
+              </span>
             </div>
-            <p class="hdr-card__lead" id="hdrLead">首行改成下列列名，识别更准。</p>
-            <div class="hdr-card__body" id="hdrGroups"></div>
-            <button type="button" class="hdr-card__toggle" id="btnHdrToggle" aria-expanded="false">查看示例行</button>
-            <p class="hdr-card__hint" id="hdrHint">不要标题行、合并单元格、空行。</p>
+            <div class="ai-conv-card__chips">
+              <span>任意列名 / 顺序</span>
+              <span>合并单元格</span>
+              <span>多 sheet</span>
+              <span>拍照也能转</span>
+            </div>
+            <button type="button" class="ai-conv-card__link" id="btnTplDownload">
+              <span>下载标准模板（可选）</span>
+              <span class="ai-conv-card__chev" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="ai-conv-card__link" id="btnWechatHow">
+              <span>电脑里的表传不到手机？看怎么传</span>
+              <span class="ai-conv-card__chev" aria-hidden="true">›</span>
+            </button>
           </div>
-          <p class="import-trust-note">仅本店可见 · 导入后可在结果页整批删除</p>
+          <p class="import-trust-note">仅本店可见 · 转换结果先核对再写入</p>
         </div>
         <div class="import-foot">
           <button type="button" class="btn-primary" id="btnImportUploadDone">完成</button>
@@ -784,8 +795,8 @@
         </header>
         <div class="scroll-body import-body">
           <div class="import-head">
-            <h2>AI 会一起识别这些内容</h2>
-            <p>Excel 需下一步对齐列名；照片自动识别列，无需指定字段。</p>
+            <h2>AI 会先转成标准模板</h2>
+            <p>Excel 与照片都先转成官方标准表，再逐行核对；照片的后台转换不在页面展开。</p>
           </div>
           <div class="queue-summary" id="queueSummary"></div>
           <div class="queue-sec">
@@ -805,11 +816,92 @@
           <p class="queue-note" id="queueNote">同一类别只保留一种来源；需要换来源请返回上一步。</p>
         </div>
         <div class="import-foot">
-          <button type="button" class="btn-primary" id="btnQueueStart">开始识别</button>
+          <button type="button" class="btn-primary" id="btnQueueStart">开始转换</button>
         </div>
       </div>
 
-      <!-- import-map -->
+      <!-- import-convert：AI 把任意表 / 照片转成官方标准模板 -->
+      <div class="screen hidden" id="screen-import-convert" data-flow="import-convert">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnConvertBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">标准表转换</span>
+          <span class="conv-badge" aria-hidden="true">AI</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="conv-hero">
+            <div class="conv-orbit" id="convertOrbit" aria-hidden="true">
+              <i></i><i></i><i></i>
+              <span>AI</span>
+            </div>
+            <h2 id="convertTitle">正在把表格转成标准模板</h2>
+            <p id="convertLead">任意列名、多 sheet、合并单元格都能转；照片在后台转好，不单独展示。</p>
+            <div class="conv-steps" id="convertSteps">
+              <div class="conv-step" data-conv-step="0"><span class="conv-step__dot"></span><b>读取原表</b><em>列名 / 表头行 / 多 sheet</em></div>
+              <div class="conv-step" data-conv-step="1"><span class="conv-step__dot"></span><b>理解字段</b><em>AI 对齐官方标准列</em></div>
+              <div class="conv-step" data-conv-step="2"><span class="conv-step__dot"></span><b>转成标准表</b><em>补默认值 / 拆多卡为多行</em></div>
+              <div class="conv-step" data-conv-step="3"><span class="conv-step__dot"></span><b>逐行自检</b><em>标出需修正 / 建议确认</em></div>
+            </div>
+          </div>
+          <div class="conv-result hidden" id="convertResult"></div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnConvertNext" disabled>转换中…</button>
+          <button type="button" class="btn-ghost" id="btnConvertReupload">重新选择文件</button>
+        </div>
+      </div>
+
+      <!-- import-check：数据概览 + 行内轻改 + 确认传输 -->
+      <div class="screen hidden" id="screen-import-check" data-flow="import-check">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnCheckBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">数据概览</span>
+          <button type="button" class="check-help" id="btnCheckHelp">标记说明</button>
+        </header>
+        <div class="scroll-body import-body check-body" id="checkBody">
+          <div class="check-hero">
+            <div class="check-donut" id="checkDonut" role="img" aria-label="可传输占比">
+              <span class="check-donut__pct" id="checkDonutPct">0%</span>
+              <em class="check-donut__cap">可传输</em>
+            </div>
+            <div class="check-hero__side">
+              <div class="check-hero__line"><b id="checkTotal">0</b> 行已识别 · <span id="checkCats">3 类</span></div>
+              <div class="check-stats">
+                <div class="check-stat"><b id="checkOk">0</b><span>可直接导入</span></div>
+                <div class="check-stat is-warn"><b id="checkWarn">0</b><span>建议确认</span></div>
+                <div class="check-stat is-err"><b id="checkErr">0</b><span>需修正</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="check-bars" id="checkBars"></div>
+          <div class="check-tabs" id="checkTabs" role="tablist" aria-label="按类别核对"></div>
+          <div class="check-tools">
+            <div class="check-chips" id="checkChips" role="group" aria-label="筛选数据"></div>
+            <label class="check-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+              <input type="text" id="checkSearch" placeholder="搜索姓名 / 卡号 / 项目名" autocomplete="off">
+              <button type="button" class="check-search__clear hidden" id="btnCheckSearchClear" aria-label="清空">×</button>
+            </label>
+          </div>
+          <div class="check-list" id="checkList"></div>
+          <button type="button" class="check-more hidden" id="btnCheckMore">加载更多</button>
+          <p class="check-empty hidden" id="checkEmpty">没有符合条件的数据</p>
+        </div>
+        <div class="check-probnav hidden" id="checkProbNav">
+          <button type="button" class="check-probnav__btn" data-check-prob="prev" aria-label="上一个问题">‹</button>
+          <span class="check-probnav__text" id="checkProbText">第 1 / 1 个问题</span>
+          <button type="button" class="check-probnav__btn" data-check-prob="next" aria-label="下一个问题">›</button>
+        </div>
+        <div class="import-foot import-foot--check">
+          <button type="button" class="btn-ghost check-add" id="btnCheckAdd">+ 新增一行</button>
+          <button type="button" class="btn-primary" id="btnCheckSubmit">确认传输</button>
+        </div>
+      </div>
+
+      <!-- import-map（已下线，仅保留在抓取清单兼容） -->
       <div class="screen hidden" id="screen-import-map" data-flow="import-map">
         <header class="page-title-bar">
           <button type="button" class="back" id="btnImportMapBack" aria-label="返回">
@@ -1537,6 +1629,103 @@
         <div class="del-batch-dialog__row">
           <button type="button" class="btn-outline" id="btnHistoryDelCancel">先不删</button>
           <button type="button" class="btn-primary" id="btnHistoryDelConfirm">确认删除</button>
+        </div>
+      </div>
+
+      <!-- 微信「文件传输助手」引导（首次进入数据迁移弹一次 + 上传页常驻入口） -->
+      <div class="overlay-mask wechat-mask" id="wechatTipMask" aria-hidden="true"></div>
+      <div class="wechat-tip" id="wechatTip" role="dialog" aria-modal="true" aria-labelledby="wechatTipTitle" aria-hidden="true">
+        <button type="button" class="wechat-tip__close" id="btnWechatTipClose" aria-label="关闭">×</button>
+        <p class="wechat-tip__eyebrow">手机端导入前</p>
+        <h3 id="wechatTipTitle">先在电脑上把 Excel 发到手机</h3>
+        <p class="wechat-tip__lead">手机里没有文件？用微信「文件传输助手」几秒就能传过来。</p>
+        <div class="wechat-demo" aria-hidden="true">
+          <div class="wechat-demo__pc"><span class="wechat-demo__screen"></span><i class="wechat-demo__doc">XLS</i></div>
+          <div class="wechat-demo__flow"><i></i><i></i><i></i></div>
+          <div class="wechat-demo__chat">
+            <span class="wx-bubble">文件传输助手</span>
+            <span class="wx-file">会员导入.xlsx</span>
+          </div>
+          <div class="wechat-demo__phone"><span></span></div>
+        </div>
+        <ol class="wechat-steps">
+          <li><b>电脑微信</b>打开「文件传输助手」，把 Excel 拖进对话发送</li>
+          <li><b>手机微信</b>打开同一对话，点文件下载到手机</li>
+          <li>回到这里点「选择文件」，在「最近文件」里选中它</li>
+        </ol>
+        <label class="wechat-tip__mute"><input type="checkbox" id="wechatTipMute"> 不再提示</label>
+        <button type="button" class="btn-primary" id="btnWechatTipOk">知道了，去上传</button>
+      </div>
+
+      <!-- 标准模板下载（兜底：AI 转不了就按模板重填） -->
+      <div class="overlay-mask" id="tplMask" aria-hidden="true"></div>
+      <div class="invite-sheet tpl-sheet" id="tplSheet" role="dialog" aria-labelledby="tplSheetTitle" aria-hidden="true">
+        <div class="invite-sheet__handle"></div>
+        <h3 id="tplSheetTitle">官方标准模板</h3>
+        <p>按模板填的数据可直接导入；非标准表也能直接上传，AI 会先转成标准表。</p>
+        <div class="tpl-list">
+          <a class="tpl-row" href="excel模板/RTB店铺会员资料导入文档模版.xlsx" download>
+            <span class="tpl-row__ico">XLS</span>
+            <span class="tpl-row__text"><b>会员资料（24 列 · 一行一张卡）</b><span>会员编号 / 会员卡号 / 卡类型 / 余额 / 来源渠道…</span></span>
+            <span class="tpl-row__dl" aria-hidden="true">↓</span>
+          </a>
+          <a class="tpl-row" href="excel模板/RTB店铺卡模板导入文档模版-v2.xls" download>
+            <span class="tpl-row__ico">XLS</span>
+            <span class="tpl-row__text"><b>卡模板（5 类分 sheet）</b><span>储值 / 计次 / 折扣 / 套餐 / 周期卡</span></span>
+            <span class="tpl-row__dl" aria-hidden="true">↓</span>
+          </a>
+          <a class="tpl-row" href="excel模板/RTB店铺价目表导入文档模版-v1.xls" download>
+            <span class="tpl-row__ico">XLS</span>
+            <span class="tpl-row__text"><b>价目表（8 列 · 单批 ≤ 200 行）</b><span>项目名 / 项目组 / 价格 / 可开单 / 服务时长…</span></span>
+            <span class="tpl-row__dl" aria-hidden="true">↓</span>
+          </a>
+        </div>
+        <p class="tpl-sheet__note">转不了的行不用重填整张表：在数据概览里逐格改，或整行忽略即可。</p>
+        <div class="invite-sheet__actions">
+          <button type="button" class="btn-ghost" id="btnTplClose">关闭</button>
+        </div>
+      </div>
+
+      <!-- 标记说明 -->
+      <div class="overlay-mask" id="checkHelpMask" aria-hidden="true"></div>
+      <div class="invite-sheet check-help-sheet" id="checkHelpSheet" role="dialog" aria-labelledby="checkHelpTitle" aria-hidden="true">
+        <div class="invite-sheet__handle"></div>
+        <h3 id="checkHelpTitle">问题标记说明</h3>
+        <dl class="check-help-dl">
+          <dt class="is-err">需修正</dt>
+          <dd>必填缺失、格式非法、卡名称在店内不存在。必须改正或整行忽略，才能确认传输。</dd>
+          <dt class="is-warn">建议确认</dt>
+          <dd>可以导入，但建议看一眼：性别为空、手机号重复、余额为 0、卡已过期等。</dd>
+          <dt class="is-ai">AI 推断</dt>
+          <dd>AI 转换时补的默认值（如来源渠道、性别），点行展开即可改。</dd>
+        </dl>
+        <p class="check-help-sheet__note">修改只影响本次导入，不会改动店内已有数据。</p>
+        <div class="invite-sheet__actions">
+          <button type="button" class="btn-ghost" id="btnCheckHelpClose">知道了</button>
+        </div>
+      </div>
+
+      <!-- 仪式感：校验 → 封存 → 传输 -->
+      <div class="ceremony hidden" id="ceremony" role="dialog" aria-modal="true" aria-labelledby="ceremonyTitle" aria-hidden="true">
+        <div class="ceremony__card">
+          <p class="ceremony__eyebrow" id="ceremonyEyebrow">确认传输</p>
+          <h3 id="ceremonyTitle">正在校验本批数据</h3>
+          <div class="ceremony__seal" id="ceremonySeal" aria-hidden="true">
+            <span>封存</span>
+            <i class="ceremony__ring"></i>
+          </div>
+          <ol class="ceremony__steps" id="ceremonySteps">
+            <li data-cer-step="1"><span class="ceremony__dot"></span><b>逐行校验</b><em>必填 / 格式 / 卡名称</em></li>
+            <li data-cer-step="2"><span class="ceremony__dot"></span><b>封存本批</b><em>生成本次传输编号</em></li>
+            <li data-cer-step="3"><span class="ceremony__dot"></span><b>写入本店</b><em>会员 / 卡模板 / 价目</em></li>
+          </ol>
+          <div class="ceremony__done hidden" id="ceremonyDone">
+            <div class="ceremony__tick" aria-hidden="true">✓</div>
+            <b class="ceremony__done-title" id="ceremonyDoneTitle">已封存并传输</b>
+            <p class="ceremony__done-sub" id="ceremonyDoneSub">会员与持卡 0 · 卡模板 0 · 价目 0</p>
+            <span class="ceremony__code" id="ceremonyCode">RTB-00000000-0000</span>
+            <button type="button" class="btn-primary" id="btnCeremonyDone">查看导入结果</button>
+          </div>
         </div>
       </div>
 
