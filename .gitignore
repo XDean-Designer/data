@@ -1,0 +1,10 @@
+# Figma 抓取临时
+figma-capture*.json
+_capture_fast.mjs
+_tmp_*
+
+# 系统杂项
+.DS_Store
+Thumbs.db
+*.log
+node_modules/

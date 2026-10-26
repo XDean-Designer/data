@@ -1,0 +1,326 @@
+/* Shell: left nav + stage (phone layout in base.css .phone-inner) */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+
+body {
+  background: #e9e9eb;
+  display: flex;
+  align-items: flex-start;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.site-nav {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 200px;
+  z-index: 200;
+  background: #1c1c1e;
+  color: #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.site-nav .nav-brand {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  margin-bottom: 8px;
+}
+
+.site-nav .nav-brand .t { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.4; }
+.site-nav .nav-brand .s { font-size: 11px; color: #9a9a9a; margin-top: 4px; }
+
+.site-nav .nav-group { padding: 0 10px; margin-bottom: 6px; }
+.site-nav .nav-group.grow { margin-top: auto; }
+.site-nav .g-t { font-size: 11px; color: #9a9a9a; padding: 8px 8px 4px; }
+
+.site-nav .nav-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 9px 8px; border: none; background: transparent; color: #c8c8c8;
+  font-family: inherit; font-size: 13px; text-align: left; cursor: pointer;
+  border-radius: 8px;
+}
+
+.site-nav .nav-item:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+.site-nav .nav-item.on { background: rgba(243, 47, 65, .2); color: #fff; font-weight: 600; }
+
+.site-nav .nav-item .idx,
+.site-nav .nav-link .idx {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(255, 255, 255, .12); color: #fff; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.site-nav .nav-item.on .idx { background: #F32F41; }
+.site-nav .nav-arrow { padding: 0 8px 2px; font-size: 12px; color: #6b6b6b; line-height: 1; }
+
+.site-nav .nav-link {
+  display: flex; align-items: center; gap: 8px; padding: 9px 8px;
+  color: #c8c8c8; text-decoration: none; font-size: 13px; border-radius: 8px;
+  width: 100%; border: 0; background: transparent; cursor: pointer; text-align: left;
+  font-family: inherit; box-sizing: border-box;
+}
+
+.site-nav .nav-link:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+
+.stage {
+  flex: 1; min-width: 0;
+  display: flex; justify-content: center; align-items: flex-start;
+  margin-left: 200px;
+  padding: 24px 20px 40px;
+}
+
+/* 窄窗兜底（JS 未跑 / 无 class 时）：仅藏导航，不全屏化手机框 */
+@media (max-width: 760px) {
+  html:not(.view-desktop) .site-nav { display: none; }
+  html:not(.view-desktop) .stage { margin-left: 0; padding: 0; }
+}
+
+#frame {
+  box-shadow: 0 0 40px rgba(0, 0, 0, .25);
+  flex-shrink: 0;
+}
+
+/*
+ * 手机模式（html.view-mobile）：只显示手机屏，锁在 visualViewport 可视区内。
+ * 桌面模式（html.view-desktop / 默认）：左侧导航 + 390×844 手机框。
+ * 强制覆盖：?view=mobile | ?view=desktop
+ * 假状态栏在手机模式隐藏；底部安全区仅 env(safe-area-inset-bottom)。
+ */
+html.view-mobile,
+html.view-mobile body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  background: var(--bg-page, #F7F7F7);
+  position: fixed;
+  inset: 0;
+}
+
+/* 真机：左滑抽屉唤出完整导航（对齐「抖音核销」壳） */
+.nav-drawer-mask,
+.nav-edge-hit { display: none; }
+
+html.view-mobile .site-nav {
+  display: flex !important;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: min(86vw, 300px);
+  max-width: 300px;
+  z-index: 400;
+  transform: translate3d(-105%, 0, 0);
+  transition: transform 0.28s cubic-bezier(0.22, 0.82, 0.24, 1);
+  box-shadow: none;
+  padding-top: env(safe-area-inset-top, 0px);
+  -webkit-overflow-scrolling: touch;
+}
+html.view-mobile .site-nav.is-dragging {
+  transition: none !important;
+}
+html.view-mobile.nav-drawer-open .site-nav {
+  transform: translate3d(0, 0, 0);
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.35);
+}
+html.view-mobile .nav-drawer-mask {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+html.view-mobile.nav-drawer-open .nav-drawer-mask {
+  opacity: 1;
+  pointer-events: auto;
+}
+html.view-mobile .nav-edge-hit {
+  display: block;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 20px;
+  z-index: 300;
+  touch-action: pan-y;
+}
+html.view-mobile.nav-drawer-open .nav-edge-hit {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.view-mobile .site-nav,
+  html.view-mobile .nav-drawer-mask {
+    transition: none !important;
+  }
+}
+
+html.view-mobile .stage {
+  margin-left: 0;
+  padding: 0;
+  width: var(--app-w, 100%);
+  height: var(--app-h, 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+/* 画布：逻辑宽**固定 390**（= --phone-w），整体 scale 铺满视口 —— 不拉伸布局。
+   绝对定位（删除钮 / 0.5px 发丝线 / 由文字宽算出的 Tab 指示条）才不会被撑歪。
+   竖屏 scale = 视口宽 / 390，画布满宽贴边；横屏等极矮视口走兜底等比，此时靠
+   `transform-origin: top center` + 台面居中自动居中留边。--mobile-h 由 JS 算出（逻辑 px）。 */
+html.view-mobile #frame,
+html.view-mobile #frame.phone-shell {
+  flex: none;
+  width: var(--phone-w, 390px);
+  height: var(--mobile-h, 844px);
+  max-width: none;
+  max-height: none;
+  transform: scale(var(--mobile-scale, 1));
+  transform-origin: top center;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+}
+
+html.view-mobile .phone-inner.phone {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* 底部仅系统安全区，不再叠桌面原型的 34px。
+   注意：画布整体被 scale 缩放过，物理安全区要先除回 --mobile-scale 才是逻辑值。 */
+html.view-mobile {
+  --safe-bottom: calc(env(safe-area-inset-bottom, 0px) / var(--mobile-scale, 1));
+}
+
+/* 真机已有系统/浏览器顶栏，隐藏假状态栏（9:41）。
+   --statusbar-h 一起归零：推栈层（分组管理 ⇄ 包含项目）靠它对齐顶部，
+   否则手机模式下会凭空多出一条状态栏高度的空带、把标题栏压低。 */
+html.view-mobile {
+  --statusbar-h: 0px;
+}
+html.view-mobile .status-bar {
+  display: none !important;
+}
+
+/* 顶栏避开刘海；标题落在 44px 内容区内垂直居中（同样按 scale 折算） */
+html.view-mobile .page-title-bar {
+  box-sizing: content-box;
+  height: 44px;
+  padding-top: calc(env(safe-area-inset-top, 0px) / var(--mobile-scale, 1));
+}
+html.view-mobile .page-title-bar .title {
+  top: calc(env(safe-area-inset-top, 0px) / var(--mobile-scale, 1) + 22px);
+}
+
+/* ===== 系统键盘避让（--kb-h 由 mobile-preview.js 依 visualViewport 算出，逻辑 px） =====
+   底部浮层让开键盘：蒙层本身仍 inset:0（整屏变暗不断层），只把蒙层内边距垫高，
+   贴底的 sheet 随之抬起；居中 Dialog 用 transform 整块上移。 */
+html.view-mobile .picker-mask--bottom {
+  padding-bottom: var(--kb-h, 0px);
+}
+html.view-mobile .dialog {
+  transform: translateY(calc(-1 * var(--kb-h, 0px)));
+}
+
+/* capture modes */
+html.prd-capture .site-nav,
+html.prd-capture .nav-drawer-mask,
+html.prd-capture .nav-edge-hit { display: none !important; }
+html.prd-capture .stage { margin-left: 0; padding: 0; }
+
+html.figma-capture-comm2-advisor .site-nav,
+html.figma-capture-comm2-advisor .nav-drawer-mask,
+html.figma-capture-comm2-advisor .nav-edge-hit { display: none !important; }
+html.figma-capture-comm2-advisor .stage { margin-left: 0; padding: 0; }
+
+/* run-to-figma 通用 capture：隐藏左侧导航与台面留白，去掉手机框投影；
+   强制 390×844（禁止被 view-mobile / 窄视口媒体查询拉成 100%） */
+html.figma-capture .site-nav,
+html.figma-capture .nav-drawer-mask,
+html.figma-capture .nav-edge-hit { display: none !important; }
+html.figma-capture,
+html.figma-capture body {
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  position: static !important;
+  inset: auto !important;
+  background: var(--bg-page, #F7F7F7);
+}
+html.figma-capture .stage {
+  margin-left: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  position: static !important;
+  overflow: visible !important;
+}
+html.figma-capture #frame,
+html.figma-capture #frame.phone-shell,
+html.figma-capture .phone-inner.phone {
+  width: var(--phone-w, 390px) !important;
+  height: var(--phone-h, 844px) !important;
+  max-width: var(--phone-w, 390px) !important;
+  max-height: var(--phone-h, 844px) !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   全高截图：**页面态**按内容增高（v1.31 起）
+   ---------------------------------------------------------------------------
+   ?capture=<flowId> 时 app.js 给 <html> 加 prd-capture + figma-capture；
+   浮层态（Sheet / Dialog）再额外加 capture-overlay 以**保持上面那条 390×844 锁定**。
+
+   为什么页面要增高：实测 23 个 flow 里 17 个的内容超出 844 —— 最深
+   price-edit-bound 多出 1323px。不增高就会被裁掉，看不到完整内容区。
+
+   为什么浮层不能增高：蒙层是 `inset: 0` 相对画布定位的。画布一旦撑到 2000+px，
+   蒙层就被拉成整条长黑带、弹窗飘到内容之外，失去「浮层覆盖当前视口」的语义。
+   所以增高**只对页面态生效**（`:not(.capture-overlay)`）。
+
+   ⚠️ 只解除**页面级**滚动容器。下面两个**故意不在列**（它们活在 Sheet 里，随浮层锁 844）：
+        .catalog-group-sheet-list / .picker-mask--bottom .picker-list
+   ⚠️ #catalogGroupTabs 也**不在列** —— 它另有 prd-capture 规则（overflow:hidden +
+      transform 烘焙横滑位移，见 base.css），改成 visible 会破坏那个烘焙。
+   --------------------------------------------------------------------------- */
+html.figma-capture:not(.capture-overlay) #frame,
+html.figma-capture:not(.capture-overlay) #frame.phone-shell,
+html.figma-capture:not(.capture-overlay) .phone-inner.phone,
+html.figma-capture:not(.capture-overlay) #frame .screen,
+html.figma-capture:not(.capture-overlay) #frame .page-body,
+html.figma-capture:not(.capture-overlay) #frame .table-card,
+html.figma-capture:not(.capture-overlay) #frame #projProjectTable,
+html.figma-capture:not(.capture-overlay) #frame .proj-list-empty {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+/* 展开区本身是绝对定位的浮层内块，高度锁死会在增高后留一片空白 */
+html.figma-capture:not(.capture-overlay) #frame .catalog-inline-panel {
+  height: auto !important;
+  max-height: none !important;
+}
+
+html.figma-capture .status-bar { display: flex !important; }
+html.figma-capture .page-title-bar {
+  height: 44px !important;
+  padding-top: 0 !important;
+  box-sizing: border-box !important;
+}
+html.figma-capture .page-title-bar .title { top: 22px !important; }

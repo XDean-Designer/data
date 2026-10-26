@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame" opacity="0.8">
+<path id="Vector" d="M42.88 5.12002C40.96 5.12002 39.36 6.72 39.36 8.64V10.08H46.4V8.64C46.4 6.63998 44.8 5.12002 42.88 5.12002ZM39.36 10.88H46.4V39.92H39.36V10.88ZM42.88 44.56L46.16 40.48H39.52L42.88 44.56ZM30.16 3.44002H8.16C4.56 3.44002 1.59998 6.39998 1.59998 9.99998V37.6C1.59998 41.2 4.56 44.16 8.16 44.16H30.16C33.76 44.16 36.72 41.2 36.72 37.6V9.99998C36.72 6.39998 33.76 3.44002 30.16 3.44002ZM12.48 34.56H9.68002V31.92H12.48V34.56ZM12.48 25.28H9.68002V22.64H12.48V25.28ZM12.48 16H9.68002V13.36H12.48V16ZM28.64 34.56H14.64V31.92H28.56V34.56H28.64ZM28.64 25.28H14.64V22.64H28.56V25.28H28.64ZM28.64 16H14.64V13.36H28.56V16H28.64Z" fill="url(#paint0_linear_0_4)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_4" x1="24" y1="3.44002" x2="24" y2="44.56" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F32F41"/>
+<stop offset="1" stop-color="#FF9257"/>
+</linearGradient>
+</defs>
+</svg>

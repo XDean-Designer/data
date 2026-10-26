@@ -1,0 +1,5639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD-开店入驻与数据迁移（预览）</title>
+<style>
+:root{--brand:#F32F41;--text:#1f2329;--text-sec:#646a73;--border:#e5e6eb;--bg:#f5f6f7;--card:#fff;--code-bg:#f2f3f5;--th-bg:#f8f9fa;--link:#3370ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg);line-height:1.7;font-size:15px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 20px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.topbar__title{font-size:14px;font-weight:600}.topbar__hint{font-size:12px;color:var(--text-sec);font-weight:400;margin-left:8px}
+.topbar__actions{display:flex;gap:8px;flex-wrap:wrap}
+.topbar a{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:500}
+.topbar a.primary{background:var(--brand);color:#fff}.topbar a.ghost{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.wrap{max-width:920px;margin:0 auto;padding:24px 20px 64px}
+.article{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px 40px 48px;box-shadow:0 1px 2px rgba(0,0,0,.04);overflow-x:clip}
+@media(max-width:640px){.article{padding:20px 16px 32px;border-radius:0;border-left:none;border-right:none;overflow-x:auto}}
+.article>h1:first-child{margin-top:0}
+h1{font-size:28px;font-weight:700;line-height:1.35;margin:0 0 16px}
+h2{font-size:22px;font-weight:650;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:17px;font-weight:650;margin:28px 0 10px}h4{font-size:15px;font-weight:650;margin:20px 0 8px}
+p{margin:0 0 12px}a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+ul,ol{margin:0 0 14px;padding-left:1.4em}li{margin:4px 0}
+hr{border:none;border-top:1px solid var(--border);margin:28px 0}
+blockquote{margin:12px 0 16px;padding:10px 14px;border-left:3px solid var(--brand);background:#fff5f6;color:var(--text-sec);border-radius:0 8px 8px 0}
+blockquote p{margin:0}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:var(--code-bg);padding:1px 6px;border-radius:4px}
+pre{background:#1f2329;color:#f5f6f7;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.55;margin:0 0 16px}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;max-width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14px;display:block;overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+th,td{border:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top;min-width:72px}
+th{font-weight:600;white-space:nowrap;background:var(--th-bg)}td{background:#fff}
+tr:nth-child(even) td{background:#fafbfc}
+.article img{max-width:100%;height:auto;display:block}
+table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;border:1px solid var(--border);background:#f5f6f7}
+.foot-note{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-sec)}
+.mermaid{margin:12px 0 20px;padding:16px;background:#fafbfc;border:1px solid var(--border);border-radius:10px;overflow-x:auto;text-align:center}
+.mermaid svg{max-width:100%;height:auto}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar__title">PRD-开店入驻与数据迁移<span class="topbar__hint">阅读预览 · 与交互原型逐屏对齐</span></div>
+    <div class="topbar__actions">
+      <a class="ghost" href="index.html">打开交互原型</a>
+      <a class="ghost" href="对标-登录入驻体验优化.html">入驻链路对标</a>
+      <a class="primary" href="index.html?flow=import-overview">直达本店概况</a>
+    </div>
+  </div>
+  <div class="wrap"><article class="article">
+<h1>PRD：开店入驻与数据迁移（剑琅联盟 · 商户端）</h1>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文档版本</td>
+<td>v1.8</td>
+</tr>
+<tr>
+<td>日期</td>
+<td>2026-10-26</td>
+</tr>
+<tr>
+<td>交互原型（唯一可视依据）</td>
+<td>同目录 <code>index.html</code>（390 × 844；<strong>31 个 screen + 13 个弹层 / 浮球（含统一导入进度层、再导模式半屏、历史再导半屏）</strong>；深链 <code>index.html?flow=&lt;id&gt;</code>，清单见 §3.3）；左侧导航「文档」直达本页</td>
+</tr>
+<tr>
+<td>画布</td>
+<td>390 × 844（真机预览 <code>?mobile=1</code>，逻辑画布等比缩放，不拉伸布局）</td>
+</tr>
+<tr>
+<td>目的</td>
+<td>供前端 / 后端 / 测试及 AI 工具落地「开店入驻」与「老店数据自助迁移」；<strong>只需本文 + 交互原型</strong></td>
+</tr>
+<tr>
+<td>关联（非必读）</td>
+<td><code>对标-登录入驻体验优化.html</code>（国内头部产品入驻 / 导入链路的对标研究与出处）；<code>../价目表/PRD-项目创建与管理.html</code>（价目数据契约，导入价目项须与之对齐）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>修订记录</h2>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v1.8</td>
+<td>2026-10-26</td>
+<td><strong>再导入承接：概况页 + 强制二选一 + 历史再导半屏</strong>。<strong>① 本店概况</strong>：工作台 / 浮球 / 邀请「开始导入」在 P0 三类任一已有存量时进入独立屏 <code>import-overview</code>（存量人数 / 张 / 项 + 查看 + 继续补充 + 删除）；首次仍走引导页（§3.3 / §6.x）。<strong>② 再导模式强制二选一</strong>：类型页对已有数据的类打「已有数据」角标；点「下一步」若勾选了存量类且未选模式，弹出半屏，每类必须显式选「合并到现有」或「清空本类后导入」，无静默默认；确认后才进上传 / 队列（§5.5）。合并键：手机号 / 卡名称 / 项目名；结果页展示本批新增·更新或「已清空后写入」。<strong>③ 历史再导</strong>：列表非空点「导入」先半屏二选一「追加导入 / 先整批删除再导入」；追加结果文案含「已追加 N · 合计现有 M」；删除后可接说明页继续（§6.20 / §8.10）。<strong>④ 其它</strong>：已有存量时不再弹邀请半屏；深链 / 抓取 <code>?capture=import-overview|reimport-mode|history-reimport</code>。<strong>⑤ 口径</strong>：本次含 JS 逻辑与新屏，验收只写规格「应为」；未跑自动化回归、未补 Figma。</td>
+</tr>
+<tr>
+<td>v1.7</td>
+<td>2026-10-26</td>
+<td><strong>卡模板改为单卡口径 + 映射页勾选不再错乱</strong>。<strong>① 卡模板口径纠正</strong>：卡模板描述的是「为一位客人办这张卡时卡里包含什么」，储值金额必须是<strong>单张卡</strong>的数值。原「确认卡模板」页每行次行显示「N 人持卡 · <strong>余额合计</strong> ¥X」是整类累加值，语义错误，已删除；改为「N 人持卡」+ 可点的「单卡储值 ¥X · 有效期 永久」摘要条（§6.12）。<strong>② 推导规则</strong>：未导卡模板、仅由持卡信息推导时，<code>recharge = max(该卡种单卡余额)</code>（<strong>取最大一条，不求和</strong>），<code>validity = '永久'</code>；两项均为草案默认值，用户可在行内展开「储值金额 / 有效期」直接改（一次只展开一张），改完实时回写摘要条并带到核对页卡模板明细的「充值金额 / 有效期」；赠送 / 权益 / 会员价仍标「待完善」（§6.12 / §7.6 / AC-38a～AC-38b3）。<strong>③ 映射页勾选错乱修复</strong>：根因是手机框 <code>.phone-inner</code> 用 <code>overflow: hidden</code>——它在 CSS 上仍是<strong>可滚动容器</strong>，框外 <code>translateY(100%)</code> 待命的 sheet 把 <code>scrollHeight</code> 撑到 1455px（可视 841px）；勾选确认时隐藏 checkbox 获得焦点，浏览器「把焦点滚进视野」把 <code>.phone-inner.scrollTop</code> 顶到 614px，整页被推出画框，同时框外 sheet 被滚入可视区（表现为「底部弹出 sheet」）。修复：<code>.phone-inner</code> 改 <code>overflow: clip</code>（<code>hidden</code> 兜底），不再产生滚动容器，<code>scrollTop</code> 恒为 0；确认框的隐藏 input 由 0×0 改为覆盖整行，避免成为焦点滚动的怪目标；跳页时额外把 <code>scrollTop</code> 归零兜底（§4 通用约束 / AC-30b2）。<strong>④ 去掉勾选后的自动切页</strong>：原「约 0.5s 后自动跳到下一个未确认类别」会在用户正看字段表时把内容顶走，现改为<strong>不切换</strong>——下一个未确认 tab 脉冲高亮 + toast 提示，由用户自己决定何时切（§6.11 / AC-30b）。<strong>⑤ 口径</strong>：本次改动含 JS 逻辑与 CSS 布局修复，验收项只写规格「应为」；未跑自动化回归、未出截图，交付说明中如实标注。</td>
+</tr>
+<tr>
+<td>v1.6</td>
+<td>2026-10-26</td>
+<td><strong>类别图标落地 + 统一导入进度层 + 残留页面清理</strong>。<strong>① 图标</strong>：类型页与核对页的分类图标不再是灰色占位块，改用 36 × 36 浅品牌底（<code>#fff1f2</code>、圆角 10px）+ 20px 品牌色线描 SVG（会员与持卡 = 人像 / 会员卡模板 = 卡片 / 价目表 = 价签，<code>stroke-width 1.8</code>、<code>fill=none</code>），两页共用同一套符号（§6.8）。<strong>② 统一导入进度层</strong>：新增三处共用的全屏进度层（<code>#importProgress</code>）——识别（AI 正在识别 → 读取文件 / 识别列名与字段 / 生成预览）、正式导入（校验数据 / 写入会员与持卡信息 / 写入卡模板与价目表 / 处理失败行）、历史消费导入（读取表格 / 识别三项 / 写入历史订单）；确定型 0% → 100% 进度条 + 流光 + 百分比 + 当前步骤，走满停留约 0.32s 再跳转，任何主动跳转立即收起。替换原有「spinner 遮罩 1.4s」与「按钮变文案 1.2s」两处无进度反馈的等待（新增 §6.10.3；§4.3 / §5.5 / §6.13 / §6.26 同步）。<strong>③ 残留页面清理</strong>：「学习培训」「获客壳」「小店壳」三页在业务链路里只对应 toast（不回页面），仅靠左侧开发导航可达，已连同导航条目、占位样式与相关脚本一并删除；screen 总数 33 → 30，弹层 / 浮球 10 → 11（新增进度层）。同时清理已被本文取代的旧讨论稿、抓取清单与临时验证脚本（§3.1 / §3.2 / §3.3）。<strong>④ 口径</strong>：本次改动含 JS 逻辑与 DOM 结构调整，未跑自动化回归、未出截图；验收项只写规格「应为」，交付说明中如实标注未执行机器验证。</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-10-26</td>
+<td><strong>每类多表导入 + 卡模板与价目表分表上传 + 两页文案精简</strong>。<strong>① 多表容量</strong>：每个导入类别（会员与持卡信息 / 会员卡模板 / 价目表）最多可添加 <strong>3 个 Excel 文件</strong>，各自独立计数；上传页文件区改为「已选 N / 3 个表」+ 逐行文件条（可单行移除）+「再添加」按钮，满 3 个后置灰「已达上限」（§6.9）。<strong>② 同类多表共用一套映射</strong>：以第一份文件的列名为准，其余文件按同名 / 同义列对齐，条数合并累加；待识别清单逐文件一行，映射页 tab 下方出现「本类 N 个表共用这一套映射，按第一份的列名对齐。」琥珀提示，不按文件重复确认（§6.8 / §6.10.2 / §6.11 / §8.3）。<strong>③ 卡模板与价目表「同批不同表」</strong>：仍要求同批次提交并保持勾选联动，但必须是两个独立 Excel 分别上传，明确禁止合成一张表；类型页卡底说明与 §8.3 同步改写（§6.8 / §8.3）。<strong>④ 数据模型</strong>：<code>importFiles</code> 由「每类一个文件」改为「<strong>每类文件数组</strong>」，删除按索引单删，删空后该类回到「待上传」并清空该类映射确认（§7.9 / §8.3）。<strong>⑤ 文案精简</strong>：流程引导页副文案收为一句、4 步各配一句副文案、「开始前请注意」由 5 条长句收为<strong>3 条短语</strong>；上传表格页副文案由「第 N 步 · 共 M 步 · 只显示当前类别」压为「第 N / M 类」，标准表头引导语收为一句「按「‹类别›」的列名整理首行，识别更准。」，格式提示只留硬性禁忌，信任说明缩短（§6.6 / §6.9）。<strong>⑥ 口径</strong>：验收项只写规格「应为」；本次未执行自动化回归与截图比对，交付说明中如实标注。</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-10-26</td>
+<td><strong>类别重定义 + 卡模板与价目表强绑定 + 两页交互重做</strong>。<strong>① 类别更名与口径</strong>：「会员」→<strong>「会员与持卡信息」</strong>（标准 12 列对齐 <code>members.xlsx</code>，身份 + 所持卡合为一条记录）；「会员卡」→<strong>「会员卡模板」</strong>（店铺预置的卡定义：卡名称 / 充值金额 / 赠送金额 / 折扣权益 / 项目·产品权益 / 会员价 / 有效期，8 列），会员实际持有的卡随持卡信息导入或在补录中手工录入（§6.8 / §6.11 / §7.3 / §7.6 / §8.3）。<strong>② 卡模板与价目表强绑定</strong>：勾选卡模板自动锁定并勾选价目表，价目表在卡模板勾选期间不可单独取消；价目表可单独导入（§6.8 / §8.3）。<strong>③ 新增「确认卡模板」页</strong>：只导持卡信息、未导卡模板时，按「卡种」去重生成模板草案（按 <code>members.xlsx</code> 实测 10 个卡种），用户勾选确认后才入库，规则字段以「待完善」状态保存，整批删除时一并回滚（新增 §6.12，后续章节顺延）。<strong>④ 上传表格页改为单类别聚焦</strong>：一次只渲染当前类别，配「第 N 步 · ‹类别›」+ 步骤条 + 该类别标准表头（12 / 8 / 5 列分组），消除三类并列的篇幅干扰（§6.9）。<strong>⑤ 映射页 tab 重做</strong>：改为高对比卡片式 tab（含图标、类名、<code>待确认</code> / <code>已确认 ✓</code> 徽标），顶部新增进度（「已确认 N/M」+ 百分比条 + 「还有 N 项待确认」）；勾选确认后自动跳到下一个未确认类别；未确认时主按钮为 warn 态「还有 N 项待确认」，点按跳到目标类别并脉冲高亮（§6.11）。<strong>⑥ 数据模型 / 规则 / 验收同步</strong>：<code>Member</code> 扩为 12 列模型、<code>LegacyCardTemplate</code> 改写为 <code>MemberCardTemplate</code>、<code>ImportBatch</code> 增 <code>generatedTemplates</code>；§8.1 / §8.3 / §8.5–§8.7 / §8.9 与 §10 验收项同步。<strong>⑦ 口径</strong>：验收项只写规格「应为」；本次未执行自动化回归，交付说明中如实标注。</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-10-26</td>
+<td><strong>来源改为按钮 + 说明弹层；删除模板下载，改展示标准表头</strong>。<strong>① 类型页来源改为两枚并排按钮</strong>（各 48px 高、图标 + 主标 + 一行副标「已有导出表 / 纸表 · 手写」）：点击<strong>立即高亮</strong>并弹出说明弹层；<strong>三类默认都不选来源</strong>，卡头徽标显示「请选择来源」（琥珀色，区别于待上传 / 待上传的灰）。（§6.8）<strong>② 说明弹层</strong>：居中对话框，含类别副标、一句适用场景、3 条要点，主按钮按来源为「去上传表格 / 立即拍照」直达对应步骤，次按钮「取消」只关闭不清选择；点遮罩等同取消；<strong>已选同一来源再点不再弹层、直达步骤</strong>（§6.8）。<strong>③ 删除「下载模板填写」</strong>：会员 / 卡 / 价目上传页与历史消费上传页都不再提供下载，改为「标准表头」卡——按类别列出列名 chips（会员 7 / 会员卡 6 / 价目 5）与一行示例数据，默认收起示例行、点「查看示例行」展开；文案改为「把第一行改成对应列名，AI 对齐更准；列不全也能导入」。（§6.9 / §6.21）<strong>④ 守卫与按钮文案</strong>：类型页「下一步」随状态变为「还有 N 类未选来源 / 还有 N 类未采集」，点按一律拦回缺失项；上传页在仍有类别未选来源时按钮为「完成」，点按回到类型页并 toast 提示（§6.8 / §6.9）。<strong>⑤ 历史消费</strong>：引导页移除「先下载模板」，「历史消费模板」卡改为标准表头展示（7 列 + 示例行），不再有下载入口（§6.21）。<strong>⑥ 口径</strong>：验收项只写规格「应为」；本次执行的交互自检结果仅在交付说明中给出。</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-10-26</td>
+<td><strong>强化「来源」决策并补全拍照 / 待识别链路</strong>。<strong>① 类型页来源改为整行分段器</strong>：每类卡内为「Excel 表格 ｜ 拍照识别」两段等宽、40px 高、选中段品牌色实心；卡头新增采集状态徽标（待上传 / 已上传 / 待拍摄 / 已拍 N 张），已采集时回显文件行或照片缩略图（§6.8）。<strong>② 点「拍照识别」即刻调起相机</strong>：能取流则真实取景，不能取流（<code>file://</code> / 无权限 / 无摄像头）自动降级为演示取景并明示；支持连拍多张、缩略图条可逐张删除、常驻「已拍 N 张」计数，完成后回类型页回显（§6.10.1）。<strong>③ 新增「确认待识别内容」页</strong>：上传页完成 / 类型页下一步后进入，同屏列出待识别的 Excel 清单（可更换 / 删除）与按类别分组的照片缩略图（可删除 / 补拍），并给出「N 个 Excel + M 张照片」总览；「开始识别」带过渡态，有 Excel → 映射页，纯照片 → 直接核对页（§6.10.2）。<strong>④ 映射页按类别 tab</strong>：多份 Excel 时顶部 tab 切换，每类各自一套字段与确认勾选，全部确认后才可下一步；拍照类目显示「自动识别列，无需对齐」提示（§6.11）。<strong>⑤ 上传页</strong>：改为按类别逐行选文件，全部就绪后按钮由「完成」变「下一步」（§6.9）。<strong>⑥ 严谨性</strong>：来源一类一源，切换即清空另一形态的已采集内容并 toast；选中类别未采集时「下一步」拦回对应采集页并高亮该卡；核对页 / 结果页分类行标注来源徽标。<strong>⑦ 口径</strong>：§10 验收项仍只写规格「应为」；交付前另跑的交互自检结果只在交付说明中给出，不写进验收表。</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-10-26</td>
+<td><strong>新增「历史订单」只读旁路与分类独立来源</strong>。<strong>① 历史消费不再是占位</strong>：独立链路「说明 → 上传 Excel → 指定日期 / 金额 / 顾客姓名 → 核对 → 结果 → 失败明细（可下载失败行）」，<strong>不支持拍照</strong>；不强制字段结构，整行原样入库，只识别三项供筛选搜索；不写订单流水、不参与开单 / 业绩 / 会员资产（§6.20–§6.27 / §8.10）。<strong>② 工作台新增入口</strong>：「店铺管理」宫格新增「历史订单」（§6.20–§6.22），列表为时间倒序流水，支持自定义时间区间 / 金额区间 / 顾客姓名搜索，详情为独立页（已识别三项 + 原始字段）。<strong>③ 分类独立来源</strong>：链路改为「引导 → 类型（每类内选来源）→ 上传 / 拍照 → 映射 → 核对 → 结果」；会员、会员卡、价目表均可各自选 Excel 或拍照，可分批提交、结果合并（§6.8–§6.10）。<strong>④ 引导页</strong>新增「历史消费需单独导入，建议先导会员 / 卡 / 价目」提示，不设硬门槛（§6.6）。<strong>⑤ 删除</strong>：历史消费支持整批删除，不影响订单流水与会员数据。<strong>⑥ 口径</strong>：本次改动为功能与交互调整，文中验收项按规格写「应为」，不声称已执行自动化验证。</td>
+</tr>
+<tr>
+<td>v1.0</td>
+<td>2026-10-23</td>
+<td><strong>按 PRD 体例整体重写，并把 v0.4–v0.9 的补丁式增补合并进正文（不再按版本堆叠）</strong>。<strong>① 结构</strong>：改为「元信息 + 修订记录 + 怎么读 + 模块 1–12」，与 <code>价目表/PRD-项目创建与管理.html</code> 同骨架；每模块首行标读者。<strong>② 内容重排</strong>：新增模块 4「状态机」（定位权限 / 开店与分流 / 导入任务 / 映射行 / 失败条目 / 会员卡条目 / 浮球）、模块 7「数据模型与接口约定」（含 <code>ImportBatch</code> / <code>ImportRow</code> / <code>Member</code> / <code>MemberCard</code> / <code>PriceItem</code> / <code>LegacyCardTemplate</code> / <code>ImportMapping</code> 与能力清单）、模块 10「验收 P0」（80 条 Given→When→Then + 6 条 P1）。<strong>③ 与原型逐屏对齐</strong>：23 个 screen、8 个弹层 / 浮球、全部 Toast 文案、校验正则与跳转均按 <code>index.html</code> / <code>app.js</code> 实录整理（不是按旧稿转述）。<strong>④ 分流落点以原型为准</strong>：<code>我要获客</code> / <code>我要卖货</code> / <code>我要学习</code> 仅 toast「承接本期不做，敬请期待」，仅 <code>我要管理店铺</code> 与 <code>先随便看看</code> 进首页并触发导入邀请；旧稿「跳对应 TAB / 学习占位页」不再作为本期口径，线上落点待他案承接时另定。<strong>⑤ 明确占位边界</strong>：会员卡列表、价目表、会员详情、城市 / 搜索 / 店员切换、图片上传、地图拖拽均为视觉占位。<strong>⑥ 交付形态</strong>：只出本 HTML 预览稿（不出 Markdown 源）；页面流图用仓库内 <code>mermaid.min.js</code> 本地渲染。<strong>⑦ 验收口径</strong>：全部按规格写「应为…」，本稿未跑任何自动化验证，文中不出现「实测 / PASS」类结论。</td>
+</tr>
+<tr>
+<td>v0.9</td>
+<td>2026-10-23</td>
+<td>补录半屏支持一个会员录入<strong>多张会员卡</strong>（卡列表 + 添加 / 修改 / 删除，同卡种可重复）；移除「该会员没有会员卡」按钮，没卡留空即可（已并入 §6.9 / §6.10）。</td>
+</tr>
+<tr>
+<td>v0.8</td>
+<td>2026-10-23</td>
+<td>补录半屏定案为「格式强校验、字段非必填」：仅姓名必填，性别 / 手机号 / 会员卡均可留空，填了必须合法；「手动补录」与「补录完成」并列保留，支持回填后再次调整（已并入 §5.7 / §6.9）。</td>
+</tr>
+<tr>
+<td>v0.7</td>
+<td>2026-10-23</td>
+<td>导入链路重排为「引导 → 来源 → 类型 → 映射 → 核对 → 结果」；结果页去掉批次查询与模板说明、改「去导入历史消费记录」并加三行「查看」；失败明细补录改为「姓名 / 性别 / 手机号 / 补录会员卡」，新增右侧滑入的「添加卡 → 补录老卡」闭环与「补录完成」收尾（已并入 §6.5–§6.10）。</td>
+</tr>
+<tr>
+<td>v0.6</td>
+<td>2026-10-23</td>
+<td>会员姓名带「先生 / 男士 / 女士 / 小姐 / 太太 / 夫人」时自动识别性别（无称呼记未知，源表性别列优先）；字段映射每行支持自定义输入，未识别红字提示但不阻断、按跳过处理（已并入 §6.6 / §8.5 / §8.6）。</td>
+</tr>
+<tr>
+<td>v0.5</td>
+<td>2026-10-23</td>
+<td>登录后先落「认领门店」空态页再弹权限说明（拒绝 / 不允许均留在空态）；数据导入补 N-1 推荐格式、N-2 映射可回改、N-3 用途与整批删除、N-4 防重复导入（已并入 §6.2 / §6.6 / §6.8 / §5.5）。</td>
+</tr>
+<tr>
+<td>v0.4</td>
+<td>2026-10-23</td>
+<td>定位权限门禁；映射勾选与下一步；核对 / 结果文案；失败手动补录；运营标准会员表识别规则（已并入 §6.2 / §6.6 / §6.7 / §6.9 / §8.7）。</td>
+</tr>
+</tbody>
+</table>
+<h2>怎么读这份 PRD</h2>
+<p>正文按模块编排。<strong>不用通读全文</strong>，按角色跳章即可。</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>模块</th>
+<th style="text-align: center;">前端</th>
+<th style="text-align: center;">后端</th>
+<th style="text-align: center;">测试</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>背景 / 目标 / 范围 / 能力映射</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td>为什么做、做到哪、不做什么</td>
+</tr>
+<tr>
+<td>2</td>
+<td>用户场景与成功标准</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">了解</td>
+<td style="text-align: center;">✓</td>
+<td>测「业务对不对」</td>
+</tr>
+<tr>
+<td>3</td>
+<td>信息架构与页面清单</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">了解</td>
+<td style="text-align: center;">✓</td>
+<td>做哪些页、怎么串、深链</td>
+</tr>
+<tr>
+<td>4</td>
+<td>状态机</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"><strong>必看</strong></td>
+<td style="text-align: center;"><strong>必看</strong></td>
+<td>权限、任务、映射、失败条目状态</td>
+</tr>
+<tr>
+<td>5</td>
+<td>交互细则 / 异常流</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">了解</td>
+<td style="text-align: center;">✓</td>
+<td>返回、校验、toast、空态</td>
+</tr>
+<tr>
+<td>6</td>
+<td>功能规格</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">了解</td>
+<td style="text-align: center;">✓</td>
+<td>逐屏字段、按钮与跳转</td>
+</tr>
+<tr>
+<td>7</td>
+<td>数据模型与接口约定</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"><strong>必看</strong></td>
+<td style="text-align: center;">✓</td>
+<td>实体、能力清单、时序</td>
+</tr>
+<tr>
+<td>8</td>
+<td>业务规则</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"><strong>必看</strong></td>
+<td style="text-align: center;">✓</td>
+<td>去重、卡、价目、性别、失败行</td>
+</tr>
+<tr>
+<td>9</td>
+<td>文案清单与权限</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">部分</td>
+<td style="text-align: center;">✓</td>
+<td>文案须与原型一致；店主 / 店员</td>
+</tr>
+<tr>
+<td>10</td>
+<td>验收 P0（93 条）</td>
+<td style="text-align: center;">了解</td>
+<td style="text-align: center;">了解</td>
+<td style="text-align: center;"><strong>必看</strong></td>
+<td>Given→When→Then</td>
+</tr>
+<tr>
+<td>11</td>
+<td>非功能（极简）</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td>画布、隐私、埋点</td>
+</tr>
+<tr>
+<td>12</td>
+<td>交付物</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">✓</td>
+<td>PRD + 原型 + 占位边界</td>
+</tr>
+</tbody>
+</table>
+<p><strong>先读这几条（贯穿全文）</strong></p>
+<ol>
+<li>本期只做两件事：<strong>开店入驻</strong>（登录 → 定位 → 认领 → 确认门店 → 分流）与<strong>老店数据自助迁移</strong>（P0：会员与持卡信息 / 会员卡模板 / 价目表）。获客 / 小店 / 学习等版块内的承接<strong>不在本期</strong>。  </li>
+<li>导入链路固定为：<strong>流程引导 → 导入类型（每类内选来源）→ 上传 Excel / 拍照 → 确认字段对应 →（缺卡模板时）确认自动生成的卡模板 → 核对数据 → 导入完成</strong>；失败时再进<strong>失败明细 → 手动补录 → 添加卡 → 补录老卡</strong>。<strong>历史消费走独立链路</strong>：<strong>说明 → 上传 Excel → 指定三列 → 核对 → 结果</strong>，不经过类型页与拍照。  </li>
+<li><strong>只有「核对数据」概览页可以确认导入</strong>；点分类进入的明细页只读，没有导入按钮。  </li>
+<li>映射页的<strong>「确认映射关系无误」是提交前唯一闸口</strong>；未勾选时「下一步」置灰。自定义字段未识别<strong>不阻断</strong>，按跳过处理并 toast 告知。  </li>
+<li><strong>性别</strong>：姓名含「先生 / 男士」→ 男，含「女士 / 小姐 / 太太 / 夫人」→ 女；无称呼记「未知」不猜。性别<strong>不在「会员与持卡信息」的 12 列内</strong>，只由称呼推断，仅用于会员列表与补录表单。  </li>
+<li><strong>失败补录</strong>：仅<strong>姓名必填</strong>；性别、手机号、会员卡都可留空，填了必须合法；一个会员可补<strong>多张卡</strong>（同卡种可重复），没卡留空即可。  </li>
+<li>补录后的条目<strong>「手动补录」与「补录完成」并列</strong>：前者重开半屏改错 / 补卡，后者才把该条滑出移除。  </li>
+<li>历史消费属<strong>只读旁路</strong>：<strong>不写入订单流水</strong>，不参与开单 / 退款 / 业绩 / 会员资产；<strong>不规定字段结构</strong>，只识别<strong>日期、金额、顾客姓名</strong>三项供筛选搜索；<strong>只支持 Excel</strong>，不提供拍照；结果页「去导入历史消费记录」进入该独立链路。  </li>
+<li><strong>本文与原型冲突时以原型为准</strong>（原型是唯一可视依据）；原型中未接交互的视觉元素，均在 §6 逐条标注「占位」。</li>
+</ol>
+<hr />
+<h1>模块 1　背景 / 目标 / 范围 / 能力映射</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 ✓ · 测试 ✓</p>
+</blockquote>
+<h2>1.1 背景：两个断点</h2>
+<p><strong>断点一：店开完了，没人招呼。</strong>现状实拍显示，登录 → 创建店铺多步 → <strong>落点写死为首页</strong>，全程没有「你现在最想做什么」的询问。用户冲着获客 / 小店来，却被领进首页，目标 TAB 在第 4、第 5 个，难以主动发现；主战场转化从 <strong>320 掉到 168（流失 47.5%）</strong>（数据出处见 <code>对标-登录入驻体验优化.html</code> 引用的现状报告）。</p>
+<p><strong>断点二：老店数据进不来。</strong>现状是<strong>运营代导</strong>：线下运营把门店数据整理进官方 Excel 模板 → 核对 → 提交后台识别导入。店主本人几乎碰不到「交数据」这一步，开店后要用的会员、卡、价目长期缺位，店等于「开了但没法开单」。</p>
+<h2>1.2 目标</h2>
+<ul>
+<li><strong>开店不断线</strong>：登录后按「定位 → 认领 / 创建 → 确认 → 一键开店 → 分流」走完，开店成功后<strong>先问需再落点</strong>，不再直接甩到首页。  </li>
+<li><strong>数据能自助</strong>：用户自己交源（现有表 / 截图 / 照片均可），系统按列名自动映射、用户确认后自助入库；<strong>模板从唯一入口降为稳妥旁路</strong>。  </li>
+<li><strong>失败可闭环</strong>：单行失败不阻断整批，失败明细可逐条手动补录（含补录多张老卡），补完再移除。  </li>
+<li><strong>可撤回</strong>：会员表是老店最敏感资产 —— 上传页讲清用途，结果页可<strong>整批删除</strong>回到导入前。  </li>
+<li><strong>旧账可查</strong>：历史消费单列存放，只识别日期 / 金额 / 顾客姓名供筛选搜索，<strong>不污染订单流水与经营数据</strong>；导入前明确告知需单独操作。  </li>
+</ul>
+<h2>1.3 本期做（In）</h2>
+<table>
+<thead>
+<tr>
+<th>域</th>
+<th>本期范围</th>
+<th>落点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>登录</td>
+<td>本机号码一键登录（主）/ 手机验证码登录（次，占位）/ 一键体验 / 邀请码 / 协议</td>
+<td>§6.1</td>
+</tr>
+<tr>
+<td>定位</td>
+<td>先落「认领门店」空态页 → App 内权限说明 → 系统定位权限 → 允许后解锁附近门店</td>
+<td>§6.2</td>
+</tr>
+<tr>
+<td>认领</td>
+<td>智能推荐卡、城市 + 门店名搜索、附近门店列表、手工创建门店；未定位空态</td>
+<td>§6.2 / §6.3</td>
+</tr>
+<tr>
+<td>开店</td>
+<td>确认门店信息（品类 / 名称 / 图片 / 手机号 / 昵称 / 地区地址 / 地图 / 工商信息）+ 可关闭价值预告 + 一键开店</td>
+<td>§6.4</td>
+</tr>
+<tr>
+<td>分流</td>
+<td>四选一 +「先随便看看」；<strong>仅「管店」与「跳过」进首页并触发导入邀请</strong>；获客 / 卖货 / 学习三支仅 toast，不设独立页面</td>
+<td>§6.5</td>
+</tr>
+<tr>
+<td>导入入口</td>
+<td>半屏邀请（可跳过）→ 浮球续导；工作台「数据迁移」常驻；导入完成后浮球关闭确认</td>
+<td>§6.6</td>
+</tr>
+<tr>
+<td>导入主链</td>
+<td>流程引导 / 导入类型（每类两枚来源按钮：Excel 表格 / 拍照识别，点击弹说明层 + 采集状态徽标；卡模板与价目表联动锁定）/ 上传表格（单类别聚焦 + 步骤条 + 该类别标准表头 + 每类最多 3 个 Excel）/ 拍照（真实取景或演示降级、连拍、缩略图）/ 待识别内容（Excel + 照片合并确认）/ 字段映射（类别卡片 tab + 进度条 + 自动映射 + 自定义 + 分类确认锁）/ 确认卡模板（按卡种自动生成，勾选后入库）</td>
+<td>§6.7–§6.12</td>
+</tr>
+<tr>
+<td>核对与结果</td>
+<td>分类概览（唯一可导入）+ 只读明细；成功态三行数量 + 查看 + 失败入口 + 整批删除 + 返回首页</td>
+<td>§6.13 / §6.14</td>
+</tr>
+<tr>
+<td>历史消费导入</td>
+<td>独立链路：说明 / 上传 Excel / 指定日期·金额·顾客姓名 / 核对 / 结果 / 失败明细（下载失败行，不站内补录）；仅 Excel，无拍照</td>
+<td>§6.20–§6.27</td>
+</tr>
+<tr>
+<td>历史订单</td>
+<td>工作台「店铺管理」入口；时间倒序流水 + 自定义时间 / 金额区间 / 姓名搜索 + 独立详情（原始字段）+ 整批删除</td>
+<td>§6.28 / §6.29</td>
+</tr>
+<tr>
+<td>失败闭环</td>
+<td>失败明细 / 手动补录半屏 / 添加卡 / 补录老卡 / 修改 / 删除 / 补录完成滑出 / 全部补录空态</td>
+<td>§6.15–§6.18</td>
+</tr>
+<tr>
+<td>查看落点</td>
+<td>会员列表（真实渲染 126 人 + 搜索 + 字母索引）；会员卡模板列表 / 价目表为占位</td>
+<td>§6.19</td>
+</tr>
+</tbody>
+</table>
+<h2>1.4 本期不做（Out）</h2>
+<ul>
+<li><strong>版块内承接</strong>：获客 / 小店 / 首页 / 学习等 TAB 内的承接三步与价值动作，由他案负责；本期不挡路、不设计。  </li>
+<li><strong>运营代导工具链改造</strong>：可继续作为内部能力，但不进开店主路径。  </li>
+<li><strong>员工 / 提成 / 其他对象导入</strong>（P2）：不在本期方案展开。  </li>
+<li><strong>历史消费参与经营计算</strong>（Out）：历史订单<strong>不合并进订单流水</strong>、不参与业绩 / 提成 / 会员余额，也不提供按历史消费重算经营分析；本期只做查看与核对。  </li>
+<li><strong>历史消费拍照识别</strong>（Out）：手写 / 截图账单识别不可靠，本期只接受 Excel；后续若做需单独立项评估准确率与纠错成本。  </li>
+<li><strong>真实文件上传、真实 OCR、真实后台转换</strong>：原型用演示数据 + 确定性进度层（0% → 100% 走完即成功）模拟导入。  </li>
+<li><strong>店员只读壳</strong>：原型只演示店主路径（权限口径见 §9.2）。  </li>
+<li><strong>分流偏好持久化</strong>：原型每次进入分流页都按当次选择走，不做「同账号不反复弹」的服务端记忆。  </li>
+</ul>
+<h2>1.5 旧 → 新能力映射（不写废弃产品名）</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>旧（现状）</th>
+<th>新（本期）</th>
+<th>落点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>谁交数据</td>
+<td>线下运营代劳，整理进官方模板</td>
+<td>店主自助提交；运营代导可仍作内部能力</td>
+<td>§6.7</td>
+</tr>
+<tr>
+<td>数据形态</td>
+<td>必须套官方模板</td>
+<td>现有表 / 截图 / 照片 / 模板均可；AI 识表 + 映射后人工确认</td>
+<td>§6.8 / §6.9</td>
+</tr>
+<tr>
+<td>模板角色</td>
+<td>唯一合格入口</td>
+<td><strong>稳妥旁路</strong>（第三选项）</td>
+<td>§6.8</td>
+</tr>
+<tr>
+<td>入库确认</td>
+<td>运营核对 → 后台导入</td>
+<td>端上分类核对 + 全局确认；<strong>只有概览页能导入</strong></td>
+<td>§6.13</td>
+</tr>
+<tr>
+<td>开店落点</td>
+<td>写死首页</td>
+<td>分流页问需 → 按选择落点</td>
+<td>§6.5</td>
+</tr>
+<tr>
+<td>导入入口</td>
+<td>开店后缺明确入口</td>
+<td>半屏邀请 + 浮球 + 工作台「数据迁移」三入口</td>
+<td>§6.6</td>
+</tr>
+<tr>
+<td>失败处理</td>
+<td>后台失败需运营再联系</td>
+<td>失败明细 + 手动补录 + 多卡补录 + 补录完成</td>
+<td>§6.15–§6.18</td>
+</tr>
+<tr>
+<td>撤回</td>
+<td>无</td>
+<td>结果页「删除本批数据」整批回滚</td>
+<td>§6.14</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>模块 2　用户场景与成功标准</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 了解 · 测试 ✓</p>
+</blockquote>
+<h2>2.1 角色</h2>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>关键诉求</th>
+<th>本期能力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>店主</strong>（决策者 / 交表人）</td>
+<td>尽快把店开成、把老客数据搬进来，能直接开单</td>
+<td>全流程可操作：认领 / 创建门店、导入 P0 三类、补录失败行、整批删除</td>
+</tr>
+<tr>
+<td><strong>店员</strong>（被邀请 / 执行者）</td>
+<td>被店主拉进来干活，不该由店员决定门店归属</td>
+<td>顶部有「我是店员」入口（原型为视觉占位）；导入权限口径见 §9.2</td>
+</tr>
+<tr>
+<td><strong>运营</strong>（内部）</td>
+<td>以前靠代导，现在应退出主路径</td>
+<td>代导工具链保留为内部能力，不在端上出现</td>
+</tr>
+</tbody>
+</table>
+<h2>2.2 核心场景</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>场景</th>
+<th>入口</th>
+<th>期望结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>新店主第一次开店</td>
+<td>登录 → 一键登录</td>
+<td>授权定位后看到「猜你是这家店的主理人」，认领 → 确认 → 一键开店 → 分流</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>没定位到 / 找不到门店</td>
+<td>认领空态或底栏</td>
+<td>拒绝定位后仍能搜索或「手工创建新门店」，不卡死</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>开店后想管店</td>
+<td>分流「我要管理店铺」</td>
+<td>进首页，并弹「把老系统数据带过来？」半屏</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>这次不想导</td>
+<td>半屏「稍后再说」</td>
+<td>关闭半屏、出现「数据迁移」浮球；不影响首页任何内容</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>交一张乱七八糟的老表</td>
+<td>引导 → 上传现有表</td>
+<td>按列名自动映射，识别不到的可自定义或跳过；勾选确认后才能下一步</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>只想导会员</td>
+<td>导入类型页取消卡与价目</td>
+<td>至少保留一项即可下一步；结果页仍展示三类数量（演示口径）</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>核对后反悔</td>
+<td>核对页「返回修改映射」</td>
+<td>回映射页，<strong>映射值保留</strong>、确认框需重新勾选</td>
+</tr>
+<tr>
+<td>S8</td>
+<td>导入完成</td>
+<td>核对页「确认无误，导入」</td>
+<td>全屏进度层走满 → 成功态，三类数量 + 各自「查看」</td>
+</tr>
+<tr>
+<td>S9</td>
+<td>有 2 条脏数据</td>
+<td>结果页失败条</td>
+<td>失败明细 → 手动补录（可补多张卡）→ 补录完成 → 该条滑出 → 空态</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>导错了想撤回</td>
+<td>结果页「删除本批数据」</td>
+<td>二次确认列明数量 → 回引导页，会员 / 卡回到导入前</td>
+</tr>
+</tbody>
+</table>
+<h2>2.3 成功标准</h2>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>口径</th>
+<th>本期目标 / 说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>开店漏斗</td>
+<td>登录成功 → 一键开店成功 的完成率</td>
+<td>不再因「落点错」流失；分流页到达率应接近开店成功率</td>
+</tr>
+<tr>
+<td>分流有效率</td>
+<td>四选一选择率 / 跳过率 / 各落点占比</td>
+<td>选择率为主指标；跳过率用于评估「先随便看看」是否过宽</td>
+</tr>
+<tr>
+<td>导入启动率</td>
+<td>半屏曝光 → 点「开始导入」</td>
+<td>对比「稍后再说」与浮球点击率，判断邀请时机</td>
+</tr>
+<tr>
+<td>导入完成率</td>
+<td>进入引导 → 点「确认无误，导入」成功</td>
+<td>P0 三类成功入库；失败行可补录率</td>
+</tr>
+<tr>
+<td>映射返工率</td>
+<td>核对页「返回修改映射」次数 / 批</td>
+<td>衡量自动映射质量（N-2 的保留映射效果）</td>
+</tr>
+<tr>
+<td>补录闭环率</td>
+<td>失败条被「补录完成」清空的比例</td>
+<td>含多卡补录；未清空即视为该批不完整</td>
+</tr>
+<tr>
+<td>撤回率</td>
+<td>「删除本批数据」确认数 / 批</td>
+<td>异常高说明映射或预览不足；本期仅观测</td>
+</tr>
+</tbody>
+</table>
+<p>以上均<strong>待埋点接入后取值</strong>，原型不产生真实指标（§11）。</p>
+<hr />
+<h1>模块 3　信息架构与页面清单</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 了解 · 测试 ✓</p>
+</blockquote>
+<h2>3.0 页面流（示意）</h2>
+<div class="mermaid">
+flowchart LR
+  L[登录] -->|本机号码一键登录 / 一键体验| C1[认领门店 · 空态]
+  C1 -->|App 内「同意」| SYS[[系统定位权限]]
+  SYS -->|允许| C2[认领门店 · 完整态]
+  SYS -->|不允许| C1
+  C1 -->|说明「拒绝」| C1
+  C2 -->|认领门店 / 手工创建| CF[确认门店信息]
+  CF -->|一键开店| T[分流页]
+  T -->|我要管理店铺 / 先随便看看| H[首页]
+  T -->|获客 / 卖货 / 学习| X[toast · 承接本期不做]
+  H -->|半屏「开始导入」| G[数据迁移引导]
+  H -->|半屏「稍后再说」| F[数据迁移浮球]
+  F -->|点击| G
+  W[工作台 · 数据迁移] -->|点击| G
+</div>
+<div class="mermaid">
+flowchart LR
+  G[流程引导] -->|开始选择| T[这次要导入什么 · 每类选来源]
+  T -->|点「拍照识别」即刻| CAM[拍照识表 · 连拍]
+  T -->|下一步 · 有 Excel 未传| S[上传表格 · 逐类选文件]
+  CAM -->|完成 · 有 Excel 未传| S
+  CAM -->|完成| Q[确认待识别内容]
+  S -->|下一步| Q
+  Q -->|开始识别 · 有 Excel| M[确认字段对应 · 按类别 tab]
+  Q -->|开始识别 · 纯照片| P[核对数据]
+  M -->|每类勾选确认 + 下一步| P
+  P -->|点分类| D[分类明细 · 只读]
+  D -->|返回| P
+  P -->|返回修改映射| M
+  P -->|确认无误，导入| R[导入完成]
+  M -->|返回| Q
+  Q -->|更换 / 补拍| S
+  Q -->|补拍| CAM
+</div>
+<div class="mermaid">
+flowchart LR
+  R[导入完成] -->|N 条失败 · 查看明细| FA[失败明细]
+  FA -->|手动补录| SH[[手动补录半屏]]
+  SH -->|+ 添加会员卡| LC[添加卡]
+  LC -->|选卡种 · 下一步| LD[补录老卡]
+  LD -->|确认补录| SH
+  SH -->|保存并入库| FA
+  FA -->|补录完成| OUT[该条滑出]
+  OUT -->|全部清空| EMPTY[空态 · 失败已全部补录]
+  R -->|查看 · 会员与持卡| MB[会员列表]
+  R -->|查看 · 卡模板| CL[会员卡模板列表 · 占位]
+  R -->|查看 · 价目| PL[价目表 · 占位]
+</div>
+<div class="mermaid">
+flowchart LR
+  R[导入完成] -->|去导入历史消费记录| HI[历史消费导入说明]
+  HO[历史订单列表] -->|导入| HI
+  HI -->|上传 Excel 表| HU[上传历史消费]
+  HU -->|选择文件| HM[指定字段 · 日期/金额/姓名]
+  HM -->|下一步| HP[核对历史数据]
+  HP -->|确认无误，导入| HR[历史消费导入完成]
+  HR -->|查看| HO
+  HR -->|失败明细| HF[历史消费失败明细]
+  HF -->|下载失败行| DL[下载 .xls]
+  HR -->|删除本批历史消费| HD[删除确认]
+  HD -->|确认| HO
+  HO -->|点行| HDT[历史订单详情 · 只读]
+  HO -->|筛选| HFT[[筛选半屏]]
+</div>
+<p><strong>关键口径</strong>：主链只有一条 —— <strong>引导 → 类型（每类选来源）→ 拍照 / 上传 → 待识别内容 → 映射（仅 Excel）→ 核对 → 结果</strong>；<strong>待识别内容是 Excel 与照片的唯一合并确认点</strong>，分类明细是概览的下级只读页，失败补录是结果的旁支闭环。历史消费是<strong>第二条独立链路</strong>（说明 → 上传 → 指定三列 → 核对 → 结果），只从结果页文字链与历史订单页进入，<strong>不混入类型页</strong>。除「添加卡 / 补录老卡」为右侧滑入的独立页外，其余均为同层 screen 整页切换。</p>
+<h2>3.1 页面树</h2>
+<pre><code>开店入驻与数据迁移
+├─ 开店入驻
+│   ├─ 登录（本机一键 / 验证码占位 / 一键体验 / 邀请码 / 协议）
+│   ├─ 认领门店
+│   │    ├─ 空态（未定位：搜索 + 暂无内容 + 手工创建；隐藏推荐 / 列表 / 底栏）
+│   │    └─ 完整态（智能推荐 + 附近门店 + 手工创建）
+│   ├─ 确认门店信息（品类 / 名称 / 图片 / 手机号 / 昵称 / 地区地址 / 地图 / 工商信息）
+│   ├─ 分流页（获客 / 管店 / 卖货 / 学习 + 先随便看看；仅管店与跳过进首页）
+├─ 落点
+│   ├─ 首页（2.0 首页壳 · 仅作邀请半屏落点）
+│   ├─ 工作台（店铺管理 → 数据迁移 / 历史订单）
+│   └─ 会员列表 / 会员卡模板列表 / 价目表（查看落点；后两者占位）
+├─ 数据迁移
+│   ├─ 本店概况（已有存量时入口；继续补充 / 查看 / 删除）
+│   ├─ 流程引导（4 步 + 3 条注意 · 首次无存量）
+│   ├─ 这次要导入什么（会员与持卡信息 / 会员卡模板 / 价目表 · 勾选 · 每类两枚按钮选 Excel / 拍照，点击弹说明层 + 采集状态；卡模板与价目表联动锁定；存量类角标）
+│   ├─ 上传表格（一次只呈现当前类别 + 步骤条；仅 Excel 类目）
+│   ├─ 拍照识表（真实取景 / 自动降级演示 + 连拍 + 缩略图删除）
+│   ├─ 确认待识别内容（Excel 清单 + 照片分组 + 总览 + 开始识别）
+│   ├─ 确认字段对应（按类别卡片 tab + 进度「已确认 N/M」· 会员与持卡 12 行 / 卡模板 8 行 / 价目 5 行 + 分类确认锁）
+│   ├─ 确认卡模板（仅会员已导、卡模板缺省时出现；按卡种生成的草案勾选 + 下一步 / 跳过）
+│   ├─ 核对数据（分类概览 · 唯一可导入）
+│   │    └─ 分类明细（抽样 10 条 · 点行看字段 · 只读）
+│   ├─ 导入完成（成功态 + 查看 + 失败入口 + 整批删除）
+│   ├─ 失败明细（逐条手动补录 / 补录完成 / 全部补录空态）
+│   ├─ 添加卡（办理类型 + 分组 tab + 卡种单选）
+│   └─ 补录老卡（卡内信息 5 字段；编辑态标题变「修改会员卡」）
+├─ 历史订单（只读旁路）
+│   ├─ 历史订单列表（搜索 + 汇总 + 时间倒序流水 + 空态）
+│   ├─ 筛选半屏（时间区间 / 金额区间）
+│   ├─ 历史订单详情（已识别三项 + 原始字段 · 只读）
+│   └─ 历史消费导入
+│        ├─ 导入说明（不进流水 / 仅 Excel / 只认三项）
+│        ├─ 上传历史消费（选择文件 + 模板）
+│        ├─ 指定字段（日期 / 金额 / 顾客姓名）
+│        ├─ 核对历史数据（汇总 + 抽 5 条 + 失败提示）
+│        ├─ 导入完成（条数 + 查看 + 失败入口 + 整批删除）
+│        └─ 失败明细（行号 + 原因 + 原值；仅下载失败行）
+└─ 弹层 / 浮球
+     ├─ 导入邀请半屏
+     ├─ 数据迁移浮球 + 浮球关闭确认
+     ├─ 核对明细 Sheet
+     ├─ 定位说明 Dialog（App 内）+ 系统定位权限样式
+     ├─ 手动补录半屏（多卡列表）
+     ├─ 删除本批数据确认 Dialog
+     ├─ 再导模式半屏（合并 / 清空本类 · 强制二选一）
+     ├─ 历史再导半屏（追加 / 先删再导）
+     ├─ 历史订单筛选半屏
+     ├─ 删除本批历史消费确认 Dialog
+     └─ 统一导入进度层（识别 / 正式导入 / 历史消费导入共用）
+</code></pre>
+<h2>3.2 页面清单</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th><code>data-flow</code></th>
+<th>页面</th>
+<th>类型</th>
+<th>进入</th>
+<th>返回 / 出边</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>login</code></td>
+<td>登录</td>
+<td>整页 · 原型首页</td>
+<td>默认 / <code>?flow=login</code></td>
+<td>一键登录 / 一键体验 → 认领空态</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>claim</code></td>
+<td>认领门店</td>
+<td>整页 · 双态</td>
+<td>登录后自动进入（空态）</td>
+<td>返回登录；认领 / 手工创建 → 确认门店</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>confirm</code></td>
+<td>确认门店信息</td>
+<td>整页</td>
+<td>认领 / 手工创建</td>
+<td>返回认领；一键开店 → 分流</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>triage</code></td>
+<td>分流页</td>
+<td>整页</td>
+<td>一键开店</td>
+<td>管店 / 跳过 → 首页；其余 → toast</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>home</code></td>
+<td>首页</td>
+<td>整页 · 外部壳</td>
+<td>分流 / 结果页返回首页</td>
+<td>工作台；邀请半屏</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>workbench</code></td>
+<td>工作台</td>
+<td>整页 · 外部壳</td>
+<td>首页右上「工作台」</td>
+<td>数据迁移 → 概况（有存量）或引导（无存量）；首页 tab</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>import-overview</code></td>
+<td>本店概况</td>
+<td>整页</td>
+<td>工作台 / 浮球 / 邀请「开始导入」（P0 已有存量时）</td>
+<td>继续补充 → 类型页；查看 → 列表；删除 → 整批删除确认；返回工作台</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>import-guide</code></td>
+<td>流程引导</td>
+<td>整页</td>
+<td>邀请 / 浮球 / 工作台（无存量）/ 删除本批后</td>
+<td>开始选择 → 类型页</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>import-select</code></td>
+<td>这次要导入什么（每类含来源）</td>
+<td>整页</td>
+<td>引导页 / 概况「继续补充」/ 拍照或上传返回</td>
+<td>返回概况或引导；「下一步」若勾选存量类且未选模式 → 再导模式半屏；否则进上传 / 队列</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>import-source</code></td>
+<td>上传表格</td>
+<td>整页</td>
+<td>类型页「下一步」（有 Excel 未传）/ 类型页点「Excel 表格」/ 待识别页「更换」</td>
+<td>返回类型页；逐类选文件后「下一步」→ 待识别内容页</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>import-camera</code></td>
+<td>拍照识表</td>
+<td>整页 · 真实取景 / 演示降级</td>
+<td>类型页点「拍照识别」（即刻）/ 待识别页「补拍」/ 映射页返回</td>
+<td>返回进入前页面（照片保留）；「完成」回进入前页面</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>import-queue</code></td>
+<td>确认待识别内容</td>
+<td>整页</td>
+<td>上传页「下一步」/ 类型页「下一步」（已采集齐全）/ 拍照页「完成」</td>
+<td>返回类型页；「开始识别」有 Excel → 映射页、纯照片 → 核对页；「更换」→ 上传页；「补拍」→ 拍照页</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>import-map</code></td>
+<td>确认字段对应</td>
+<td>整页</td>
+<td>待识别页「开始识别」（有 Excel）</td>
+<td>返回待识别页；每类勾选确认 + 下一步 → 核对</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>import-tpl-gen</code></td>
+<td>确认卡模板</td>
+<td>整页 · 条件出现</td>
+<td>映射页「下一步」（会员已导、卡模板未导）</td>
+<td>返回映射页；勾选草案 + 「下一步」→ 核对；「暂不生成」→ 核对（卡模板计数为 0）</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>import-preview</code></td>
+<td>核对数据</td>
+<td>整页 · 唯一可导入</td>
+<td>映射页 / 待识别页「开始识别」（纯照片）</td>
+<td>返回映射（保留映射；无 Excel 时回待识别）；确认 → 结果；分类 → 明细</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>import-preview-detail</code></td>
+<td>分类明细</td>
+<td>整页 · 只读</td>
+<td>核对页分类行</td>
+<td>返回核对；点行开明细 Sheet</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>import-result</code></td>
+<td>导入完成</td>
+<td>整页 · 成功态</td>
+<td>核对页确认导入（进度层走满）</td>
+<td>查看三类 / 失败明细 / 删除本批 / 返回首页</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>import-fail</code></td>
+<td>失败明细</td>
+<td>整页</td>
+<td>结果页失败条</td>
+<td>返回结果；手动补录；补录完成滑出；下载明细</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>legacy-card</code></td>
+<td>添加卡</td>
+<td>整页 · 右侧滑入</td>
+<td>补录半屏「+ 添加会员卡」</td>
+<td>返回失败明细并重开半屏；下一步 → 补录老卡</td>
+</tr>
+<tr>
+<td>19</td>
+<td><code>legacy-detail</code></td>
+<td>补录老卡 / 修改会员卡</td>
+<td>整页 · 右侧滑入</td>
+<td>添加卡「下一步」/ 半屏「修改」</td>
+<td>新增 → 返回添加卡；编辑 → 返回失败明细并重开半屏；确认 → 回失败明细</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>members</code></td>
+<td>会员列表</td>
+<td>整页 · 查看落点</td>
+<td>结果页「查看 · 会员与持卡」</td>
+<td>返回结果；搜索 / 取消</td>
+</tr>
+<tr>
+<td>21</td>
+<td><code>card-list</code></td>
+<td>会员卡模板列表</td>
+<td>整页 · 占位</td>
+<td>结果页「查看 · 卡模板」</td>
+<td>返回结果</td>
+</tr>
+<tr>
+<td>22</td>
+<td><code>price-list</code></td>
+<td>价目表</td>
+<td>整页 · 占位</td>
+<td>结果页「查看 · 价目表」</td>
+<td>返回结果</td>
+</tr>
+<tr>
+<td>23</td>
+<td><code>history-orders</code></td>
+<td>历史订单</td>
+<td>整页 · 只读旁路</td>
+<td>工作台「店铺管理 · 历史订单」/ 结果页查看</td>
+<td>返回工作台；「导入」→ 导入说明；筛选半屏；点行 → 详情</td>
+</tr>
+<tr>
+<td>24</td>
+<td><code>history-detail</code></td>
+<td>历史订单详情</td>
+<td>整页 · 只读</td>
+<td>历史订单列表点行</td>
+<td>返回列表</td>
+</tr>
+<tr>
+<td>25</td>
+<td><code>history-import-intro</code></td>
+<td>导入历史消费 · 说明</td>
+<td>整页</td>
+<td>导入完成页「去导入历史消费记录」/ 历史订单页「导入」</td>
+<td>上传 Excel → 上传页；返回历史订单</td>
+</tr>
+<tr>
+<td>26</td>
+<td><code>history-import-upload</code></td>
+<td>上传历史消费</td>
+<td>整页</td>
+<td>说明页「上传 Excel 表」</td>
+<td>返回说明；选择文件后 → 指定字段；页内展示标准表头（无下载入口）</td>
+</tr>
+<tr>
+<td>27</td>
+<td><code>history-import-map</code></td>
+<td>指定字段（日期 / 金额 / 姓名）</td>
+<td>整页</td>
+<td>上传页选择文件后</td>
+<td>返回上传；下一步 → 核对（日期与金额必选）</td>
+</tr>
+<tr>
+<td>28</td>
+<td><code>history-import-preview</code></td>
+<td>核对历史数据</td>
+<td>整页 · 唯一可导入</td>
+<td>指定字段页「下一步」</td>
+<td>返回指定字段；确认 → 结果</td>
+</tr>
+<tr>
+<td>29</td>
+<td><code>history-import-result</code></td>
+<td>历史消费导入完成</td>
+<td>整页 · 成功态</td>
+<td>核对页确认导入</td>
+<td>查看历史订单 / 失败明细 / 整批删除 / 返回工作台</td>
+</tr>
+<tr>
+<td>30</td>
+<td><code>history-import-fail</code></td>
+<td>历史消费失败明细</td>
+<td>整页</td>
+<td>结果页失败条</td>
+<td>返回结果；下载失败行（toast）</td>
+</tr>
+</tbody>
+</table>
+<h2>3.3 弹层 / 浮球 / 对话框</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th><code>id</code></th>
+<th>打开时机</th>
+<th>关闭方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>导入邀请半屏</td>
+<td><code>inviteSheet</code> / <code>inviteMask</code></td>
+<td>分流选「管店」或「先随便看看」→ 进首页后 320ms</td>
+<td>开始导入 / 稍后再说 / 点遮罩（后两者均出浮球）</td>
+</tr>
+<tr>
+<td>数据迁移浮球</td>
+<td><code>migrateFab</code></td>
+<td>半屏被跳过 / 被遮罩关闭时</td>
+<td>点主体进概况（有存量）或引导；点右上 × 直接隐藏</td>
+</tr>
+<tr>
+<td>再导模式半屏</td>
+<td><code>reimportModeSheet</code> / <code>reimportModeMask</code></td>
+<td>类型页「下一步」且勾选了已有存量的类别、尚未选齐模式</td>
+<td>确认并继续（须每类已选）/ 返回修改 / 点遮罩</td>
+</tr>
+<tr>
+<td>历史再导半屏</td>
+<td><code>historyReimportSheet</code> / <code>historyReimportMask</code></td>
+<td>历史订单有数据时点「导入」</td>
+<td>追加导入 / 先整批删除再导入 / 取消 / 点遮罩</td>
+</tr>
+<tr>
+<td>浮球关闭确认</td>
+<td><code>fabCloseDialog</code></td>
+<td>进入结果页时若浮球仍可见（延时 400ms）</td>
+<td>保留 / 关闭浮球</td>
+</tr>
+<tr>
+<td>定位说明（App 内）</td>
+<td><code>locExplainDialog</code></td>
+<td>进入认领空态后立即</td>
+<td>拒绝 / 同意（无遮罩点击关闭）</td>
+</tr>
+<tr>
+<td>系统定位权限（样式）</td>
+<td><code>locSysDialog</code></td>
+<td>说明弹窗点「同意」</td>
+<td>仅在使用时允许 / 仅限这一次 / 不允许</td>
+</tr>
+<tr>
+<td>核对明细 Sheet</td>
+<td><code>previewDetailSheet</code></td>
+<td>分类明细页点任一行</td>
+<td>知道了 / 点遮罩</td>
+</tr>
+<tr>
+<td>手动补录半屏</td>
+<td><code>failFixSheet</code></td>
+<td>失败明细「手动补录」</td>
+<td>取消 / 点遮罩 / 保存并入库</td>
+</tr>
+<tr>
+<td>删除本批确认</td>
+<td><code>delBatchDialog</code></td>
+<td>结果页「删除本批数据」</td>
+<td>先不删 / 点遮罩 / 确认删除</td>
+</tr>
+<tr>
+<td>历史订单筛选半屏</td>
+<td><code>historyFilterSheet</code> / <code>historyFilterMask</code></td>
+<td>历史订单页「筛选」</td>
+<td>查看结果 / 重置（不清输入框）/ 点遮罩</td>
+</tr>
+<tr>
+<td>删除本批历史消费</td>
+<td><code>historyDelDialog</code> / <code>historyDelMask</code></td>
+<td>历史消费结果页「删除本批历史消费」</td>
+<td>先不删 / 点遮罩 / 确认删除</td>
+</tr>
+<tr>
+<td>统一导入进度层</td>
+<td><code>importProgress</code></td>
+<td>「开始识别」/「确认无误，导入」/ 历史消费「确认无误，导入」</td>
+<td>无手动关闭：进度走满后自动收起并跳转；任何主动跳转立即收起</td>
+</tr>
+</tbody>
+</table>
+<h2>3.4 深链清单</h2>
+<p>原型支持 <code>index.html?flow=&lt;id&gt;</code>，可直接落到任一 screen；不带参数默认 <code>login</code>。左侧导航点击「认领门店」时强制完整态（不弹权限说明）。</p>
+<table>
+<thead>
+<tr>
+<th>分组</th>
+<th>可用 <code>flow</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>开店</td>
+<td><code>login</code> · <code>claim</code> · <code>confirm</code> · <code>triage</code></td>
+</tr>
+<tr>
+<td>落点</td>
+<td><code>home</code> · <code>workbench</code></td>
+</tr>
+<tr>
+<td>数据迁移</td>
+<td><code>import-overview</code> · <code>import-guide</code> · <code>import-select</code> · <code>import-source</code> · <code>import-camera</code> · <code>import-queue</code> · <code>import-map</code> · <code>import-preview</code> · <code>import-preview-detail</code> · <code>import-result</code> · <code>import-fail</code> · <code>legacy-card</code> · <code>legacy-detail</code></td>
+</tr>
+<tr>
+<td>历史订单</td>
+<td><code>history-orders</code> · <code>history-detail</code> · <code>history-import-intro</code> · <code>history-import-upload</code> · <code>history-import-map</code> · <code>history-import-preview</code> · <code>history-import-result</code> · <code>history-import-fail</code></td>
+</tr>
+<tr>
+<td>查看落点</td>
+<td><code>members</code> · <code>card-list</code> · <code>price-list</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>深链注意事项</strong>：① 直接落 <code>legacy-card</code> / <code>legacy-detail</code> 时没有补录上下文，会员信息显示「未填写姓名 / 未填写手机号」，用于单独评审版式；② 直接落 <code>import-fail</code> 时两条失败记录均为待补录初始态；③ 直接落 <code>import-result</code> 不经过导入进度层，浮球未显示时不弹关闭确认。</p>
+<h2>3.5 不在本期验收的页面</h2>
+<ul>
+<li><code>home</code>（开单结账 2.0 首页壳）与 <code>workbench</code> 的其他瓦片：仅作为落点与入口容器，交互为「演示占位」toast。  </li>
+<li><code>card-list</code> / <code>price-list</code>：占位列表，版式与字段不作验收依据（以线上真实页面为准）。  </li>
+<li><strong>已删除、不再出现在原型中</strong>：<code>learn</code>（学习培训占位页）、<code>stub-rts</code>（获客壳）、<code>stub-rtp</code>（小店壳）。分流页的获客 / 卖货 / 学习三支本来就是 toast，不进任何页面；这三页只能从左侧开发导航进入，属残留页，v1.6 起连同导航条目、占位样式与相关脚本一并移除。深链 <code>?flow=learn</code> 等已失效，会按默认落点回首页。</li>
+</ul>
+
+<hr />
+<h1>模块 4　状态机</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 <strong>必看</strong> · 测试 <strong>必看</strong></p>
+</blockquote>
+<h2>4.1 定位权限</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>进入条件</th>
+<th>界面表现</th>
+<th>出边</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未询问</td>
+<td>停留在登录页</td>
+<td>登录页；无任何定位弹层</td>
+<td>点「本机号码一键登录」或「一键体验」</td>
+</tr>
+<tr>
+<td>已进空态 · 说明待答</td>
+<td>登录成功</td>
+<td>认领门店空态（隐藏推荐 / 附近 / 底栏）+ App 内「权限说明」Dialog</td>
+<td>拒绝 → 已拒绝；同意 → 系统权限待答</td>
+</tr>
+<tr>
+<td>系统权限待答</td>
+<td>说明弹窗点「同意」</td>
+<td>系统权限样式弹窗（确切位置 / 大致位置 + 三个选项）</td>
+<td>仅在使用时允许 / 仅限这一次 → 已授权；不允许 → 已拒绝</td>
+</tr>
+<tr>
+<td>已授权</td>
+<td>系统权限允许</td>
+<td>认领门店完整态（智能推荐 + 附近门店 3 家）</td>
+<td>认领 / 手工创建 → 确认门店</td>
+</tr>
+<tr>
+<td>已拒绝</td>
+<td>说明弹窗「拒绝」或系统「不允许」</td>
+<td>留在空态；仅搜索框 + 暂无内容 + 手工创建</td>
+<td>手工创建 → 确认门店；不自动重新索权</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不可逆点</strong>：原型内没有「再次申请定位」的入口；已拒绝后只能走搜索 / 手工创建（线上是否允许二次索权【待联调确认】）。</p>
+<h2>4.2 开店与分流</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>判定</th>
+<th>页面</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未登录</td>
+<td>默认进入</td>
+<td>登录</td>
+<td>无返回</td>
+</tr>
+<tr>
+<td>定位门禁中</td>
+<td>已登录、未授权</td>
+<td>认领空态 + 两级弹窗</td>
+<td>见 §4.1</td>
+</tr>
+<tr>
+<td>待认领</td>
+<td>已授权</td>
+<td>认领完整态</td>
+<td>推荐 / 附近 / 手工创建三入口等价</td>
+</tr>
+<tr>
+<td>待确认门店</td>
+<td>点了认领或手工创建</td>
+<td>确认门店信息</td>
+<td>经营品类单选；提示条可关</td>
+</tr>
+<tr>
+<td>开店完成 · 待分流</td>
+<td>点「一键开店」</td>
+<td>分流页</td>
+<td>不再直接进首页</td>
+</tr>
+<tr>
+<td>已选落点</td>
+<td>管店 / 跳过 → 首页；其余 → 原页 toast</td>
+<td>首页 / 分流页</td>
+<td>原型不持久化选择</td>
+</tr>
+</tbody>
+</table>
+<h2>4.3 导入任务</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>关键数据</th>
+<th>界面</th>
+<th>允许的下一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未开始</td>
+<td>无批次</td>
+<td>引导页</td>
+<td>开始选择 → 类型页</td>
+</tr>
+<tr>
+<td>来源 / 类型已选</td>
+<td><code>importSelection</code>（默认三类全选）+ <code>importSources</code>（每类 excel / photo）+ <code>importFiles</code>（<strong>每类文件数组，最多 3 个</strong>）+ <code>importPhotos</code>（每类照片数组）</td>
+<td>类型页（徽标 + 回显区）</td>
+<td>点「拍照」→ 拍照页；点「Excel」→ 上传页；「下一步」按缺口拦回采集页</td>
+</tr>
+<tr>
+<td>采集中</td>
+<td><code>importCameraCat</code>（当前类别）+ <code>importCameraStream</code>（真实流 / 空）+ <code>importCameraDemo</code></td>
+<td>拍照页；计数「已拍 N 张」+ 缩略图条</td>
+<td>快门（可连拍）/ 单张删除 / 完成 → 回进入前页面</td>
+</tr>
+<tr>
+<td>待识别</td>
+<td><code>importFiles</code>（<strong>每类文件数组</strong>，已选 N 个 / 上限 3）/ <code>importPhotos</code> 汇总；<code>queueBusy=false</code></td>
+<td>待识别内容页（Excel 清单<strong>逐文件一行</strong> + 照片分组 + 总览）</td>
+<td>更换 / 删除单个 / 补拍 / 开始识别</td>
+</tr>
+<tr>
+<td>识别中</td>
+<td><code>queueBusy=true</code></td>
+<td>全屏进度层「AI 正在识别」（进度条 + 百分比 + 当前步骤）</td>
+<td>进度走满 → 有 Excel → 映射页；纯照片 → 核对页</td>
+</tr>
+<tr>
+<td>映射草稿</td>
+<td>各类映射值；<code>importMapAck={}</code>（全部未确认）</td>
+<td>映射页；「下一步」置灰</td>
+<td>逐类勾选确认</td>
+</tr>
+<tr>
+<td>映射已确认</td>
+<td>各 Excel 类 <code>importMapAck[类别]=true</code>；当前类顶部「已锁定」</td>
+<td>映射页；全部确认后「下一步」可用</td>
+<td>下一步 / 取消勾选解锁</td>
+</tr>
+<tr>
+<td>核对中</td>
+<td><code>importPreviewType</code></td>
+<td>核对概览 / 分类明细</td>
+<td>确认导入 / 返回修改映射</td>
+</tr>
+<tr>
+<td>导入中</td>
+<td><code>importing=true</code></td>
+<td>核对页按钮变「正在导入…」并禁用 + 全屏进度层</td>
+<td>进度 100% 后自动进结果</td>
+</tr>
+<tr>
+<td>已完成</td>
+<td>三类数量、失败 N 条</td>
+<td>结果页</td>
+<td>查看 / 失败补录 / 历史消费 / 整批删除 / 返回首页</td>
+</tr>
+<tr>
+<td>本批已删除</td>
+<td><code>batchDeleted=true</code></td>
+<td>回引导页</td>
+<td>重新导入</td>
+</tr>
+</tbody>
+</table>
+<h2>4.4 字段映射行</h2>
+<table>
+<thead>
+<tr>
+<th>行状态</th>
+<th>触发</th>
+<th>视觉</th>
+<th>对提交的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自动映射</td>
+<td>默认（下拉选中当前类别的样表列名 / 首字母「按姓名推导」）</td>
+<td>正常</td>
+<td>无</td>
+</tr>
+<tr>
+<td>自定义 · 有效</td>
+<td>选「自定义…」并输入<strong>当前类别</strong>标准列之一（会员与持卡信息为 12 列）</td>
+<td>行标题转绿、输入框下绿字「已对到源表列「X」」</td>
+<td>无，按该列解析</td>
+</tr>
+<tr>
+<td>自定义 · 无效</td>
+<td>输入不在允许集合内</td>
+<td>行标题转红、红字「未识别到「X」…本字段将按跳过处理」</td>
+<td><strong>不阻断</strong>；按跳过处理，点下一步时 toast 告知</td>
+</tr>
+<tr>
+<td>跳过</td>
+<td>下拉选「（跳过）」</td>
+<td>正常（无提示）</td>
+<td>该字段不入库；首字母缺失时列表按姓名首字兜底分组</td>
+</tr>
+<tr>
+<td>已锁定</td>
+<td>勾选「确认映射关系无误」</td>
+<td>页面加 <code>is-locked</code>、标题栏出「已锁定」徽标</td>
+<td>允许下一步；重新进入映射页默认复位为未确认</td>
+</tr>
+</tbody>
+</table>
+<h2>4.5 失败条目</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>判定</th>
+<th>界面</th>
+<th>出边</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>待补录</td>
+<td><code>failFixed[id]</code> 为假、未移除</td>
+<td>红色原因（手机号格式错误 / 卡余额无法解析）；仅「手动补录」</td>
+<td>手动补录 → 半屏</td>
+</tr>
+<tr>
+<td>已补录</td>
+<td><code>failFixed[id]=true</code></td>
+<td>原因转绿「已手动补录 · N 张卡」；条目 <code>opacity .78</code>；<strong>「手动补录」+「补录完成」并列</strong></td>
+<td>改错 → 重开半屏；补录完成 → 已移除</td>
+</tr>
+<tr>
+<td>已移除</td>
+<td><code>failRemoved[id]=true</code>（动画 260ms 后 remove）</td>
+<td>条目滑出消失；计数减 1</td>
+<td>不可恢复（重新导入才回来）</td>
+</tr>
+<tr>
+<td>全部清空</td>
+<td>剩余 0</td>
+<td>空态「失败数据已全部补录」；结果页失败条 0 条</td>
+<td>返回结果 / 下载明细</td>
+</tr>
+</tbody>
+</table>
+<h2>4.6 会员卡条目（补录）</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>判定</th>
+<th>界面</th>
+<th>出边</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>空</td>
+<td><code>legacy.cards.length = 0</code></td>
+<td>「尚未补录会员卡，可留空」；可保存入库</td>
+<td>+ 添加会员卡 → 添加卡页</td>
+</tr>
+<tr>
+<td>新增草稿</td>
+<td>在添加卡页选中卡种，进补录老卡页</td>
+<td>补录老卡：余额 / 期限 / 充值 / 赠送 / 赠送项目</td>
+<td>确认补录 → 追加一行；返回 → 丢弃草稿</td>
+</tr>
+<tr>
+<td>已保存</td>
+<td>确认成功，push 进 <code>legacy.cards</code></td>
+<td>半屏列表行：卡名 + 「余额 ¥N · 至 日期」+ 修改 / 删除</td>
+<td>修改 → 编辑态；删除 → 回到空 / 少一张</td>
+</tr>
+<tr>
+<td>编辑中</td>
+<td><code>legacy.editingKey</code> 指向该行</td>
+<td>补录老卡页标题「修改会员卡」、按钮「保存修改」，字段回填</td>
+<td>保存修改 → 就地更新；返回 → 半屏</td>
+</tr>
+</tbody>
+</table>
+<p><strong>同卡种可重复</strong>（两张同款储值卡合法）；卡内余额为必填金额，其余 4 项可空；删除直接生效并轻提示。</p>
+<h2>4.7 浮球</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>进入</th>
+<th>界面</th>
+<th>出边</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>隐藏</td>
+<td>默认；点浮球 ×；浮球确认里选「关闭浮球」</td>
+<td>无</td>
+<td>工作台「数据迁移」仍可进</td>
+</tr>
+<tr>
+<td>显示</td>
+<td>半屏「稍后再说」或点遮罩关闭</td>
+<td>右侧「数据 / 迁移」浮球 + 右上 ×</td>
+<td>点主体 → 引导页；点 × → 隐藏</td>
+</tr>
+<tr>
+<td>显示 · 导入已完成</td>
+<td>带着可见浮球进入结果页</td>
+<td>400ms 后弹「是否关闭浮球？」</td>
+<td>保留 → 浮球继续挂；关闭浮球 → 隐藏</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意</strong>：从工作台 / 浮球直接进入导入、全程不经过半屏时，<code>fabVisible</code> 为假，结果页<strong>不弹</strong>关闭确认。这是原型现状，线上可另定。</p>
+<h2>4.8 状态与数据同步点</h2>
+<table>
+<thead>
+<tr>
+<th>动作</th>
+<th>必须同步的界面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>补录保存 / 修改卡 / 删除卡</td>
+<td>半屏卡列表、「会员卡 · N 张」标题、条目原因「已手动补录 · N 张卡」</td>
+</tr>
+<tr>
+<td>补录完成（移除一条）</td>
+<td>失败明细标题「失败明细 · N 条」、结果页失败条计数 / 尾部文案 / 链接文案、空态显隐</td>
+</tr>
+<tr>
+<td>返回修改映射</td>
+<td>映射页确认框复位、「已返回修改」提示条、核对页无残留</td>
+</tr>
+<tr>
+<td>删除本批</td>
+<td>回引导页；结果页 / 失败页数据不再回显</td>
+</tr>
+<tr>
+<td>进入认领门店</td>
+<td>空态 / 完整态按 <code>claimEmpty</code> 重绘</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>模块 5　交互细则 / 异常流</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 了解 · 测试 ✓</p>
+</blockquote>
+<h2>5.1 通用</h2>
+<ul>
+<li><strong>返回矩阵</strong>：见 §3.2「返回 / 出边」列；子页一律返回上一级，唯一例外是补录链路 —— 从半屏进「添加卡」后，返回要<strong>回到失败明细并重开半屏</strong>（延时 240ms），而不是停在一个没有上下文的列表。  </li>
+<li><strong>整页切换</strong>：即时显隐（同一时刻只有一个 <code>.screen.active</code>）；「添加卡 / 补录老卡」额外加 300ms 右侧滑入 / 滑出（<code>slideTo</code> / <code>slideBackTo</code>），补录完成回跳为 260ms。  </li>
+<li><strong>Toast</strong>：底部居中，单条覆盖式（后一条顶掉前一条），显示 1800ms；不阻断操作。  </li>
+<li><strong>半屏 / 弹窗</strong>：补录半屏与核对明细 Sheet 贴底、内容区最大高度 85%，内部可滚；遮罩点击即关闭（定位说明与系统权限除外，遮罩不关）。  </li>
+<li><strong>数字强调</strong>：核对页与结果页的数量走 <code>.num-em</code>（加粗 + 加大一级），保证「126 / 4 / 42」在一屏里可读。  </li>
+<li><strong>滚动</strong>：每个整页为「标题栏固定 + <code>.scroll-body</code> 滚动 + 底部按钮固定」；内容不足时按钮仍贴底。  </li>
+<li><strong>安全区</strong>：真机预览（<code>?mobile=1</code>）隐藏假状态栏，按 <code>env(safe-area-inset-*)</code> 避让刘海与底部手势区；逻辑画布固定 390，整体等比缩放。  </li>
+<li><strong>焦点与可访问性</strong>：自定义映射提示与校验信息走 <code>aria-live="polite"</code>；性别分段为 <code>role="radiogroup"</code> + <code>aria-checked</code>；卡种单选为 <code>role="radio"</code>；弹层为 <code>role="dialog"</code>。  </li>
+</ul>
+<h2>5.2 定位权限异常流</h2>
+<table>
+<thead>
+<tr>
+<th>分支</th>
+<th>界面结果</th>
+<th>提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>说明弹窗点「拒绝」</td>
+<td>关闭说明弹窗；留在认领空态（推荐 / 附近 / 底栏均隐藏）</td>
+<td>未开启定位，可搜索门店或手工创建</td>
+</tr>
+<tr>
+<td>说明弹窗点「同意」</td>
+<td>关闭说明，弹系统权限样式</td>
+<td>—</td>
+</tr>
+<tr>
+<td>系统「不允许」</td>
+<td>关闭系统弹窗；留在空态；不再次索权</td>
+<td>未获得定位权限，可搜索门店或手工创建</td>
+</tr>
+<tr>
+<td>系统「仅在使用该应用时允许」/「仅限这一次」</td>
+<td>关闭系统弹窗；空态 → 完整态（推荐 + 附近 3 家）</td>
+<td>已定位到附近的 3 家门店</td>
+</tr>
+<tr>
+<td>定位失败 / 无结果（线上）</td>
+<td>【待联调确认】应回落空态并可搜索 / 手工创建</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2>5.3 分流与邀请异常流</h2>
+<table>
+<thead>
+<tr>
+<th>情形</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>选「我要获客 / 我要卖货 / 我要学习」</td>
+<td>停在分流页，toast「「获客」承接本期不做，敬请期待」/「「卖货」…」/「「学习」…」；不跳页</td>
+</tr>
+<tr>
+<td>选「我要管理店铺」</td>
+<td>记一次待弹邀请，进首页；320ms 后弹半屏</td>
+</tr>
+<tr>
+<td>点「先随便看看」</td>
+<td>同上（进首页 + 邀请半屏）</td>
+</tr>
+<tr>
+<td>半屏点「稍后再说」或点遮罩</td>
+<td>关闭半屏，<strong>出现浮球</strong>；首页内容不受影响</td>
+</tr>
+<tr>
+<td>半屏点「开始导入」</td>
+<td>关闭半屏，直接进引导页（<strong>不出浮球</strong>）</td>
+</tr>
+<tr>
+<td>浮球点 ×</td>
+<td>立即隐藏，无 toast、无确认；工作台入口仍在</td>
+</tr>
+<tr>
+<td>结果页仍有浮球</td>
+<td>进结果页 400ms 后弹「导入已完成 / 是否关闭浮球？」；选「保留」只关弹窗</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不叠加原则</strong>：邀请只在「分流 → 首页」这一条路径上出现一次；从工作台或浮球进入导入，再回首页不会重复弹半屏（<code>pendingInvite</code> 已消费）。</p>
+<h2>5.4 导入前置校验</h2>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>提示</th>
+<th>阻断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>导入类型三项全取消，点「下一步」</td>
+<td>请至少选择一项</td>
+<td>是（不进映射页）</td>
+</tr>
+<tr>
+<td>映射页未勾选「确认映射关系无误」</td>
+<td>「下一步」置灰，不可点</td>
+<td>是</td>
+</tr>
+<tr>
+<td>映射页有无效自定义字段</td>
+<td>行内红字；点「下一步」时额外 toast「未识别的自定义字段已按跳过处理」</td>
+<td><strong>否</strong>（按跳过继续）</td>
+</tr>
+<tr>
+<td>补录半屏姓名为空，点「保存并入库」</td>
+<td>请填写姓名</td>
+<td>是</td>
+</tr>
+<tr>
+<td>补录半屏手机号非空但非 11 位合法</td>
+<td>手机号需为 1 开头的 11 位数字</td>
+<td>是</td>
+</tr>
+<tr>
+<td>补录半屏姓名为空，点「+ 添加会员卡」</td>
+<td>请先填写姓名</td>
+<td>是（不滑入添加卡）</td>
+</tr>
+<tr>
+<td>添加卡页未选卡种，点「下一步」</td>
+<td>请选择一个卡种</td>
+<td>是</td>
+</tr>
+<tr>
+<td>补录老卡页卡内余额空 / 非数字 / 超 2 位小数</td>
+<td>请填写正确的卡内余额</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<h2>5.5 导入执行与防重复 / 再导入</h2>
+<ul>
+<li>点「确认无误，导入」后按钮<strong>立即禁用</strong>并改文案「正在导入…」，加 <code>is-loading</code>；<code>state.importing</code> 置真，重复点击直接 return。  </li>
+<li>同时弹出<strong>统一导入进度层</strong>（见 §6.10.3）：进度条 + 百分比 + 当前步骤（校验数据 → 写入会员与持卡信息 → 写入卡模板与价目表 → 处理失败行），走满 100% 并停留约 0.32s 后解除 loading 并进入结果页；若期间用户已离开核对页（原型不允许其他出口），则<strong>不再跳转</strong>（以「当前仍在核对页」为判据）。  </li>
+<li>导入无二次确认弹窗 —— 核对页本身就是确认页；这一点与「删除本批」相反（删除有二次确认）。  </li>
+<li>结果页只回显本批三类数量（会员与持卡 <strong>126</strong> 人 / 会员卡模板 <strong>4</strong> 张 / 价目 <strong>42</strong> 项，原型造数）；分类明细抽样 10 条，卡模板全量。再导入时按模式改写为「新增 / 更新」或「已清空后写入」，并展示本店合计存量。  </li>
+</ul>
+<p><strong>再导入入口（P0）</strong></p>
+<ul>
+<li>工作台「数据迁移」、浮球、邀请「开始导入」：若会员 / 卡模板 / 价目<strong>任一已有存量</strong> → 进 <code>import-overview</code>（本店概况）；否则进引导页。  </li>
+<li>概况页：展示三类存量；「继续补充导入」→ 类型页（并清空上次再导模式）；「查看」→ 对应列表；「删除已导入数据」→ 既有整批删除确认。  </li>
+<li>类型页：存量类角标「已有数据」；「下一步」时，凡勾选且有存量、尚未选模式的类 → 弹出<strong>再导模式半屏</strong>。  </li>
+<li>半屏规则：<strong>每一类强制二选一</strong>，无默认项；未选齐则主按钮禁用。  </li>
+</ul>
+<table>
+<thead>
+<tr><th>模式</th><th>行为</th><th>同键规则</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>合并到现有</td>
+<td>新键追加；同键更新字段</td>
+<td>会员：手机号（无号则姓名+性别弱匹配【待联调】）；卡模板：卡名称；价目：项目名</td>
+</tr>
+<tr>
+<td>清空本类后导入</td>
+<td>先删除该类别全部已导入数据，再写入本批</td>
+<td>不影响未勾选的其它类别；须在半屏明示将删除的数量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>历史消费再导入</strong>：列表有数据时点「导入」→ 半屏二选一「追加导入」（按行追加、不去重）/「先整批删除再导入」（走删除确认后进说明页）。空列表直接进说明页。</p>
+<p><strong>不做</strong>：静默覆盖全店；跨类别一键覆盖；历史自动去重；断点续传（中途退出再进从概况 / 引导重新开始）。</p>
+<h2>5.6 整批删除</h2>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入口</td>
+<td>结果页「删除本批数据」（红色文字链，非实心按钮）</td>
+</tr>
+<tr>
+<td>确认弹窗</td>
+<td>标题「删除本批数据？」；正文「将删除本次导入的 126 条会员与持卡信息、4 张卡模板与 42 项价目，已手动补录的 2 条也会一并删除。删除后需重新导入。」</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>左「先不删」（描边）/ 右「确认删除」（实心品牌红）</td>
+</tr>
+<tr>
+<td>确认后</td>
+<td>toast「已删除本批数据，会员与卡已回到导入前状态」；跳回引导页</td>
+</tr>
+<tr>
+<td>取消</td>
+<td>只关弹窗，停留结果页</td>
+</tr>
+<tr>
+<td>说明</td>
+<td>原型不真正删数据（演示态）；正文中的「已手动补录的 2 条」为造数文案，实际应按本批已补录条数动态拼接【待联调确认】</td>
+</tr>
+</tbody>
+</table>
+<h2>5.7 补录校验（强校验格式，不强调必填）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>必填</th>
+<th>规则</th>
+<th>失败提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>姓名</td>
+<td><strong>必填</strong></td>
+<td>trim 后非空即可；预填原值</td>
+<td>请填写姓名</td>
+</tr>
+<tr>
+<td>性别</td>
+<td>可空</td>
+<td>男 / 女二选一；<strong>再点已选项可取消</strong>；留空记「未知」；姓名带称呼时自动预选</td>
+<td>—</td>
+</tr>
+<tr>
+<td>手机号</td>
+<td>可空</td>
+<td>填了须匹配 <code>/^1\d{10}$/</code>；输入框 <code>maxlength=11</code>、<code>inputmode=numeric</code></td>
+<td>手机号需为 1 开头的 11 位数字</td>
+</tr>
+<tr>
+<td>会员卡</td>
+<td>可空</td>
+<td>0 ～ N 张；每张卡内余额必填且为金额（≤2 位小数）；同卡种可重复；无「无卡」按钮</td>
+<td>（余额在补录老卡页拦截）请填写正确的卡内余额</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么这样定</strong>：老店会员确实可能没手机号、没卡；把这三项设成必填会让人卡在补录页。但「填了就必须合法」，否则脏数据又被写回去。</p>
+<h2>5.8 空态</h2>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>文案</th>
+<th>可用操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>认领门店 · 未定位</td>
+<td>暂无内容（144×144 插图）</td>
+<td>搜索 / 手工创建新门店；推荐、附近标题、列表、底栏全部隐藏</td>
+</tr>
+<tr>
+<td>会员列表 · 搜索无结果</td>
+<td>未找到匹配的会员</td>
+<td>改关键词 / 取消回结果页</td>
+</tr>
+<tr>
+<td>失败明细 · 全部补录</td>
+<td>失败数据已全部补录 / 会员与持卡信息已写入本店，可回结果页继续操作。</td>
+<td>返回导入结果 / 下载失败明细</td>
+</tr>
+<tr>
+<td>补录半屏 · 无卡</td>
+<td>尚未补录会员卡，可留空</td>
+<td>+ 添加会员卡；直接保存入库</td>
+</tr>
+<tr>
+<td>核对明细（线上无数据）</td>
+<td>【待联调确认】</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2>5.9 兜底与异常</h2>
+<ul>
+<li><strong>刷新丢失</strong>：原型所有引导态（<code>pendingInvite</code>、<code>fabVisible</code>、<code>importSelection</code>、映射确认、失败补录内容）均在内存中，刷新即回到 <code>login</code>（或 URL 指定的 flow）。线上是否需要断点续传 / 任务恢复【待联调确认】。  </li>
+<li><strong>直接深链到中间页</strong>：不校验前序状态（例如直接进 <code>import-preview</code> 也能确认导入）；仅用于评审，线上应拦截非法顺序。  </li>
+<li><strong>事件重复绑定</strong>：原型一次性 <code>boot()</code> 绑定，无重复；线上若采用局部重渲染，注意不要在容器上重复挂同一 handler（价目表 PRD v1.32 的「写副本」教训同理：状态写入要落到真实数据源，不要写到渲染副本）。  </li>
+<li><strong>网络 / 解析失败</strong>：原型无失败态；线上需要「解析失败 → 重试 / 换文件 / 转人工」的兜底，本期不在范围。  </li>
+</ul>
+
+<hr />
+<h1>模块 6　功能规格</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 了解 · 测试 ✓</p>
+</blockquote>
+<p>下列字段、按钮、跳转与文案<strong>均须与原型一致</strong>；视觉以原型为准。原型中未接交互的元素，逐条标注「占位」，<strong>不作为验收依据</strong>。</p>
+<p><strong>通用视觉口径</strong>：整页 = 固定标题栏（44px，返回 / 标题 / 右侧动作）+ 可滚动内容 + 固定底部按钮区；主按钮通栏、高 48、圆角 12、实心品牌红 <code>#F32F41</code> 白字；次按钮为描边或文字链；页面底色 <code>#F7F7F7</code>，内容卡白底 12px 圆角；正文主色 <code>#333</code>，次级 <code>#929292</code>；数字强调 <code>.num-em</code> = 加粗 + 字号 +1 级。</p>
+<h2>6.1 登录</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格 / 文案</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>品牌区</td>
+<td>居中品牌图形（<code>logo-inner.png</code>），无文字标题</td>
+<td>静态</td>
+</tr>
+<tr>
+<td>本机号码</td>
+<td>136****5726（脱敏）</td>
+<td>静态</td>
+</tr>
+<tr>
+<td>本机号码一键登录</td>
+<td>主按钮，实心品牌红</td>
+<td><strong>进认领门店空态 + App 内权限说明</strong>（§6.2）</td>
+</tr>
+<tr>
+<td>手机验证码登录</td>
+<td>次按钮，白底描边</td>
+<td>toast「验证码登录（演示占位）」，不跳页</td>
+</tr>
+<tr>
+<td>邀请码</td>
+<td>票券图标 + 输入框，placeholder「请输入邀请码（选填）」</td>
+<td>可输入；不参与校验</td>
+</tr>
+<tr>
+<td>一键体验</td>
+<td>胶囊按钮「一键体验」+ 播放图标</td>
+<td><strong>与主登录同路径</strong>（进认领空态 + 权限说明）；无「演示数据」文案</td>
+</tr>
+<tr>
+<td>协议</td>
+<td>未勾选图标 + 「登录即代表已阅读同意《用户协议》和《隐私政策》」</td>
+<td><strong>原型为静态图标，不做未勾选拦截</strong>；线上应拦截【待联调确认】</td>
+</tr>
+</tbody>
+</table>
+<p><strong>无返回</strong>（原型首页）；深链 <code>?flow=login</code> 可直达。</p>
+<h2>6.2 定位权限与认领门店（空态）</h2>
+<h3>进入顺序（固定）</h3>
+<ol>
+<li>登录成功 → <strong>先进入「认领门店」空态页</strong>（<code>claimEmpty=true</code>）。  </li>
+<li>空态页之上<strong>立即</strong>弹 App 内「权限说明」Dialog。  </li>
+<li>点「同意」→ 关说明、弹系统定位权限样式。  </li>
+<li>系统允许 → 关闭弹窗、<code>claimEmpty=false</code>、重绘完整态，toast「已定位到附近的 3 家门店」。  </li>
+<li>系统不允许 → 留在空态，toast「未获得定位权限，可搜索门店或手工创建」。  </li>
+</ol>
+<h3>App 内「权限说明」Dialog</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题</td>
+<td>权限说明</td>
+</tr>
+<tr>
+<td>正文</td>
+<td>需要定位权限，以便在地图上选择店址或查找附近门店。</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>左「拒绝」（描边）/ 右「同意」（实心红）</td>
+</tr>
+<tr>
+<td>遮罩</td>
+<td><strong>点击不关闭</strong>（必须二选一）</td>
+</tr>
+<tr>
+<td>拒绝后</td>
+<td>关弹窗、留空态、toast「未开启定位，可搜索门店或手工创建」</td>
+</tr>
+</tbody>
+</table>
+<h3>系统定位权限样式</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图形</td>
+<td>📍 图标（居中）</td>
+</tr>
+<tr>
+<td>正文</td>
+<td>要允许「剑琅联盟」获取此设备的位置信息吗？</td>
+</tr>
+<tr>
+<td>精度选择</td>
+<td>「确切位置」（默认选中）/「大致位置」<strong>视觉占位，不可切换</strong></td>
+</tr>
+<tr>
+<td>选项</td>
+<td>仅在使用该应用时允许 / 仅限这一次 / 不允许（红色字）</td>
+</tr>
+<tr>
+<td>前两项</td>
+<td>视为「允许」→ 完整态 + toast</td>
+</tr>
+<tr>
+<td>不允许</td>
+<td>视为「拒绝」→ 留空态 + toast</td>
+</tr>
+<tr>
+<td>遮罩</td>
+<td>点击不关闭</td>
+</tr>
+</tbody>
+</table>
+<h3>认领空态页</h3>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回（→ 登录）/ 标题「门店入驻」/ 右侧「我是店员」+ 双人图标（<strong>占位，无交互</strong>）</td>
+</tr>
+<tr>
+<td>城市 + 搜索</td>
+<td>「上海市」+ 下拉图标（占位）/ 分隔线 / 输入框「输入门店名称查询」（<strong>原型不做过滤</strong>）</td>
+</tr>
+<tr>
+<td>空态插图</td>
+<td>144 × 144 插图 + 「暂无内容」</td>
+</tr>
+<tr>
+<td>空态按钮</td>
+<td>「手工创建新门店」→ 确认门店信息</td>
+</tr>
+<tr>
+<td>隐藏项</td>
+<td>智能推荐卡、「附近的门店」标题、附近列表、底部「没有找到您的门店？」栏<strong>全部隐藏</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>6.3 认领门店（完整态）</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>智能推荐卡</td>
+<td>标签「智能推荐」+ 引导语「猜你是这家店的主理人？」；店名「右尚造型（浦东1店）」；定位图标 +「距您246m丨上海市浦东新区花木路188号」；按钮「我是店主，立即认领」</td>
+<td>认领 → 确认门店信息</td>
+</tr>
+<tr>
+<td>搜索区</td>
+<td>城市「上海市」+ 下拉图标；输入框「输入门店名称查询」</td>
+<td>占位，无过滤逻辑</td>
+</tr>
+<tr>
+<td>附近的门店</td>
+<td>标题「附近的门店」；3 条：右尚造型（世纪公园店）[美发 / 美容] 距您86m丨浦东新区花木路188号；右尚造型（张江店）[美发] 距您420m丨浦东新区祖冲之路899号；悦己美容工作室 [美容] 距您680m丨浦东新区张杨路501号</td>
+<td>首条高亮；每条右侧「认领门店」→ 确认门店信息</td>
+</tr>
+<tr>
+<td>底栏</td>
+<td>「没有找到您的门店？」+ 主按钮「手工创建门店」</td>
+<td>→ 确认门店信息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>占位声明</strong>：城市切换、搜索、店员切换、附近门店数据均为静态演示；线上按真实定位与门店库返回。</p>
+<h2>6.4 确认门店信息 → 一键开店</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>必填</th>
+<th>规格</th>
+<th>交互</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>价值预告条</td>
+<td>—</td>
+<td>「开完店，就能发活动拉新、管会员卡账、找货源卖货。」+ 右上 ×</td>
+<td>点 × 隐藏，不再出现（仅本页）</td>
+</tr>
+<tr>
+<td>经营品类</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>美发 / 美容 / 美甲 三个图标 chip，<strong>单选</strong>，默认「美发」</td>
+<td>点选切换高亮</td>
+</tr>
+<tr>
+<td>门店名称</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>「右尚造型（浦东店）」+ 右箭头</td>
+<td><strong>行点击为占位</strong>，不打开编辑</td>
+</tr>
+<tr>
+<td>门店图片</td>
+<td>否</td>
+<td>副标题「（提升店铺形象）」；横向 1 个「上传图片」+ 4 张演示图（每张带「更换」条与删除 ×）</td>
+<td>上传 / 更换 / 删除均为<strong>视觉占位</strong></td>
+</tr>
+<tr>
+<td>店主手机号</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>175 0989 0024，静态无箭头</td>
+<td>只读</td>
+</tr>
+<tr>
+<td>店主昵称</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>「老板」，静态无箭头</td>
+<td>只读</td>
+</tr>
+<tr>
+<td>所在地区</td>
+<td>—</td>
+<td>上海市/上海市/黄浦区 + 右箭头</td>
+<td>占位</td>
+</tr>
+<tr>
+<td>详细地址</td>
+<td>—</td>
+<td>淮海中路222号4-33号力宝广场，静态、超长省略</td>
+<td>只读</td>
+</tr>
+<tr>
+<td>地图位置</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>提示「支持用户手动拖拽打点位置，支持地图放大 缩小 定位」+ 地图图 + 定位按钮</td>
+<td>拖拽 / 缩放 / 定位均为<strong>视觉占位</strong></td>
+</tr>
+<tr>
+<td>工商信息</td>
+<td>否</td>
+<td>右侧灰字「选填」+ 右箭头</td>
+<td>占位</td>
+</tr>
+</tbody>
+</table>
+<p><strong>底部</strong>：「一键开店」→ <strong>分流页</strong>（不再直接进首页）。原型不做必填校验与提交失败态；线上需校验品类 / 名称 / 手机号 / 昵称 / 地图位置【待联调确认】。</p>
+<h2>6.5 分流页</h2>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>话术</th>
+<th>图标</th>
+<th>本期落点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>我要获客</td>
+<td>快速发活动拉新客</td>
+<td>获客图标</td>
+<td><strong>toast「「获客」承接本期不做，敬请期待」</strong>，停留本页</td>
+</tr>
+<tr>
+<td>我要管理店铺</td>
+<td>账、卡、员工一手掌握</td>
+<td>店铺图标</td>
+<td>进首页 + 320ms 后弹导入邀请半屏</td>
+</tr>
+<tr>
+<td>我要卖货</td>
+<td>找靠谱货源上架分销</td>
+<td>小铺图标</td>
+<td>toast「「卖货」承接本期不做，敬请期待」</td>
+</tr>
+<tr>
+<td>我要学习</td>
+<td>线上线下课程，提升美业技能</td>
+<td>学习图标</td>
+<td>toast「「学习」承接本期不做，敬请期待」</td>
+</tr>
+<tr>
+<td>先随便看看</td>
+<td>—（底部文字按钮）</td>
+<td>—</td>
+<td>进首页 + 邀请半屏（与「管店」一致）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>页面标题</strong>：「欢迎使用剑琅联盟」/ 副标题「请选择你现在最想做的事」。<strong>说明</strong>：获客 / 卖货 / 学习三支本期只做到「不挡路」，线上真实落点待对应他案承接；不要按旧稿写成「跳转对应 TAB」。</p>
+<h2>6.6 导入入口与浮球</h2>
+<h3>① 半屏邀请（首页）</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触发</td>
+<td>分流选「我要管理店铺」或「先随便看看」→ 进首页后 <strong>320ms</strong></td>
+</tr>
+<tr>
+<td>标题</td>
+<td>把老系统数据带过来？</td>
+</tr>
+<tr>
+<td>正文</td>
+<td>会员与持卡信息、会员卡模板、价目表可自助导入，不必先填模板。</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>「开始导入」（主）→ 流程引导；「稍后再说」（次）→ 关闭 + 出浮球</td>
+</tr>
+<tr>
+<td>遮罩</td>
+<td>点击等同「稍后再说」：关闭 + 出浮球</td>
+</tr>
+</tbody>
+</table>
+<h3>② 数据迁移浮球</h3>
+<ul>
+<li>位置：右下角，两行文字「数据 / 迁移」，右上角独立 ×（点 × 只隐藏浮球，不进页面、不弹确认）。  </li>
+<li>点主体 → 流程引导。  </li>
+<li>出现条件：半屏被「稍后再说」或遮罩关闭。  </li>
+</ul>
+<h3>③ 导入完成后的浮球关闭确认</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触发</td>
+<td>进入结果页时<strong>浮球仍可见</strong>，延时 <strong>400ms</strong></td>
+</tr>
+<tr>
+<td>标题</td>
+<td>导入已完成</td>
+</tr>
+<tr>
+<td>正文</td>
+<td>是否关闭右下角「数据迁移」浮球？关闭后仍可从工作台进入。</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>「保留」（描边）/「关闭浮球」（实心红）</td>
+</tr>
+<tr>
+<td>结果</td>
+<td>保留 → 只关弹窗；关闭浮球 → 隐藏浮球 + 关弹窗</td>
+</tr>
+</tbody>
+</table>
+<h3>④ 工作台入口</h3>
+<ul>
+<li>「工作台 → 店铺管理 → 数据迁移」瓦片（第 9 个）→ 流程引导，<strong>只负责会员与持卡信息 / 会员卡模板 / 价目表</strong>。  </li>
+<li>「工作台 → 店铺管理 → 历史订单」瓦片（第 10 个）→ 历史订单列表（§6.20）；页内「导入」→ 历史消费导入说明（§6.23）。  </li>
+<li>工作台其他瓦片为演示 toast「演示占位」；底部 tab 仅「首页 / 工作台」可切。  </li>
+<li><strong>入口不混用</strong>：历史消费<strong>只能</strong>从「导入完成页文字链」与「历史订单页导入」进入，不出现在数据迁移的类型页里。</li>
+</ul>
+<h2>6.7 流程引导</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>数据迁移（无返回；入口已消费）</td>
+</tr>
+<tr>
+<td>主标题</td>
+<td>4 步把老店数据搬过来</td>
+</tr>
+<tr>
+<td>副文案</td>
+<td>持卡信息、卡模板、价目表都能自助导入。</td>
+</tr>
+<tr>
+<td>步骤卡（纵向 4 张）</td>
+<td>① 选要导入什么 —— 勾选类别，逐类选来源<br />② 提供数据 —— 上传 Excel，或拍照识别<br />③ 确认字段对应 —— 核对列名，逐类确认<br />④ 核对并导入 —— 抽查无误后导入<br /><strong>每步只配一句副文案，不再展开解释</strong></td>
+</tr>
+<tr>
+<td>开始前请注意（3 条）</td>
+<td>卡模板与价目表要<strong>同批导入</strong>，但请<strong>分成两个表</strong>分别上传<br />同类最多 3 个 Excel，共用一套字段映射<br />历史消费<strong>单独导入</strong>，不进订单流水<br /><strong>只保留决策必需的 3 条，每条一行；去重规则、整批删除等细节不在本页展开</strong></td>
+</tr>
+<tr>
+<td>底部</td>
+<td>「开始选择」→ 类型页（<strong>不与半屏「开始导入」重名</strong>）</td>
+</tr>
+</tbody>
+</table>
+<h2>6.8 这次要导入什么（类型页 · 每类含来源）</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 流程引导；标题「数据迁移」</td>
+<td>—</td>
+</tr>
+<tr>
+<td>主标题 / 副文案</td>
+<td>这次要导入什么 / 先勾选要导入的类别，再给每类选一种来源。</td>
+<td>—</td>
+</tr>
+<tr>
+<td>提示条</td>
+<td>会员与持卡信息多为 Excel，也可拍纸质登记本；会员卡模板需引用价目表项目，两者须同批导入。历史消费不进订单流水，需单独导入。</td>
+<td>—</td>
+</tr>
+<tr>
+<td>卡片结构</td>
+<td>勾选行（圆形勾选 + <strong>36px 类别图标</strong> + 标题 15px 加粗 + 副文案）+ <strong>两枚来源按钮</strong> + 采集回显区 +（按需）依赖说明行</td>
+<td>点勾选行切换选中；来源按钮与回显区<strong>不触发勾选</strong></td>
+</tr>
+<tr>
+<td>来源按钮</td>
+<td>两枚<strong>左右并排等宽</strong>、<strong>各 48px 高</strong>的独立按钮（不是分段器）：图标 18px + 主标 13px/600（Excel 表格 / 拍照识别）+ 副标 11px（已有导出表 / 纸表 · 手写）；未选 = 白底 1px 灰描边，选中 = <strong>品牌色实心 + 白字 + 轻投影</strong></td>
+<td>点按钮：<strong>立刻高亮</strong>并把该类别来源记为所选，同时<strong>弹出说明弹层</strong>；<strong>未勾选的卡片按钮置灰且不可点</strong></td>
+</tr>
+<tr>
+<td>初始态</td>
+<td>会员与持卡信息、价目表<strong>默认勾选</strong>，会员卡模板<strong>默认不勾选</strong>；三类<strong>都不预选来源</strong>，卡头徽标为<strong>「请选择来源」（琥珀色）</strong></td>
+<td>与「待上传 / 待拍摄」（灰）、「已上传 / 已拍 N 张」（绿）形成三级视觉区分，突出这一步必须由用户决定</td>
+</tr>
+<tr>
+<td>说明弹层</td>
+<td>居中对话框（约 310 × 316）：顶部图标、标题（Excel 表格 / 拍照识别）、类别副标（如「会员 · 数据来源」）、一句适用场景、3 条要点；底部「取消」+ 主按钮（<strong>去上传表格</strong> / <strong>立即拍照</strong>）</td>
+<td>主按钮直达对应步骤；<strong>「取消」只关闭、不清除已选来源</strong>；点遮罩等同取消；关闭后卡头显示「待上传 / 待拍摄」</td>
+</tr>
+<tr>
+<td>弹层文案</td>
+<td>Excel：适合已有导出的表格，或记账软件导出的名单 ／ 上传 xls / xlsx / csv，第一行是列名 ／ 系统按列名自动对齐，可手工改 ／ 核对抽样后导入，可在结果页整批删除<br />拍照：适合手写价目表、纸质登记本、截图打印件 ／ 整张表格入框，四角对齐 ／ 可连拍多页，拍完一起识别 ／ 识别后自动成表，再核对导入</td>
+<td>只做简要说明，不追求覆盖全部细节</td>
+</tr>
+<tr>
+<td>采集状态徽标</td>
+<td>标题右侧胶囊：<code>请选择来源</code>（琥珀）/ <code>待上传</code>（灰）/ <code>已上传 N 个</code>（绿）/ <code>待拍摄</code>（灰）/ <code>已拍 N 张</code>（绿）</td>
+<td>随选择与采集结果实时刷新；同类多表时徽标显示文件个数</td>
+</tr>
+<tr>
+<td>采集回显区</td>
+<td>Excel：<strong>每个文件一行</strong>（<code>XLS</code> 角标 + 文件名 + 「移除」），最多 3 行，纵向排列<br />拍照：最多 4 张缩略图 + 超出的「+N」+「继续拍」</td>
+<td>「移除」只删该行文件，删空后徽标回到「待上传」；缩略图右上角 × 删单张；「继续拍」再进相机</td>
+</tr>
+<tr>
+<td>点「Excel 表格」</td>
+<td>未选 → 高亮 + 弹说明；<strong>已选 Excel 再点 → 不弹层，直接进上传页</strong>（已传文件则定位到该行更换）</td>
+<td>从拍照切到 Excel：确认弹层后<strong>清空该类别照片</strong>并 toast「已切换为 Excel，N 张照片已清空」→ 进上传页</td>
+</tr>
+<tr>
+<td>点「拍照识别」</td>
+<td>未选 → 高亮 + 弹说明，确认后进入拍照页；<strong>已选拍照再点 → 不弹层，直接进相机</strong>（可继续补拍）</td>
+<td>从 Excel 切到拍照：确认弹层后移除该类别 Excel 并 toast「已切换为拍照，原 Excel 已移除」，再进相机</td>
+</tr>
+<tr>
+<td>会员与持卡信息</td>
+<td>副文案「会员编号 / 卡种 / 余额…」；标准表头 = <code>members.xlsx</code> 的 12 列（见 §8.7）</td>
+<td>默认<strong>勾选</strong>但<strong>不选来源</strong></td>
+</tr>
+<tr>
+<td>会员卡模板</td>
+<td>副文案「卡名称 / 充值 / 权益 / 会员价…」；卡底常驻一行琥珀色说明「需与价目表同批导入，但要分成两个表分别上传」</td>
+<td>默认<strong>不勾选</strong>；勾上 → 自动勾选并锁定「价目表」，同时 toast 说明原因</td>
+</tr>
+<tr>
+<td>价目表</td>
+<td>副文案「项目·产品 / 价格 / 会员价…」；被卡模板连带时，卡底出现绿色说明「已随「会员卡模板」连带导入 · 卡模板的权益与会员价按这里校验」</td>
+<td>默认<strong>勾选</strong>；可单独导入；卡模板勾选期间<strong>不可单独取消</strong>（点它 → toast「价目表与「会员卡模板」绑定，取消卡模板后才能取消价目表」，状态不变）</td>
+</tr>
+<tr>
+<td>依赖互锁（单向）</td>
+<td><strong>卡模板 ⇒ 价目表</strong>，反向不成立</td>
+<td>① 勾卡模板：价目表若未勾 → 自动勾上；已勾 → 保持，仅加锁定标记。② 取消卡模板：价目表<strong>保持勾选</strong>并解锁（由用户决定是否一起取消）。③ 取消价目表：仅当卡模板未勾时允许</td>
+</tr>
+<tr>
+<td>只导持卡信息</td>
+<td>未勾选卡模板、但勾选了会员与持卡信息</td>
+<td>不在此页提示；进入映射后由「确认卡模板」页（§6.12）按 <code>卡种</code> 聚合出草案，<strong>用户确认后才入库</strong></td>
+</tr>
+<tr>
+<td>底部「下一步」</td>
+<td>文案随状态变：全部就绪 → <strong>「下一步」</strong>；有类别未选来源 → <strong>「还有 N 类未选来源」</strong>；有类别已选未采集 → <strong>「还有 N 类未采集」</strong>。点按校验顺序：① 一项未勾 → toast「请至少选择一项」；② 有类别<strong>未选来源</strong> → toast「「X」还没选来源」+ 高亮该卡；③ 有拍照类目<strong>未拍</strong> → toast「「X」还没有拍照」+ 高亮并进相机；④ 有 Excel 类目<strong>未选文件</strong> → toast + 进上传页并高亮该行；⑤ 全部就绪 → 待识别内容页</td>
+<td>不静默跳过缺口，一律拦回缺失项</td>
+</tr>
+</tbody>
+</table>
+<p><strong>来源口径</strong>：<strong>一类一源</strong> —— 同一类别只保留 Excel 或照片其中一种；<strong>切换来源在弹层确认后</strong>才清空另一形态的已采集内容，不保留混合结果。<strong>来源不是全局开关</strong>：三类各自独立，允许「持卡信息 / 卡模板用 Excel、价目表拍照」这种混合批次；价目表拍照同样参与卡模板的权益校验（按识别结果的项目名比对）。</p>
+<p><strong>依赖口径</strong>：会员卡模板的项目权益与会员价必须以价目表的项目为基准，因此<strong>卡模板不能脱离价目表单独导入</strong>；价目表<strong>可以</strong>单独导入（只是价目，不涉及卡权益），逻辑上不受影响。<strong>「同批」不等于「同表」</strong>：卡模板与价目表必须在同一批次内一起提交，但必须各用一个 Excel 文件分别上传，不允许把两类字段合成一张表——上传页按类别逐类采集，映射页按类别分 tab 确认。</p>
+<p><strong>多表口径</strong>：每个导入类别最多可添加 <strong>3 个 Excel 文件</strong>（会员与持卡信息 / 会员卡模板 / 价目表各自独立计数）；同一类别的多个文件<strong>共用一套字段映射</strong>，以第一份文件的列名为准，其余文件按同名 / 同义列对齐，条数合并累加；列名不一致的文件在待识别清单与映射页有「列名请保持一致」提示，但不硬阻断。</p>
+<p><strong>演示口径</strong>：取消某一类<strong>不改变</strong>已固定类别的条数（持卡 126 人 / 卡模板 4 张 / 价目 42 项），原型只校验「至少一项」；只导持卡信息时，卡模板数量改为自动生成草案中被勾选的数量（原型聚合 10 张）。</p>
+<p><strong>类别图标口径</strong>：三类各用一枚 20px 线描 SVG（<code>stroke-width 1.8</code>、<code>fill=none</code>、<code>currentColor</code>），装在 36 × 36、圆角 10px、浅品牌底 <code>#fff1f2</code> 的方框里，描边色取品牌色 —— 会员与持卡信息 = 人像，会员卡模板 = 卡片，价目表 = 价签。<strong>不用灰色占位块</strong>；核对页的分类行沿用同一套图标与规格，保证同一类别在两页的识别符号一致。</p>
+<h2>6.9 上传表格（Excel 类目）</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 类型页；标题「上传表格」</td>
+</tr>
+<tr>
+<td>主标题 / 副文案</td>
+<td><strong>上传 Excel · ‹当前类别短名›</strong> / <strong>第 N / M 类</strong>（M = 本批需 Excel 的类别数；无 Excel 类目时不进本页）——<strong>副文案压到一行，不再重复「只显示当前类别」</strong></td>
+</tr>
+<tr>
+<td>步骤条</td>
+<td>顶部横向 M 段：圆角胶囊 + 序号圆点 + 短名（会员与持卡 / 卡模板 / 价目表）；<strong>当前段品牌色底 + 实心序号</strong>，已完成段浅绿底 + ✓，未开始段灰底。段可点，点后切到该类</td>
+</tr>
+<tr>
+<td>逐行选文件</td>
+<td><strong>只渲染当前类别一行</strong>：类别名 + 文件区 + 右侧按钮。<br />未选时：<code>未选择文件</code> + <code>xls / xlsx / csv · 单个 ≤ 10MB · 最多 3 个</code>，按钮「选择文件」。<br />已选时：顶部一行 <code>已选 N / 3 个表</code>（绿色小字）+ 逐行文件条（<code>XLS</code> 角标 + 文件名 + 大小 + × 移除），按钮变「再添加」；<strong>满 3 个后按钮置灰显示「已达上限」</strong>。<br /><strong>不再并列展示其他类别</strong></td>
+</tr>
+<tr>
+<td>多表提示</td>
+<td>已选 &gt; 1 个文件时，行下方出现一条灰字「同类多个表共用一套字段映射，列名请保持一致。」</td>
+</tr>
+<tr>
+<td>就绪态</td>
+<td>已选文件的行<strong>浅绿描边 + 浅绿底</strong>；不再追加「已就绪」字样，避免与「已选 N / 3」重复</td>
+</tr>
+<tr>
+<td>行高亮</td>
+<td>当前类别行常驻<strong>品牌色描边 + 淡红光晕</strong>（约 2px），与步骤条当前段呼应</td>
+</tr>
+<tr>
+<td>标准表头卡</td>
+<td>标题「标准表头」+ 右侧标签<strong>「当前类别」</strong>；引导文案压到一句：「按「‹类别›」的列名整理首行，识别更准。」</td>
+</tr>
+<tr>
+<td>表头内容</td>
+<td><strong>只显示当前类别</strong>的列名 chips，组头「‹类别› / N 列」：<br />会员与持卡信息 <strong>12 列</strong>（按用途分三组：身份信息 5 / 持卡与余额 4 / 旁路字段 3）= 会员编号 / 姓名 / 首字母 / 手机号 / 卡种 ｜ 卡有效期 / 储值余额 / 充值合计 / 支付方式 ｜ 消费合计 / 消费笔数 / 距今天数<br />会员卡模板 <strong>8 列</strong> = 卡名称 / 充值金额 / 赠送金额 / 折扣范围 / 折扣值 / 项目·产品权益 / 会员价 / 有效期<br />价目表 <strong>5 列</strong> = 项目·产品 / 分类 / 价格 / 会员价 / 单位</td>
+</tr>
+<tr>
+<td>示例行</td>
+<td>每组下方一行灰字示例（前缀「示例」）；<strong>默认收起</strong>，点「查看示例行」展开、按钮变「收起示例行」（<code>aria-expanded</code> 同步）</td>
+</tr>
+<tr>
+<td>格式提示</td>
+<td>「不要标题行、合并单元格、空行。」——<strong>只留硬性禁忌，删掉解释性长句</strong>（会员卡有效期的日期序列号说明移到映射页字段提示）</td>
+</tr>
+<tr>
+<td>下载入口</td>
+<td><strong>本版不提供</strong>（手机端下载模板不切实际）；只展示表头，由用户自行把首行改成对应列名。原型无任何下载入口</td>
+</tr>
+<tr>
+<td>信任说明</td>
+<td>仅本店可见 · 导入后可在结果页整批删除</td>
+</tr>
+<tr>
+<td>底部按钮</td>
+<td>文案随状态变：当前类别<strong>未选文件</strong> → 「请先选择表格」；已选且后面还有未完成的类别 → <strong>「完成，下一类：‹短名›」</strong>；已选且后续类别都已就绪 → <strong>「完成，进入识别」</strong>（单类别时为「完成」）。点按校验：缺文件 → toast「「X」还没选择文件」并留在本步；全部就绪但仍有类别未选来源 → toast「还有「X」未选来源」并回类型页</td>
+</tr>
+</tbody>
+</table>
+<p><strong>口径</strong>：本页<strong>一次只呈现一类</strong>，避免三类表头并列造成篇幅与干扰；类别顺序与类型页一致（会员与持卡信息 → 会员卡模板 → 价目表）。本页<strong>不再选来源</strong>（来源已在上一步按类确定）；若本批还有类别没选来源，本页不静默丢弃，回类型页补齐。</p>
+<h2>6.10 拍照识表与「确认待识别内容」</h2>
+<h3>6.10.1 拍照页</h3>
+<ul>
+<li>标题栏：返回 → 进入本页前的页面（类型页 / 待识别内容页）；标题「拍照识别」；右侧常驻<strong>「已拍 N 张」</strong>。  </li>
+<li>顶栏：「类别名」+「整张表格入框，可连拍多页」。  </li>
+<li>取景区：真实相机流（后置优先）+ 九宫格 + 四角对焦框 + 提示「把整张表格放进框内，四角对齐」。  </li>
+<li><strong>相机降级</strong>：环境无法取流（<code>file://</code>、无权限、无摄像头）→ 自动切演示模式，取景区上方明示「当前环境无法调用相机，已切换演示模式 · 快门会生成示例照片」，<strong>不阻断流程</strong>；演示照片为带类别名与序号的表格样张。  </li>
+<li><strong>连拍</strong>：快门 → 取景区白色闪光 → 照片<strong>立即计入该类别</strong>并进入缩略图条，计数 +1，toast「已拍第 N 张」；不设张数上限。  </li>
+<li>缩略图条：横滑预览，每张右上角 × 可<strong>单张删除</strong>；无照片时显示「拍摄后在这里预览」。  </li>
+<li>底栏：左「相册（占位）」→ toast「从相册选择（演示占位）」；中圆形快门；右「完成」。  </li>
+<li>「完成」：本类别<strong>无照片</strong> → toast「还没有拍摄照片」并留在本页；有照片 → 返回进入前的页面（类型页刷新徽标与缩略图；待识别内容页刷新清单）。  </li>
+<li>返回：已拍照片<strong>保留</strong>，回进入前的页面。  </li>
+</ul>
+<h3>6.10.2 确认待识别内容（下一步页）</h3>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 类型页；标题「确认待识别内容」</td>
+</tr>
+<tr>
+<td>主标题 / 副文案</td>
+<td>AI 会一起识别这些内容 / Excel 需下一步对齐列名；照片自动识别列，无需指定字段。</td>
+</tr>
+<tr>
+<td>总览卡</td>
+<td>大字「<strong>N 个 Excel</strong> + <strong>M 张照片</strong>」（N 为<strong>文件总数</strong>，同类多表按实际个数累加），下方按类别列胶囊：<code>会员与持卡 Excel 3 个</code> / <code>价目表 拍照 2 张</code>（未选文件的 Excel 显示「Excel 待上传」）</td>
+</tr>
+<tr>
+<td>Excel 区</td>
+<td>标题「Excel 表格」+ 右侧「N 个」；<strong>每个文件一行</strong>：<code>XLS</code> 角标 + 文件名 + 「类别 · 大小 · 需对齐列名」+「更换 / 管理」+「删除」（按索引只删该行）；同类 &gt; 1 个文件时列表底部追加灰字「同类多个表共用一套字段映射，列名请保持一致。」；无 Excel 时显示「本批没有 Excel，照片将直接识别」</td>
+</tr>
+<tr>
+<td>照片区</td>
+<td>标题「照片」+ 右侧「M 张」；<strong>按类别分组</strong>：组头「价目表」+「N 张 · 自动识别列」+「补拍」；组内横滑缩略图，每张可 × 删除</td>
+</tr>
+<tr>
+<td>底部说明</td>
+<td>Excel + 照片混合：「Excel 会在下一步对齐列名；照片自动识别，结果一起进入核对页。」仅照片：「照片自动识别列，不需要指定字段；识别结果进入核对页。」仅 Excel：「Excel 会在下一步对齐列名。」</td>
+</tr>
+<tr>
+<td>「开始识别」</td>
+<td>无 Excel 且无照片 → toast「还没有可识别的内容」并留在本页；否则置「识别中…」并弹出<strong>统一导入进度层</strong>（§6.10.3，标题「AI 正在识别」，副文案「共 N 个 Excel 与 M 张照片，识别完会进入下一步」）→ 进度走满：<strong>有 Excel → 映射页</strong>，<strong>纯照片 → 核对页</strong></td>
+</tr>
+<tr>
+<td>「更换」</td>
+<td>→ 上传页仅列该类别；完成后回到本页并刷新</td>
+</tr>
+<tr>
+<td>「删除」</td>
+<td>只删该行文件（不整类清空）→ 刷新本页与类型页徽标；若删到 0 个 Excel 且 0 张照片，「开始识别」被拦下</td>
+</tr>
+</tbody>
+</table>
+<p><strong>口径</strong>：本页是照片与 Excel 的<strong>唯一合并确认点</strong>；照片不需要列映射，Excel 才进入映射页，因此混合批次的识别顺序是「待识别 → 映射（仅 Excel）→ 核对（合并结果）」。</p>
+<h3>6.10.3 统一导入进度层（识别 / 正式导入 / 历史消费导入共用）</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结构</td>
+<td>盖在手机画布上的全屏遮罩（<code>#importProgress</code>，深色 42% 底 + 居中白卡），卡片自上而下：标题 → 副文案 → 线性进度条 → 「当前步骤 / 百分比」一行。不列阶段清单、不放取消按钮。</td>
+</tr>
+<tr>
+<td>进度</td>
+<td>确定型进度：0% → 100% 逐帧推进（约 60ms 一档），前 70% 的时间走完 86%，尾段放慢，避免「卡在 99%」的观感；进度条内有一条自左向右的流光，100% 时转为绿色并停止流光。</td>
+</tr>
+<tr>
+<td>步骤文案</td>
+<td>按百分比阈值切换，占位在进度条下方左侧；右侧为百分比数字，等宽数字、不做跳动动画。</td>
+</tr>
+<tr>
+<td>识别</td>
+<td>标题「AI 正在识别」；步骤：读取文件 → 识别列名与字段 → 生成预览；时长按文件数递增（1.5s 起，每个文件 +0.22s，上限 2.8s）；完成文案「识别完成」。</td>
+</tr>
+<tr>
+<td>正式导入</td>
+<td>标题「正在导入」；副文案列本次类别（如「会员与持卡信息 · 会员卡模板」）+「导入完成前请不要关闭页面」；步骤：校验数据 → 写入会员与持卡信息 → 写入卡模板与价目表 → 处理失败行；约 2.1s；完成文案「导入完成」。</td>
+</tr>
+<tr>
+<td>历史消费导入</td>
+<td>标题「正在导入历史消费」；副文案「整行原样写入历史订单，只识别日期 / 金额 / 顾客姓名」；步骤：读取表格 → 识别日期 / 金额 / 顾客姓名 → 写入历史订单；约 2.0s；完成文案「导入完成」。</td>
+</tr>
+<tr>
+<td>收尾</td>
+<td>到达 100% 后停留约 0.32s 再跳转（识别 → 映射 / 核对；导入 → 结果页；历史 → 历史导入完成）。任何主动跳转都会立刻收起进度层，避免遮罩残留挡住后续操作。</td>
+</tr>
+<tr>
+<td>可访问性</td>
+<td><code>role=dialog</code> + <code>aria-modal</code>；进度条为 <code>role=progressbar</code>（<code>aria-valuemin/max/now</code> 随进度更新），当前步骤与百分比文本同步刷新。</td>
+</tr>
+</tbody>
+</table>
+<h2>6.11 确认字段对应（映射页）</h2>
+<h3>页面结构</h3>
+<ul>
+<li>标题栏：返回（→ 待识别内容页）/ 标题「确认字段对应」/ 右侧「已锁定」徽标（当前类别勾选后出现）。  </li>
+<li>返回提示条（仅从核对页返回时）：「已返回修改 · 映射已保留，改动仅影响本次导入」。  </li>
+<li><strong>进度块</strong>（仅当 Excel 类目 ≥ 2 时出现）：首行「映射确认」+ 右侧「已确认 <strong>1/2</strong>」；次行为<strong>进度条</strong>（品牌色，按已确认比例填充）；末行状态文案 —— 未完成时琥珀色「还有 2 项待确认：会员与持卡、价目表」，全部完成时绿色「全部已确认，可以进入下一步」。  </li>
+<li><strong>类别 tab（卡片式，本次重点改造）</strong>：每个类别一张<strong>竖排两行卡片</strong>（约 1/2–1/3 宽、最小高 52px），第一行类别短名 13px/600，第二行<strong>状态文案</strong> 11px —— 未确认为琥珀色「待确认」，已确认为绿色「已确认 ✓」。当前卡片：<strong>品牌色 1.5px 描边 + 淡红底 + 轻投影 + 名称转品牌色</strong>；已完成但未选中的卡片：浅绿描边 + 浅绿底。切换 tab 只换字段区，<strong>已填映射与确认状态各自保留</strong>。Excel 类目只有 1 个时，<strong>tab 与进度块一并隐藏</strong>。  </li>
+<li><strong>自动落到未确认项（进页时）</strong>：进入本页时不是固定落在第一类，而是<strong>落在第一个未确认的类别</strong>。<strong>勾选确认后不再自动切页</strong>（会把用户正在看的字段表顶走）——仅把下一个未确认 tab 脉冲高亮并 toast「已确认「X」· 还有 N 项待确认」；全部确认后 toast「全部映射已确认，可以进入下一步」。  </li>
+<li><strong>手机框不可滚动（硬约束）</strong>：<code>.phone-inner</code> 必须用 <code>overflow: clip</code>（<code>hidden</code> 兜底）。<code>hidden</code> 仍是可滚动容器，框外 <code>translateY(100%)</code> 待命的 sheet 会把 <code>scrollHeight</code> 撑大，任何焦点 / 重绘触发的 scroll-into-view 都会把整页顶出画框，并让框外 sheet 露出来。勾选确认、聚焦输入、切 tab 都不得改变 <code>.phone-inner</code> 的 <code>scrollTop</code>（恒为 0）。  </li>
+<li>引导语：按当前类别显示「已识别为<strong>会员与持卡信息 / 会员卡模板 / 价目表</strong>，AI 已按列名猜好映射」；当前类别为卡模板且本批含价目表时追加「（权益项目与会员价按<strong>价目表</strong>校验）」。  </li>
+<li><strong>多表提示条</strong>（仅当当前类别 &gt; 1 个 Excel）：tab 下方琥珀色小条「本类 N 个表共用这一套映射，按第一份的列名对齐。」，随 tab 切换刷新；<strong>不为每个文件单独出映射</strong>，避免同类多表反复确认。  </li>
+<li>行结构：<strong>分组小标题</strong>（如「身份信息」「持卡与余额」「旁路字段」）+ 字段名（固定列宽）+ 下拉 +（可选）自定义输入区 / 行内提示。  </li>
+<li><strong>照片提示条</strong>（仅当本批含拍照类目）：出现于字段区下方 —— 「另有 <strong>价目表</strong> 3 张照片 · 自动识别列，无需对齐」，照片类目不生成 tab、不参与映射。  </li>
+<li><strong>确认勾选</strong>：文案为「确认「会员与持卡信息」映射关系无误」，<strong>按类别独立</strong>。  </li>
+</ul>
+<h3>会员与持卡信息 12 行映射（tab「会员与持卡」）</h3>
+<p>对应 <code>members.xlsx</code> 的 12 列，分三组展示；<strong>12 行全部可见</strong>，不折叠。</p>
+<table>
+<thead>
+<tr>
+<th>分组</th>
+<th>字段</th>
+<th>默认</th>
+<th>下拉可选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="5">身份信息</td>
+<td>会员编号</td>
+<td>会员编号</td>
+<td>会员编号 /（跳过）/ 自定义…</td>
+<td>去重主键（见 §8.2）</td>
+</tr>
+<tr>
+<td>姓名</td>
+<td>姓名</td>
+<td>姓名 / 会员姓名 /（跳过）/ 自定义…</td>
+<td>预填值即为源表列名</td>
+</tr>
+<tr>
+<td>首字母</td>
+<td><strong>按姓名自动推导</strong>（<code>__derive__</code>）</td>
+<td>按姓名称呼自动识别 / 首字母 /（跳过）/ 自定义…</td>
+<td>带「可推导」标签；推导规则见 §8.5</td>
+</tr>
+<tr>
+<td>手机号</td>
+<td>手机号</td>
+<td>手机号 / 联系电话 / 手机 /（跳过）/ 自定义…</td>
+<td>会员编号缺失时作为去重兜底</td>
+</tr>
+<tr>
+<td>卡种</td>
+<td>卡种</td>
+<td>卡种 / 卡类型 /（跳过）/ 自定义…</td>
+<td>软校验：与本批卡模板「卡名称」比对，未命中标注「未关联模板」，<strong>不阻断</strong></td>
+</tr>
+<tr>
+<td rowspan="4">持卡与余额</td>
+<td>卡有效期</td>
+<td>卡有效期</td>
+<td>卡有效期 / 有效期 / 到期日 /（跳过）/ 自定义…</td>
+<td>行内提示：支持文本日期与 Excel 日期序列号；远期日期（如 2123-11-09）按「长期有效」处理</td>
+</tr>
+<tr>
+<td>储值余额</td>
+<td>储值余额</td>
+<td>储值余额 / 余额 / 账户余额 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td>充值合计</td>
+<td>充值合计</td>
+<td>充值合计 / 累计充值 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td>支付方式</td>
+<td>支付方式</td>
+<td>支付方式 / 付款方式 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td rowspan="3">旁路字段</td>
+<td>消费合计</td>
+<td>消费合计</td>
+<td>消费合计 / 累计消费 /（跳过）/ 自定义…</td>
+<td rowspan="3">带「仅展示」标签；只用于查看核对，<strong>不进订单流水</strong>（§8.10）</td>
+</tr>
+<tr>
+<td>消费笔数</td>
+<td>消费笔数</td>
+<td>消费笔数 / 消费次数 /（跳过）/ 自定义…</td>
+</tr>
+<tr>
+<td>距今天数</td>
+<td>距今天数</td>
+<td>距今天数 /（跳过）/ 自定义…</td>
+</tr>
+</tbody>
+</table>
+<p><strong>性别不在标准 12 列内</strong>：<code>members.xlsx</code> 不导出性别，因此映射页<strong>不再有性别行</strong>；会员列表里的性别仍按称呼推断（§8.5），与导入映射解耦。</p>
+<h3>自定义字段校验</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入口</td>
+<td>下拉末项「自定义…」；选中后在<strong>行内</strong>展开输入框（不跳页）</td>
+</tr>
+<tr>
+<td>输入占位</td>
+<td>按字段给示例：如「顾客姓名」「联系电话」「到期日」「账户余额」「累计消费」</td>
+</tr>
+<tr>
+<td>比对口径</td>
+<td>去掉所有空白后<strong>全等</strong>比对；允许集合按<strong>当前类别</strong>取该类别字段的可选列名（会员与持卡信息类别即标准 12 列）</td>
+</tr>
+<tr>
+<td>有效</td>
+<td>行标题转绿 + 绿字「已对到源表列「X」」</td>
+</tr>
+<tr>
+<td>无效</td>
+<td>行标题转红 + 红字「未识别到「X」，建议从源表列名中选择；本字段将按跳过处理」</td>
+</tr>
+<tr>
+<td>底部提示条</td>
+<td>无无效项：「自定义字段须与源表列名完全一致；未识别的字段会红字提示，并按跳过处理。」<br />有无效项：「自定义字段未识别：该字段会按跳过处理，可改对后再勾选确认。」（warn 态）</td>
+</tr>
+<tr>
+<td>阻断</td>
+<td><strong>不阻断</strong>；勾选仍是唯一闸口</td>
+</tr>
+</tbody>
+</table>
+<h3>确认锁与底部</h3>
+<ul>
+<li>复选框文案按类别变：「确认「会员与持卡信息」映射关系无误」/「确认「会员卡模板」…」/「确认「价目表」…」；勾选后当前类别 <code>importMapAck[类别]=true</code>，页面 <code>is-locked</code>、标题栏「已锁定」出现。  </li>
+<li><strong>底部主按钮不再因缺口而灰死</strong>：仍有类别未确认时，按钮<strong>保持可点</strong>，文案为<strong>「还有 N 项待确认」</strong>并使用<strong>白底 + 品牌色描边</strong>的告警样式；点击不会提交，而是<strong>自动切到第一个未确认的 tab</strong>、脉冲高亮并 toast「还有「X」未确认，已切到该项」。  </li>
+<li>全部确认且无无效自定义字段 → 按钮变实心<strong>「下一步」</strong>；有无效自定义字段 → 按钮置灰并显示<strong>「先修正自定义字段」</strong>。  </li>
+<li>有无效自定义时点「下一步」先 toast「未识别的自定义字段已按跳过处理」，再进后续页。  </li>
+<li>底部另有文字按钮「让 AI 再解释一遍」——<strong>占位无行为</strong>。  </li>
+<li><strong>返回</strong>：→ 待识别内容页；清除「已返回修改」提示；映射值<strong>保留</strong>。  </li>
+<li><strong>重新进入映射页</strong>（从上游流程进入）：全部类别的确认勾选<strong>复位</strong>，防止「未经复核直接提交」；从<strong>核对页 / 确认卡模板页返回</strong>时<strong>保留</strong>已确认状态，只重置用户主动解锁的那一类。  </li>
+<li><strong>切换类别 tab</strong>：已填映射值与确认状态各自保留，互不覆盖；手动切换已确认的 tab 用于回看，<strong>不会被自动跳走</strong>。  </li>
+</ul>
+<h3>会员卡模板 8 行映射（tab「卡模板」）</h3>
+<p>按 4 组展示：基础信息 / 折扣权益 / 权益与会员价 / 有效期。<strong>权益与会员价是「成对多值」字段</strong>，行内提示说明写法。</p>
+<table>
+<thead>
+<tr>
+<th>分组</th>
+<th>字段</th>
+<th>默认 / 可选项</th>
+<th>行内提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="3">基础信息</td>
+<td>卡名称</td>
+<td>卡名称 / 卡种 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td>充值金额</td>
+<td>充值金额 / 充值 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td>赠送金额</td>
+<td>赠送金额 / 赠送 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td rowspan="2">折扣权益</td>
+<td>折扣范围</td>
+<td>折扣范围 / 折扣类型 /（跳过）/ 自定义…</td>
+<td>—</td>
+</tr>
+<tr>
+<td>折扣值</td>
+<td>折扣值 / 折扣 / 折扣比例 /（跳过）/ 自定义…</td>
+<td>「8折」「88%」「0.8」都按 8 折入库</td>
+</tr>
+<tr>
+<td rowspan="2">权益与会员价</td>
+<td>项目/产品权益</td>
+<td>权益项目 / 项目权益 / 包含项目 /（跳过）/ 自定义…</td>
+<td>多项用逗号分隔，写成「项目×次数」：染发×2，护理×1。开卡后按项目扣次</td>
+</tr>
+<tr>
+<td>会员价</td>
+<td>会员价 / 卡耗价 / 会员单价 /（跳过）/ 自定义…</td>
+<td>多项用逗号分隔，写成「项目 价格」：染发 98，护理 168。<strong>须与价目表项目同名</strong></td>
+</tr>
+<tr>
+<td>有效期</td>
+<td>有效期</td>
+<td>有效期 / 有效期限 /（跳过）/ 自定义…</td>
+<td>可填「12 个月」「365 天」或具体日期；留空按长期有效</td>
+</tr>
+</tbody>
+</table>
+<h3>价目表 5 行映射（tab「价目表」）</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>默认 / 可选项</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>项目·产品</td><td>项目 / 项目名称 /（跳过）/ 自定义…　<strong>（卡模板权益与会员价的比对基准）</strong></td></tr>
+<tr><td>分类</td><td>分类 / 类别 /（跳过）/ 自定义…</td></tr>
+<tr><td>价格</td><td>价格 / 单价 /（跳过）/ 自定义…</td></tr>
+<tr><td>会员价</td><td>会员价 /（跳过）/ 自定义…</td></tr>
+<tr><td>单位</td><td>单位 /（跳过）/ 自定义…</td></tr>
+</tbody>
+</table>
+<h3>卡模板 ⇄ 价目表 的关联校验</h3>
+<ul>
+<li><strong>前置</strong>：本批若有价目表（Excel 或照片识别结果），映射页在卡模板 tab 的引导语里标注「按价目表校验」；价目表可单独导入，但卡模板<strong>必须</strong>与之同批（§6.8 互锁）。  </li>
+<li><strong>校验对象</strong>：卡模板「项目/产品权益」「会员价」里的项目名，按逗号拆分后逐项与本批价目表的项目名<strong>去空白全等</strong>比对。  </li>
+<li><strong>未命中</strong>：<strong>不阻断</strong>；该行标「待关联」并入失败明细（可下载后补），核对页显示关联率（如「权益关联 16/18」）。  </li>
+<li><strong>卡种回指</strong>：会员与持卡信息的「卡种」与本批卡模板「卡名称」做软校验，未命中标注「未关联模板」并汇总提示，<strong>不阻断</strong>。  </li>
+</ul>
+<h2>6.12 确认卡模板（未导卡模板时按卡种自动生成）</h2>
+<p><strong>触发条件</strong>：本批勾选了<strong>会员与持卡信息</strong>，且<strong>未</strong>导入会员卡模板。映射页点「下一步」后进入本页；若本批已导卡模板（Excel 或拍照），<strong>整页跳过</strong>，直接进核对页。</p>
+<p><strong>为什么要这一步</strong>：只导持卡信息时，<code>卡种</code>只是自由文本，门店并没有对应的卡模板，后续开卡、扣次、算会员价都无从引用。因此按 <code>卡种</code> 去重生成草案，<strong>由用户确认后才写入系统</strong>，不静默创建。</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 映射页；标题「确认卡模板」</td>
+<td>返回不清空已勾选的草案</td>
+</tr>
+<tr>
+<td>主标题 / 副文案</td>
+<td>按卡种生成卡模板 / 本批没有导入会员卡模板，已从持卡信息的「卡种」推得 <strong>N</strong> 张模板草案。<strong>储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」</strong>，可逐张改后确认。</td>
+<td>N 为聚合后的卡种数（原型 10）</td>
+</tr>
+<tr>
+<td>推断说明块</td>
+<td>琥珀色说明块：<strong>只有储值与有效期能推断</strong> · 储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」，均可在这里改；赠送 / 权益 / 会员价无法从持卡信息推断，会以「待完善」状态入库，可在店铺管理里补齐。</td>
+<td>常驻，不随勾选变化</td>
+</tr>
+<tr>
+<td>全选条</td>
+<td>左侧「全选」复选框（三态：全选 / 部分 / 未选）+ 右侧「已选 N 张」</td>
+<td>全选切换所有草案；部分勾选时全选框为 indeterminate</td>
+</tr>
+<tr>
+<td>草案行</td>
+<td>复选框 + 卡名称（可内联编辑，默认 = 卡种值）+ 折扣徽标（如「全场 8 折」）+ 「待完善」标签 + 次行「N 人持卡」+ 可点的「单卡储值 <strong>¥X</strong> · 有效期 <strong>永久</strong>」摘要条（右侧「修改 / 收起」）</td>
+<td>勾选行品牌色描边；取消勾选仅灰化，不删行；改名不回溯影响已导入的持卡信息</td>
+</tr>
+<tr>
+<td>单卡储值 / 有效期</td>
+<td>点摘要条就地展开两个输入：<strong>储值金额</strong>（带 <code>¥</code> 前缀，仅允许数字与小数点）与<strong>有效期</strong>（自由文本，留空保存为「永久」）。<strong>一次只展开一张</strong>，改完点「收起」或改另一张即自动收起</td>
+<td><strong>卡模板是「单张卡」的口径</strong>，不展示、不写入整类合计；编辑值实时回写摘要条，并带到核对页明细</td>
+</tr>
+<tr>
+<td>推断规则</td>
+<td><strong>储值金额</strong> = 该卡种下所有持卡记录中<strong>单卡余额最大</strong>的那一条（<code>max(balance)</code>，<strong>不是</strong> <code>sum</code>）；<strong>有效期</strong> = 「永久」（持卡信息无有效期列可推断）</td>
+<td>两项均视为<strong>草案默认值</strong>，用户可改；未改即按默认值入库</td>
+</tr>
+<tr>
+<td>折扣推断</td>
+<td>从卡种名解析：<code>7折</code> → 7；<code>6.5折</code> / <code>6.5折卡</code> → 6.5；<code>8.8折卡</code> → 8.8；<code>黄金卡</code> 这类无数字的卡种按 8 折预填（原型演示口径，可改）</td>
+<td>推断结果只做展示与预填，可在卡模板管理里改</td>
+</tr>
+<tr>
+<td>默认勾选</td>
+<td><strong>全部勾选</strong>（含「7折」这类纯折扣名卡种）</td>
+<td>纯折扣名也是真实存在的持卡分组，默认保留；用户可逐条取消</td>
+</tr>
+<tr>
+<td>底部主按钮</td>
+<td>「确认，生成 N 张模板」（N 随勾选实时变）；N = 0 时按钮置灰并改为「至少选 1 张，或点「本次不生成」」</td>
+<td>点击 → 勾选项并入本批 → 核对页（§6.13）</td>
+</tr>
+<tr>
+<td>底部次按钮</td>
+<td>「本次不生成，继续」</td>
+<td>点击 → 本批卡模板计 0，核对页<strong>不出现</strong>卡模板分类</td>
+</tr>
+<tr>
+<td>脚注</td>
+<td>折扣值按卡种名推断（如「8折」→ 8 折）；卡名称、储值金额、有效期都可改，改完不影响已导入的持卡信息。</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>聚合口径（原型按 <code>members.xlsx</code> 实测值）</strong>：7折 448 人 / 黄金卡 296 人 / 8折 296 人 / 6折卡 152 人 / 6.5折 129 人 / 5折卡 60 人 / 7.5折卡 34 人 / 4折卡 14 人 / 8.8折卡 2 人 / 3.8折 1 人，合计 1432 人（另有 1 行卡种为空，不计入草案）。持卡人数只作展示，<strong>不写入模板</strong>；模板保存的是<strong>单卡口径</strong>的储值金额与有效期，加上折扣与后续补齐的权益字段。</p>
+<p><strong>单卡口径（重要）</strong>：卡模板描述的是「为一位客人办这张卡时，卡里包含什么」，因此储值金额必须是<strong>单张卡</strong>的数值。原型种子按各卡种内单卡余额最高的一条预填：7折 ¥2,000 / 黄金卡 ¥5,000 / 8折 ¥1,500 / 6折卡 ¥1,000 / 6.5折 ¥1,000 / 5折卡 ¥1,000 / 7.5折卡 ¥1,000 / 4折卡 ¥1,000 / 8.8折卡 ¥800 / 3.8折 ¥800；有效期一律「永久」。<strong>任何位置都不得再出现「余额合计」这类整类累加值</strong>——它不能作为模板的储值金额。</p>
+<p><strong>权益与价目表</strong>：若本批同时导入了价目表，用户可在下次进「会员卡模板」编辑时给草案挂权益与会员价；本页<strong>不强制</strong>配置，未配置即保持「待完善」。若本批没有价目表，权益一律留空。</p>
+<p><strong>边界</strong>：① 草案只生成一次，返回映射页再进不会重复追加；② 用户在类型页改动了勾选，草案与已勾选结果<strong>重置</strong>；③ 生成后的模板与本批绑定，整批删除时一并回滚（§8.9）。</p>
+<h2>6.13 核对数据（唯一可导入）</h2>
+<h3>概览页</h3>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 映射页（本批无 Excel 时 → 待识别内容页）；标题「核对数据」</td>
+<td>—</td>
+</tr>
+<tr>
+<td>主标题</td>
+<td>核对将导入的数据</td>
+<td>—</td>
+</tr>
+<tr>
+<td>统计副文案</td>
+<td>会员与持卡 <em class="num-em">126</em> · 卡模板 <em class="num-em">4</em> · 价目 <em class="num-em">42</em>。点分类查看明细。</td>
+<td>数字加粗 + 加大一级</td>
+</tr>
+<tr>
+<td>会员与持卡行</td>
+<td>「会员与持卡信息」/「<em class="num-em">126</em> 人 · 会员编号 / 卡种 / 余额…」+ 右箭头</td>
+<td>→ 会员与持卡明细</td>
+</tr>
+<tr>
+<td>卡模板行</td>
+<td>「会员卡模板」/「<em class="num-em">4</em> 张 · 卡名称 / 充值 / 权益…」+ 右箭头；本批未导卡模板但自动生成时，标题后追加绿色徽标<code>自动生成</code>，条数 = 确认页勾选数</td>
+<td>→ 卡模板明细</td>
+</tr>
+<tr>
+<td>价目表行</td>
+<td>「价目表」/「<em class="num-em">42</em> 项 · 项目·产品 / 价格…」+ 右箭头</td>
+<td>→ 价目表明细</td>
+</tr>
+<tr>
+<td>分类行来源徽标</td>
+<td>每行标题后附来源胶囊：<code>Excel</code>（灰）/ <code>拍照 N 张</code>（橙）/ <code>自动生成</code>（绿）；同一批次不同类别可不同来源</td>
+<td>徽标不影响点击；自动生成的卡模板不计入 Excel/照片来源统计</td>
+</tr>
+<tr>
+<td>主按钮</td>
+<td>「确认无误，导入」</td>
+<td>点击 → 禁用 + 文案「正在导入…」+ 全屏进度层（§6.10.3）→ 走满 → 结果页</td>
+</tr>
+<tr>
+<td>次按钮</td>
+<td>「返回修改映射」</td>
+<td>解锁映射（确认框复位）→ 回映射页 + 顶部「已返回修改」提示</td>
+</tr>
+</tbody>
+</table>
+<p><strong>硬规则</strong>：<strong>只有本页可以发起导入</strong>。分类明细页<strong>没有</strong>任何导入按钮与底部 bar。</p>
+<h3>分类明细页（只读）</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>标题</th>
+<th>副文案</th>
+<th>每行字段（点行开 Sheet）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>会员与持卡</td>
+<td>会员与持卡明细</td>
+<td>抽样 10 条 · 点行核对字段</td>
+<td>会员编号 / 姓名 / 手机号 / 卡种 / 储值余额 / 卡有效期</td>
+</tr>
+<tr>
+<td>卡模板</td>
+<td>卡模板明细</td>
+<td>全部模板 · 点行核对字段</td>
+<td>卡名称 / 充值金额 / 赠送金额 / 折扣权益（范围 + 折扣值）/ 项目·产品权益 / 会员价 / 有效期</td>
+</tr>
+<tr>
+<td>价目表</td>
+<td>价目表明细</td>
+<td>抽样 10 条 · 点行核对字段</td>
+<td>名称 / 类型 / 价格 / 单位</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>列表行展示「主名称 + 副信息」，点击弹「核对明细」Sheet（<code>dl</code> 两列），底部「知道了」或点遮罩关闭。  </li>
+<li>样品为前 10 条；<strong>只读</strong>，不可改值。卡模板为<strong>全量展示</strong>（模板数量本就很少）。  </li>
+<li>性别不在「会员与持卡信息」的 12 列内，明细页<strong>不展示性别</strong>；会员列表里的性别仍按称呼推断（§8.5）。  </li>
+</ul>
+<h2>6.14 导入完成（结果页）</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>「导入完成」，无返回</td>
+<td>—</td>
+</tr>
+<tr>
+<td>成功区</td>
+<td>圆形绿色 ✓ + 标题「导入成功」+ 副文案「已把老店数据写入本店，可直接开单用。」</td>
+<td>静态；整体要有「完成一次重要操作」的仪式感</td>
+</tr>
+<tr>
+<td>入库清单</td>
+<td>三行：会员与持卡 <em class="num-em">126</em> 人 / 已入库 / 查看；会员卡模板 <em class="num-em">4</em> 张 / 已入库 / 查看；价目表 <em class="num-em">42</em> 项 / 已入库 / 查看</td>
+<td>查看 → 会员列表 / 会员卡模板列表 / 价目表</td>
+</tr>
+<tr>
+<td>本批来源行</td>
+<td>清单下方一行小字：「本批来源：Excel 2 个 · 照片 3 张 · 自动生成卡模板 <em class="num-em">4</em> 张」（按实际采集拼接；无该项则不显示）</td>
+<td>静态；用于回看这批数据是表格还是拍照来的、卡模板是否由系统生成</td>
+</tr>
+<tr>
+<td>失败条</td>
+<td>「<em class="num-em">2</em> 条失败，可手动补录」+ 右侧「查看明细」</td>
+<td>→ 失败明细；当计数为 0：文案「0 条失败，已全部补录」/「已全部补录」，条变绿</td>
+</tr>
+<tr>
+<td>次要操作</td>
+<td>「去导入历史消费记录」（品牌红文字链）/「删除本批数据」（红文字链）</td>
+<td>前者 → 历史消费导入说明（§6.23，独立链路，<strong>不再是 toast</strong>）；后者开删除确认</td>
+</tr>
+<tr>
+<td>底部</td>
+<td>唯一主按钮「返回首页」</td>
+<td>→ 首页</td>
+</tr>
+<tr>
+<td>浮球</td>
+<td>若浮球可见：进页 400ms 后弹关闭确认（§6.6）</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>已删除的旧元素</strong>（不得再加回）：① 「查询本批导入状态」；② 底部 bar 里的多个按钮；③ 「识别模板：运营标准会员表 · 消费合计已按旁路摘要写入（不进订单流水）」。上述信息分别由成功区三行、唯一「返回首页」、引导页注意事项承担。</p>
+<h2>6.15 失败明细</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 结果页；标题「失败明细 · <em class="num-em">2</em> 条」</td>
+<td>计数随移除实时变</td>
+</tr>
+<tr>
+<td>条目 1</td>
+<td><strong>第 47 行</strong> / 红字「手机号格式错误」；副行「姓名：赵女士 · 原值 1380013abc」；按钮「手动补录」（+ 补录后出现「补录完成」）</td>
+<td>—</td>
+</tr>
+<tr>
+<td>条目 2</td>
+<td><strong>第 103 行</strong> / 红字「卡余额无法解析」；副行「姓名：孙先生 · 原值 ¥—」</td>
+<td>—</td>
+</tr>
+<tr>
+<td>条目已补录</td>
+<td>原因转绿「已手动补录 · N 张卡」；条目半透明；<strong>两个按钮并列</strong>：左「手动补录」、右「补录完成」</td>
+<td>手动补录 → 重开半屏并回填；补录完成 → 滑出</td>
+</tr>
+<tr>
+<td>移除动画</td>
+<td><code>is-leaving</code> 260ms 后从 DOM 删除</td>
+<td>计数同步；全部移除 → 空态</td>
+</tr>
+<tr>
+<td>空态</td>
+<td>绿色 ✓ +「失败数据已全部补录」+「会员与持卡信息、卡模板已写入本店，可回结果页继续操作。」</td>
+<td>底部按钮保留</td>
+</tr>
+<tr>
+<td>底部</td>
+<td>「下载失败明细」（主）/「返回导入结果」（次）</td>
+<td>下载 → toast「已生成失败明细.xls（演示）」；返回 → 结果页</td>
+</tr>
+</tbody>
+</table>
+<h2>6.16 手动补录半屏</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>必填</th>
+<th>规格 / 文案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题</td>
+<td>—</td>
+<td>手动补录</td>
+</tr>
+<tr>
+<td>行内提示</td>
+<td>—</td>
+<td>f1：「手机号格式错误，可改正后入库；也可清空留待后续补全」<br />f2：「卡余额无法解析，可补录会员卡，也可留空」</td>
+</tr>
+<tr>
+<td>姓名</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>预填原值（f1 赵女士 / f2 孙先生）；空值保存 → toast「请填写姓名」</td>
+</tr>
+<tr>
+<td>性别</td>
+<td>否</td>
+<td>「男 / 女」分段单选；<strong>再点可取消</strong>；预填原值（f1 女 / f2 男）；留空 = 未知</td>
+</tr>
+<tr>
+<td>手机号</td>
+<td>否</td>
+<td>placeholder「可不填，填写需 11 位」；<code>maxlength=11</code>；f1 原脏值不回填（留空）、f2 回填 13900001111</td>
+</tr>
+<tr>
+<td>会员卡小节</td>
+<td>否</td>
+<td>标题「会员卡」/ 有卡时「会员卡 · N 张」+ 右侧「+ 添加会员卡」；列表行 = 卡名 + 「余额 ¥N · 至 日期」+ 修改 / 删除；无卡显示「尚未补录会员卡，可留空」</td>
+</tr>
+<tr>
+<td>底部说明</td>
+<td>—</td>
+<td>会员可能没有持卡，性别、手机号、会员卡均可留空；同一卡种可补多张</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>—</td>
+<td>「保存并入库」（主）/「取消」（次）；遮罩点击 = 取消</td>
+</tr>
+</tbody>
+</table>
+<p><strong>保存并入库</strong>：校验通过 → 快照本次填写（姓名 / 性别 / 手机号 / 卡列表）→ 条目置「已补录」→ 关半屏 → toast「已补录并入库」。校验失败 → 留在半屏 + 对应 toast。<br /><strong>+ 添加会员卡</strong>：姓名为空先拦（「请先填写姓名」）；否则快照并<strong>关闭半屏</strong>，右侧滑入「添加卡」；姓名带称呼时自动预选性别。<br /><strong>删除某张卡</strong>：立即从列表移除 → 快照 → 刷新条目原因 → toast「已删除这张会员卡」；删到 0 张仍可保存。<br /><strong>修改某张卡</strong>：记录 <code>editingKey</code> → 关半屏 → 滑入「补录老卡」编辑态。</p>
+<h2>6.17 添加卡（补录老卡 · 选卡）</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回（→ 失败明细并重开半屏，240ms）/ 标题「添加卡」</td>
+</tr>
+<tr>
+<td>会员条</td>
+<td>首字头像 + 姓名 + 性别 chip（有则显示）+ 手机号（无则「未填写手机号」）</td>
+</tr>
+<tr>
+<td>办理类型</td>
+<td>「办新卡」/「补录老卡」二段；<strong>默认选中「补录老卡」</strong>；原型切换只改高亮，不改流程</td>
+</tr>
+<tr>
+<td>分组 tab</td>
+<td>储值卡 / 次卡 / 套餐（可横滑）；切换即换卡种列表</td>
+</tr>
+<tr>
+<td>卡种列表</td>
+<td><strong>单选</strong>：圆形单选 + 卡名 + 口径说明（meta）+ 右端价格；选中描边品牌红</td>
+</tr>
+<tr>
+<td>卡种数据（演示）</td>
+<td>储值卡 · 500 / 1000 / 2000 / 5000（面值，余额按金额）；洗剪吹次卡 · 10 次（¥300）/ 20 次（¥520）、头皮护理次卡 · 6 次（¥680）；染发套餐（¥368）、烫染护套餐（¥688）、护理年卡（¥1980）</td>
+</tr>
+<tr>
+<td>底部</td>
+<td>「下一步」；未选卡种 → toast「请选择一个卡种」</td>
+</tr>
+</tbody>
+</table>
+<p><strong>明确没有</strong>：办卡日期、服务人员、<strong>「该会员没有会员卡」按钮</strong>（没卡就在半屏留空）。「下一步」一律按<strong>新增</strong>处理（编辑走半屏行内「修改」，不经过本页）。</p>
+<h2>6.18 补录老卡 / 修改会员卡</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>必填</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题</td>
+<td>—</td>
+<td>新增「补录老卡」/ 编辑「修改会员卡」</td>
+</tr>
+<tr>
+<td>会员条</td>
+<td>—</td>
+<td>同 §6.17</td>
+</tr>
+<tr>
+<td>所选卡种</td>
+<td>—</td>
+<td>卡名 + meta + 价格；未选时显示「未选择卡种」</td>
+</tr>
+<tr>
+<td>卡内余额</td>
+<td><span style="color:#F32F41">*</span></td>
+<td>¥ 前缀 + 数字键盘；清洗掉非数字 / 小数点后，须匹配 <code>/^\d+(\.\d{1,2})?$/</code>；不合法 → toast「请填写正确的卡内余额」</td>
+</tr>
+<tr>
+<td>有效期限</td>
+<td>否</td>
+<td>文本，placeholder「如 2027-12-31」；原型不校验日期格式</td>
+</tr>
+<tr>
+<td>充值剩余金额</td>
+<td>否</td>
+<td>¥ 前缀 + 数字键盘，placeholder 0.00</td>
+</tr>
+<tr>
+<td>赠送剩余金额</td>
+<td>否</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>赠送项目</td>
+<td>否</td>
+<td>文本，placeholder「如 头皮护理 ×2」</td>
+</tr>
+<tr>
+<td>底部说明</td>
+<td>—</td>
+<td>按补录时刻的余额填写即可，补录不产生收款单据。</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>—</td>
+<td><strong>只有一个</strong>：新增「确认补录」/ 编辑「保存修改」（无次要按钮）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>确认后</strong>：新增 → 追加一张卡 + toast「补录成功，已写入本店会员卡」；编辑 → 就地更新 + toast「已保存会员卡修改」。两者都会回失败明细（260ms）并<strong>重新打开半屏</strong>；若会员姓名 / 手机号此刻不合法，则<strong>不置为已补录</strong>，并在半屏弹对应校验 toast。<br /><strong>返回</strong>：编辑态 → 失败明细 + 重开半屏；新增态 → 返回添加卡页。<br /><strong>占位声明</strong>：本页字段按线上「补录老卡」口径录入，版式细节待拿到线上页面后对齐；会员卡模板列表 / 价目表同理。</p>
+<h2>6.19 查看落点</h2>
+<h3>会员列表（真实渲染）</h3>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 结果页；标题「会员列表」；右侧徽标「共 126 人」</td>
+<td>计数按导入数量</td>
+</tr>
+<tr>
+<td>搜索</td>
+<td>输入框「输入姓名或手机号」+ 取消</td>
+<td>按姓名 / 手机号即时过滤；<strong>取消</strong>清空并回结果页</td>
+</tr>
+<tr>
+<td>列表</td>
+<td>按姓氏首字母分组（A–Z / #），右侧字母索引；行 = 头像 + 姓名 +（VIP 标 + 到店次数）+ 手机号</td>
+<td>点行 → toast「会员详情占位」</td>
+</tr>
+<tr>
+<td>空态</td>
+<td>未找到匹配的会员</td>
+<td>改词或取消</td>
+</tr>
+<tr>
+<td>数据</td>
+<td>原型生成 126 条（姓名带「先生 / 女士」，性别由称呼推断；含 VIP 与到店次数）</td>
+<td>仅演示</td>
+</tr>
+</tbody>
+</table>
+<h3>会员卡模板列表 / 价目表（占位）</h3>
+<ul>
+<li>标题栏：返回 → 结果页；标题分别为「会员卡模板」「价目表」。  </li>
+<li>顶部占位说明：「原型占位 · 会员卡模板列表以线上系统的真实页面为准」/「原型占位 · 价目表以线上系统的真实页面为准」。  </li>
+<li>分别展示 4 条卡样例（储值卡 · 王芳 / 洗剪吹次卡 · 李伟 / 护理年卡 · 张静 / 染发套餐 · 陈磊）与 5 条价目样例（剪发 / 烫发 / 染发 / 头皮护理 / 造型设计）。<strong>版式与字段不验收</strong>。  </li>
+</ul>
+
+<h2>6.20 历史订单列表（工作台入口）</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入口</td>
+<td>工作台 → 店铺管理 →「历史订单」瓦片（第 10 个）；历史消费导入完成页「查看」</td>
+<td>→ 本页</td>
+</tr>
+<tr>
+<td>标题栏</td>
+<td>返回 → 工作台；标题「历史订单」；右侧文字按钮「导入」</td>
+<td>「导入」→ 历史消费导入说明（§6.23）</td>
+</tr>
+<tr>
+<td>搜索</td>
+<td>灰底搜索框「搜索顾客姓名」</td>
+<td>输入即时过滤；<strong>只匹配顾客姓名</strong>，不搜金额 / 备注</td>
+</tr>
+<tr>
+<td>筛选入口</td>
+<td>右侧「筛选」按钮</td>
+<td>→ 筛选半屏（§6.21）</td>
+</tr>
+<tr>
+<td>汇总</td>
+<td>「共 <em class="num-em">N</em> 条 · 合计 <em class="num-em">¥X</em>」</td>
+<td>随搜索 / 筛选实时更新；金额千分位</td>
+</tr>
+<tr>
+<td>列表</td>
+<td>时间倒序；行 = 顾客姓名（空则「未留姓名」）+ 日期 · 项目 + 右侧金额</td>
+<td>点行 → 订单详情（§6.22）</td>
+</tr>
+<tr>
+<td>空态</td>
+<td>「没有符合条件的历史订单」+ 说明 +「导入历史消费」主按钮</td>
+<td>→ 导入说明（§6.23）</td>
+</tr>
+<tr>
+<td>底部说明</td>
+<td>仅用于查看核对，不进订单流水</td>
+<td>常驻</td>
+</tr>
+</tbody>
+</table>
+<p><strong>演示数据</strong>：16 条，日期跨 2023-05 ~ 2025-12，含 1 条无姓名记录；合计 ¥9,450。</p>
+
+<h2>6.21 历史订单筛选（半屏）</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>打开 / 关闭</td>
+<td>历史订单页「筛选」→ 底部半屏 + 遮罩</td>
+<td>点遮罩关闭（<strong>不应用</strong>改动）</td>
+</tr>
+<tr>
+<td>消费时间</td>
+<td>两个 <code>date</code> 输入：「开始日期 至 结束日期」</td>
+<td>闭区间；只填一端时按单边过滤</td>
+</tr>
+<tr>
+<td>金额区间</td>
+<td>两个数字输入：「最低 – 最高」</td>
+<td>闭区间；空表示不限；负数 / 非数字不参与过滤</td>
+</tr>
+<tr>
+<td>提示</td>
+<td>只支持按已识别的日期、金额、顾客姓名筛选。</td>
+<td>常驻</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>「重置」（描边）/「查看结果」（主）</td>
+<td>重置只清时间与金额，<strong>不清姓名搜索</strong>；查看结果关闭半屏并刷新列表</td>
+</tr>
+</tbody>
+</table>
+<p><strong>口径</strong>：不做快捷时段（近 7 天 / 30 天 / 3 个月），不做批次筛选——与本期「只识别三项」的能力边界一致；需要更多维度时再评估。</p>
+
+<h2>6.22 历史订单详情（独立页）</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 历史订单列表；标题「订单详情」</td>
+</tr>
+<tr>
+<td>顶部卡</td>
+<td>金额大字（千分位）+ 消费日期 + 顾客姓名（空则「未留姓名」）</td>
+</tr>
+<tr>
+<td>已识别</td>
+<td>消费日期 / 金额 / 顾客姓名 三行，值来自识别结果</td>
+</tr>
+<tr>
+<td>原始字段</td>
+<td>按源表列名原样罗列（项目、支付方式、门店、备注…），空值显示「—」；<strong>列名与列序不固定</strong>，有则显示</td>
+</tr>
+<tr>
+<td>底部说明</td>
+<td>只读：历史订单不参与开单、业绩与会员余额计算</td>
+</tr>
+</tbody>
+</table>
+<p><strong>只读边界</strong>：本页<strong>不提供编辑、单条删除、转开单</strong>；回滚只能整批删除（§6.28）。</p>
+
+<h2>6.23 历史消费导入 · 说明</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入口</td>
+<td>导入完成页「去导入历史消费记录」；历史订单页「导入」；历史订单空态按钮</td>
+</tr>
+<tr>
+<td>标题栏</td>
+<td>返回 → 历史订单；标题「导入历史消费」</td>
+</tr>
+<tr>
+<td>主标题 / 副文案</td>
+<td>把老账单带过来 / 只用于查看核对历史订单，不参与开单、业绩与会员资产计算。</td>
+</tr>
+<tr>
+<td>要点 ①</td>
+<td><strong>不进订单流水</strong> —— 导入后只出现在「历史订单」，不影响本店经营数据与会员余额。</td>
+</tr>
+<tr>
+<td>要点 ②</td>
+<td><strong>只支持 Excel</strong> —— 历史账单手写、截图多，拍照识别不可靠，本功能只接受表格。</td>
+</tr>
+<tr>
+<td>要点 ③</td>
+<td><strong>只认三项</strong> —— 日期、金额、顾客姓名用于筛选搜索；其余列原样保留，可在详情里查看。</td>
+</tr>
+<tr>
+<td>引导提示</td>
+<td>建议先导入会员与持卡信息、会员卡模板、价目表，再导入历史消费。<strong>提示不设硬门槛</strong>，未完成也可继续。</td>
+</tr>
+<tr>
+<td>底部</td>
+<td>仅「上传 Excel 表」（主）→ 上传页；<strong>本版移除「先下载模板」</strong>，标准表头改在上传页直接展示</td>
+</tr>
+</tbody>
+</table>
+
+<h2>6.24 上传历史消费（Excel）</h2>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 说明页；标题「上传历史消费」</td>
+</tr>
+<tr>
+<td>引导语</td>
+<td>列名不必固定，下一步再指定哪一列是日期、金额、顾客姓名。</td>
+</tr>
+<tr>
+<td>选择文件</td>
+<td>虚线卡：「选择文件」+「xls / xlsx / csv · 单表 ≤ 10MB」→ toast「已选择 历史消费 2023-2025.xlsx（演示）」→ 指定字段</td>
+</tr>
+<tr>
+<td>标准表头卡</td>
+<td>标题「标准表头」+ 标签「识别更准」；引导语「建议首行用下面的列名；没用这些列名也能导入，下一步再手工指定哪列是日期、金额、顾客姓名。」；单组「历史消费 / 7 列 · 后 4 列原样保留」，chips = 消费日期 / 实收金额 / 顾客姓名 / 项目 / 支付方式 / 门店 / 备注；下方示例行（前缀「示例」）<strong>常显</strong>；卡尾提示「前 3 列会被识别用于筛选与搜索，其余列整行原样保留。」</td>
+</tr>
+<tr>
+<td>下载入口</td>
+<td><strong>不提供</strong>：原「历史消费模板 + 下载」卡已删除，改为上行的标准表头展示</td>
+</tr>
+<tr>
+<td>信任说明</td>
+<td>仅本店可见 · 只用于「历史订单」查看 · 可整批删除</td>
+</tr>
+</tbody>
+</table>
+
+<h2>6.25 指定字段（日期 / 金额 / 顾客姓名）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>规格</th>
+<th>校验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日期</td>
+<td>下拉，选项 = 源表全部列；默认猜「消费日期」</td>
+<td><strong>必选</strong>；未选时「下一步」toast「请先指定日期与金额」</td>
+</tr>
+<tr>
+<td>金额</td>
+<td>下拉，默认猜「实收金额」</td>
+<td><strong>必选</strong>；同上</td>
+</tr>
+<tr>
+<td>顾客姓名</td>
+<td>下拉，默认猜「顾客姓名」，首项为「（不指定）」</td>
+<td>可空；不指定时列表显示「未留姓名」，姓名搜索不再命中该条</td>
+</tr>
+<tr>
+<td>其余列</td>
+<td>提示「其余列会原样保留，可在『历史订单』详情里查看」</td>
+<td>不参与校验</td>
+</tr>
+<tr>
+<td>样例行</td>
+<td>展示 3 行（表头 + 2 条样例），用于确认列对齐</td>
+<td>静态</td>
+</tr>
+</tbody>
+</table>
+<p><strong>识别失败口径</strong>：日期 / 金额无法解析的行<strong>不入库</strong>，进失败明细（§6.27），可下载后修正再传；<strong>不做站内逐条补录</strong>（与 P0 的失败补录不同）。</p>
+
+<h2>6.26 核对历史数据（唯一可导入）</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题栏</td>
+<td>返回 → 指定字段；标题「核对数据」</td>
+<td>返回不丢映射</td>
+</tr>
+<tr>
+<td>汇总行</td>
+<td>「共 <em class="num-em">N</em> 条 · 起止日期 · 合计 <em class="num-em">¥X</em>」</td>
+<td>按识别结果统计</td>
+</tr>
+<tr>
+<td>抽样列表</td>
+<td>前 5 条：姓名 + 日期 + 金额</td>
+<td>只读；不做分类明细</td>
+</tr>
+<tr>
+<td>失败提示</td>
+<td>「<em class="num-em">4</em> 条无法识别，导入后可在失败明细下载」</td>
+<td>条数 > 0 才显示</td>
+</tr>
+<tr>
+<td>底部</td>
+<td>唯一主按钮「确认无误，导入」</td>
+<td>→ 全屏进度层（§6.10.3：读取表格 → 识别日期 / 金额 / 顾客姓名 → 写入历史订单）→ 走满进结果页（<strong>本页是唯一可导入处</strong>）</td>
+</tr>
+</tbody>
+</table>
+
+<h2>6.27 历史消费导入完成 / 失败明细</h2>
+<h3>结果页</h3>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>成功区</td>
+<td>绿色 ✓ +「导入成功」+「历史订单已入库，可在『工作台 · 店铺管理 · 历史订单』查看。」</td>
+<td>静态</td>
+</tr>
+<tr>
+<td>入库清单</td>
+<td>一行：历史消费 <em class="num-em">16</em> 条 / 已入库 / 查看</td>
+<td>查看 → 历史订单列表</td>
+</tr>
+<tr>
+<td>说明</td>
+<td>不进订单流水，仅用于查看核对；会员余额与业绩不受影响。</td>
+<td>—</td>
+</tr>
+<tr>
+<td>失败条</td>
+<td>「<em class="num-em">4</em> 条失败，下载后修正再传」+「查看明细」</td>
+<td>→ 失败明细</td>
+</tr>
+<tr>
+<td>次要操作</td>
+<td>「删除本批历史消费」（红文字链）</td>
+<td>→ 删除确认（§6.28）</td>
+</tr>
+<tr>
+<td>底部</td>
+<td>「返回工作台」</td>
+<td>→ 工作台</td>
+</tr>
+</tbody>
+</table>
+<h3>失败明细</h3>
+<ul>
+<li>标题栏：返回 → 结果页；标题「失败明细 · <em class="num-em">4</em> 条」。  </li>
+<li>行结构：行号 + 失败原因（金额无法识别 / 日期格式无法识别 / 金额为 0 或负数 / 日期与金额都为空）+ 原值摘要。  </li>
+<li><strong>无「手动补录」按钮</strong>：历史账单字段结构不固定，站内补录无法覆盖任意列；底部唯一按钮「下载失败行」→ toast「已生成 失败行.xls（演示）」。  </li>
+</ul>
+
+<h2>6.28 整批删除历史消费</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触发</td>
+<td>历史消费结果页「删除本批历史消费」</td>
+</tr>
+<tr>
+<td>标题 / 正文</td>
+<td>删除本批历史消费？ / 将删除本次导入的 <em class="num-em">16</em> 条历史消费。本店订单流水、会员余额与业绩都不受影响。</td>
+</tr>
+<tr>
+<td>按钮</td>
+<td>「先不删」（描边）/「确认删除」（实心红）；点遮罩等于取消</td>
+</tr>
+<tr>
+<td>结果</td>
+<td>条数归零、按钮隐藏、toast「已删除本批历史消费」；历史订单列表回到空态</td>
+</tr>
+</tbody>
+</table>
+
+<h2>6.29 历史消费的状态与边界</h2>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>判定</th>
+<th>表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无数据</td>
+<td>未导入或已整批删除</td>
+<td>历史订单列表空态 + 导入入口</td>
+</tr>
+<tr>
+<td>有数据</td>
+<td>本批已入库</td>
+<td>列表可搜 / 可筛 / 可看详情；结果页可整批删除</td>
+</tr>
+<tr>
+<td>已删除</td>
+<td><code>historyDeleted=true</code></td>
+<td>结果页条数 0、删除按钮隐藏；列表清空</td>
+</tr>
+</tbody>
+</table>
+<p><strong>与 P0 的隔离</strong>：历史消费走独立存储（<code>LegacyOrder</code>），<strong>不写</strong>会员与持卡信息 / 会员卡模板 / 价目表与订单流水；导入批次不与 P0 的 <code>ImportBatch</code> 合并计数。<br /><strong>去重</strong>：本期<strong>不做自动去重</strong>——历史账单没有稳定主键，按行追加；重复导入需用户自行整批删除回滚。<br /><strong>不参与</strong>：开单、退款、业绩 / 提成、会员余额、经营分析、导出对账均不读取该存储。</p>
+
+<hr />
+<h1>模块 7　数据模型与接口约定</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 <strong>必看</strong> · 测试 ✓</p>
+</blockquote>
+<p>以下实体是<strong>原型内存模型的整理</strong>，用于前后端对齐；字段名不是接口契约，接口路径一律标注【待联调确认】。</p>
+<h2>7.1 ImportBatch（导入批次）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>batchId</code></td>
+<td>string</td>
+<td>✓</td>
+<td>批次唯一 id</td>
+</tr>
+<tr>
+<td><code>storeId</code></td>
+<td>string</td>
+<td>✓</td>
+<td>仅本店可见</td>
+</tr>
+<tr>
+<td><code>sourceType</code></td>
+<td>array&lt;object&gt; <code>[{type: excel|photo|template, category}]</code></td>
+<td>✓</td>
+<td><strong>按类别记录来源</strong>（一类一源）；用于采集回显、待识别清单分组、映射 tab 与核对页来源徽标</td>
+</tr>
+<tr>
+<td><code>assets</code></td>
+<td>array&lt;object&gt; <code>[{kind: excel|photo, category, name, size, shotCount}]</code></td>
+<td>—</td>
+<td>Excel 记文件名 / 大小；照片记张数（原型为本地缩略图，不上传云端）</td>
+</tr>
+<tr>
+<td><code>generatedTemplates</code></td>
+<td>array&lt;object&gt; <code>[{templateId, cardType, checked}]</code></td>
+<td>—</td>
+<td>本批由「卡种」聚合出的卡模板草案与勾选结果；未触发自动生成时为空。随批删除一并回滚</td>
+</tr>
+<tr>
+<td><code>detectedTemplate</code></td>
+<td>string</td>
+<td>—</td>
+<td>命中时为「运营标准会员表」，否则 <code>custom</code></td>
+</tr>
+<tr>
+<td><code>selectedTypes</code></td>
+<td>array&lt;<code>member</code> / <code>card</code> / <code>price</code>&gt;，其中 <code>card</code> 表示会员卡模板</td>
+<td>✓</td>
+<td>至少 1 项（原型默认 3 项）；<code>card</code> 勾选时 <code>price</code> 强制勾选且不可单独取消</td>
+</tr>
+<tr>
+<td><code>counts</code></td>
+<td>object <code>{member, card, price}</code></td>
+<td>✓</td>
+<td>原型造数 126 人 / 4 张卡模板 / 42 项；<code>card</code> 取本批导入 + 自动生成 + 历史已有模板的合计</td>
+</tr>
+<tr>
+<td><code>failCount</code> / <code>fixedCount</code></td>
+<td>number</td>
+<td>✓</td>
+<td>失败 2 条；已补录数用于「删除本批」正文与失败条</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>enum <code>draft</code> / <code>mapped</code> / <code>confirmed</code> / <code>importing</code> / <code>done</code> / <code>deleted</code></td>
+<td>✓</td>
+<td>对应 §4.3</td>
+</tr>
+<tr>
+<td><code>createdAt</code> / <code>deletedAt</code></td>
+<td>ISO string</td>
+<td>—</td>
+<td>整批删除写 <code>deletedAt</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7.2 ImportRow（失败行 / 待补录）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rowId</code></td>
+<td>string</td>
+<td>原型 <code>f1</code> / <code>f2</code></td>
+</tr>
+<tr>
+<td><code>lineNo</code></td>
+<td>number</td>
+<td>源表行号：47 / 103</td>
+</tr>
+<tr>
+<td><code>rawName</code> / <code>rawPhone</code></td>
+<td>string</td>
+<td>原值：赵女士 / 1380013abc；孙先生 / —</td>
+</tr>
+<tr>
+<td><code>reasonCode</code></td>
+<td>enum <code>phone_invalid</code> / <code>card_balance_invalid</code></td>
+<td>决定半屏提示文案</td>
+</tr>
+<tr>
+<td><code>reasonText</code></td>
+<td>string</td>
+<td>手机号格式错误 / 卡余额无法解析；补录后改写为「已手动补录 · N 张卡」</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>enum <code>pending</code> / <code>fixed</code> / <code>removed</code></td>
+<td>对应 §4.5</td>
+</tr>
+<tr>
+<td><code>fixed</code></td>
+<td>object <code>{name, gender, phone, cards[]}</code></td>
+<td>最近一次保存的快照；重开半屏按此回填</td>
+</tr>
+</tbody>
+</table>
+<h2>7.3 Member（会员与持卡信息）</h2>
+<p><strong>口径</strong>：会员身份与「当前持有的卡」合成一条记录。标准 12 列对齐 <code>members.xlsx</code>；余额 / 充值 / 消费为<strong>旁路摘要</strong>，只读展示，不生成订单流水。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>memberId</code> / <code>memberNo</code></td>
+<td>string</td>
+<td>系统 id / 源表「会员编号」（<code>memberNo</code> 为空时以手机号或序号补齐）</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>必填；可含「先生 / 女士」等称呼</td>
+</tr>
+<tr>
+<td><code>letter</code></td>
+<td>string</td>
+<td>姓氏首字母（源表「首字母」缺失时按姓名推导），用于列表分组与索引</td>
+</tr>
+<tr>
+<td><code>phone</code></td>
+<td>string</td>
+<td>可为空；为空标「待补全」；同表去重键</td>
+</tr>
+<tr>
+<td><code>cardType</code></td>
+<td>string</td>
+<td>持有的卡种名称，用于聚合生成会员卡模板（§6.12）</td>
+</tr>
+<tr>
+<td><code>cardExpiry</code></td>
+<td>string</td>
+<td>卡有效期，原型为自由文本</td>
+</tr>
+<tr>
+<td><code>storedBalance</code></td>
+<td>number</td>
+<td>储值余额，最多 2 位小数；解析失败进失败明细</td>
+</tr>
+<tr>
+<td><code>rechargeSum</code> / <code>consumeSum</code></td>
+<td>number</td>
+<td>充值合计 / 消费合计（旁路摘要）</td>
+</tr>
+<tr>
+<td><code>consumeCount</code></td>
+<td>number</td>
+<td>消费笔数（旁路摘要）</td>
+</tr>
+<tr>
+<td><code>daysSince</code></td>
+<td>number</td>
+<td>距今天数（旁路摘要）</td>
+</tr>
+<tr>
+<td><code>payMethod</code></td>
+<td>string</td>
+<td>支付方式（旁路摘要）</td>
+</tr>
+<tr>
+<td><code>gender</code> / <code>genderSource</code> / <code>genderHit</code></td>
+<td>enum / enum / string</td>
+<td><strong>不在 12 列内</strong>，由姓名称呼推断（<code>name</code> / <code>none</code>），仅用于会员列表展示</td>
+</tr>
+<tr>
+<td><code>sourceRowId</code></td>
+<td>string</td>
+<td>回溯源表行</td>
+</tr>
+<tr>
+<td><code>vip</code> / <code>visitCount</code> / <code>lastConsume</code></td>
+<td>boolean / number / date</td>
+<td>原型演示字段，不在导入字段范围内</td>
+</tr>
+</tbody>
+</table>
+<h2>7.4 MemberCard（会员卡 / 补录老卡）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cardKey</code></td>
+<td>string</td>
+<td>✓</td>
+<td>半屏列表行 key（<code>lc1…</code>），同卡种可重复</td>
+</tr>
+<tr>
+<td><code>cardTemplateId</code></td>
+<td>string</td>
+<td>✓</td>
+<td>选中的卡种（<code>s1</code> / <code>c1</code> / <code>p1</code> …）</td>
+</tr>
+<tr>
+<td><code>cardName</code></td>
+<td>string</td>
+<td>✓</td>
+<td>如「储值卡 · 1000」</td>
+</tr>
+<tr>
+<td><code>facePrice</code></td>
+<td>number</td>
+<td>✓</td>
+<td>卡种面值，仅展示</td>
+</tr>
+<tr>
+<td><code>balance</code></td>
+<td>number</td>
+<td>✓</td>
+<td>卡内余额，最多 2 位小数；补录必填</td>
+</tr>
+<tr>
+<td><code>expiry</code></td>
+<td>string</td>
+<td>—</td>
+<td>有效期限，原型为自由文本</td>
+</tr>
+<tr>
+<td><code>rechargeLeft</code> / <code>bonusLeft</code></td>
+<td>number</td>
+<td>—</td>
+<td>充值剩余 / 赠送剩余</td>
+</tr>
+<tr>
+<td><code>bonusItems</code></td>
+<td>string</td>
+<td>—</td>
+<td>赠送项目</td>
+</tr>
+<tr>
+<td><code>memberId</code></td>
+<td>string</td>
+<td>✓</td>
+<td>必须挂会员</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>enum <code>legacy</code> / <code>new</code></td>
+<td>✓</td>
+<td>补录老卡 / 办新卡；本期只走 <code>legacy</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7.5 PriceItem（价目项）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>如 剪发 / 烫发 / 头皮护理</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>enum <code>project</code> / <code>product</code></td>
+<td>项目 / 产品</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>number</td>
+<td>必填；单位元</td>
+</tr>
+<tr>
+<td><code>unit</code></td>
+<td>string</td>
+<td>次 / 个 等</td>
+</tr>
+<tr>
+<td><code>sourceRowId</code></td>
+<td>string</td>
+<td>回溯源表行</td>
+</tr>
+</tbody>
+</table>
+<p>价目的完整字段、分组与展示规则<strong>以 <code>../价目表/PRD-项目创建与管理.html</code> 为准</strong>；本文只约定导入时需要落的最小集。</p>
+<h2>7.6 MemberCardTemplate（会员卡模板）</h2>
+<p><strong>口径</strong>：店铺预先配置好的卡定义，为会员开卡时从中选择；不是某位会员持有的卡。标准 8 列如下，导入后即写入模板库。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>templateId</code></td>
+<td>string</td>
+<td>✓</td>
+<td>模板 id</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>✓</td>
+<td>卡名称，如「黄金卡」「8折卡」</td>
+</tr>
+<tr>
+<td><code>rechargeAmount</code></td>
+<td>number</td>
+<td>—</td>
+<td>充值金额（元）</td>
+</tr>
+<tr>
+<td><code>giftAmount</code></td>
+<td>number</td>
+<td>—</td>
+<td>赠送金额（元）</td>
+</tr>
+<tr>
+<td><code>discountScope</code></td>
+<td>string</td>
+<td>—</td>
+<td>折扣范围：全场 / 指定项目·产品</td>
+</tr>
+<tr>
+<td><code>discountRate</code></td>
+<td>number</td>
+<td>—</td>
+<td>折扣值，如 8 表示八折；来自「8折 / 6.5折」等卡种名推断</td>
+</tr>
+<tr>
+<td><code>benefits[]</code></td>
+<td>array <code>{priceItemId, name, times}</code></td>
+<td>—</td>
+<td>项目·产品权益：以<strong>价目表</strong>项目为基准 + 次数；卡模板导入时必需价目表</td>
+</tr>
+<tr>
+<td><code>memberPrices[]</code></td>
+<td>array <code>{priceItemId, name, price}</code></td>
+<td>—</td>
+<td>会员价：指定项目·产品的卡耗消费价格，同样引用价目表</td>
+</tr>
+<tr>
+<td><code>validity</code></td>
+<td>string</td>
+<td>—</td>
+<td>有效期（如 12 个月 / 长期有效）</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td>enum <code>import</code> / <code>auto</code></td>
+<td>✓</td>
+<td>随表导入 / 由「会员与持卡信息」的卡种聚合生成（§6.12）</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>enum <code>complete</code> / <code>pending</code></td>
+<td>✓</td>
+<td>自动生成的草案缺权益 / 会员价时置 <code>pending</code>（界面「待完善」）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>自动生成规则</strong>：本批导入了会员与持卡信息但未导卡模板时，按 <code>cardType</code> 去重聚合成草案，<code>origin=auto</code>、<code>status=pending</code>；用户在 §6.12 取消勾选的卡种不入库。<strong>单卡口径</strong>：<code>recharge = max(该卡种各条持卡记录的 balance)</code>（<strong>不是</strong>求和），<code>validity = '永久'</code>，两项均由用户在 §6.12 复核可改。原型演示种子取 <code>members.xlsx</code> 实际分布（7折 448 / 黄金卡 296 / 8折 296 / 6折卡 152 / 6.5折 129 / 5折卡 60 / 7.5折卡 34 / 4折卡 14 / 8.8折卡 2 / 3.8折 1），单卡储值预填 ¥2,000 / ¥5,000 / ¥1,500 / ¥1,000 / ¥1,000 / ¥1,000 / ¥1,000 / ¥1,000 / ¥800 / ¥800。</p>
+<p><strong>依赖</strong>：模板里的权益与会员价必须能在价目表找到对应项目，因此 <strong>卡模板不能脱离价目表单独导入</strong>；价目表可单独导入。</p>
+<h2>7.7 ImportMapping（字段映射）</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>category</code></td>
+<td>enum <code>member</code> / <code>card</code> / <code>price</code></td>
+<td>映射所属类别（映射页 tab）；照片类目不生成映射</td>
+</tr>
+<tr>
+<td><code>field</code></td>
+<td>string（按类别）</td>
+<td>会员与持卡信息 <strong>12 行</strong>（memberNo / name / initial / phone / cardType / cardExpire / balance / rechargeSum / payMethod / consumeSum / consumeCount / daysAgo）；会员卡模板 <strong>8 行</strong>（cardName / recharge / bonus / discountScope / discountValue / benefits / memberPrice / validity）；价目表 5 行</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>enum <code>auto</code> / <code>column</code> / <code>derive</code> / <code>skip</code> / <code>custom</code></td>
+<td>首字母默认 <code>derive</code>（按姓名推导）；会员与持卡信息已不再有性别映射行</td>
+</tr>
+<tr>
+<td><code>confirmed</code></td>
+<td>boolean</td>
+<td><strong>按类别</strong>确认；所有 Excel 类别都为 <code>true</code> 才能进核对页</td>
+</tr>
+<tr>
+<td><code>sourceColumn</code></td>
+<td>string</td>
+<td>选中的源表列名；跳过为空</td>
+</tr>
+<tr>
+<td><code>customName</code> / <code>valid</code></td>
+<td>string / boolean</td>
+<td>自定义输入与校验结果；<code>valid=false</code> 时按跳过处理</td>
+</tr>
+</tbody>
+</table>
+<h2>7.8 能力清单（路径【待联调确认】）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>路径（示意）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>创建批次</td>
+<td><code>POST /import/batches</code></td>
+<td>带入 <code>sourceType</code>（按类别）与 <code>selectedTypes</code>、<code>assets</code></td>
+</tr>
+<tr>
+<td>上传并解析</td>
+<td><code>POST /import/batches/{id}/file?category=</code></td>
+<td>按类别传 xls / xlsx / csv；返回表头与建议映射</td>
+</tr>
+<tr>
+<td>拍照识别</td>
+<td><code>POST /import/batches/{id}/ocr?category=</code></td>
+<td>一次传该类全部照片，返回识别草稿表与识别条数</td>
+</tr>
+<tr>
+<td>识别进度</td>
+<td><code>GET /import/batches/{id}/progress</code>（轮询 / SSE）</td>
+<td>返回 <code>stage</code>（read / recognize / align）、各类别条数与 <code>done</code>；用于「AI 正在识别」卡</td>
+</tr>
+<tr>
+<td>获取 / 保存映射</td>
+<td><code>GET｜PUT /import/batches/{id}/mapping</code></td>
+<td>保存前须 <code>confirmed=true</code></td>
+</tr>
+<tr>
+<td>预览统计 / 明细</td>
+<td><code>GET /import/batches/{id}/preview</code></td>
+<td>按 <code>type=member|card|price</code> 取抽样 10 条</td>
+</tr>
+<tr>
+<td>提交导入</td>
+<td><code>POST /import/batches/{id}/commit</code></td>
+<td>幂等：同批次重复提交不得重复入库</td>
+</tr>
+<tr>
+<td>查询批次</td>
+<td><code>GET /import/batches/{id}</code></td>
+<td>状态与数量；用于刷新恢复</td>
+</tr>
+<tr>
+<td>失败明细 / 下载</td>
+<td><code>GET /import/batches/{id}/failures</code> · <code>…/failures.xls</code></td>
+<td>支持只重试失败行（P1）</td>
+</tr>
+<tr>
+<td>手动补录</td>
+<td><code>PUT /import/failures/{rowId}</code></td>
+<td>带会员卡数组；余额必填</td>
+</tr>
+<tr>
+<td>整批删除</td>
+<td><code>DELETE /import/batches/{id}</code></td>
+<td>含已补录项；返回删除计数</td>
+</tr>
+<tr>
+<td>历史消费</td>
+<td><code>POST /import/history</code> · <code>GET /legacy-orders</code> · <code>GET /legacy-orders/{id}</code> · <code>DELETE /import/history/batches/{id}</code></td>
+<td>只识别日期 / 金额 / 顾客姓名；列表查询参数 <code>from</code> / <code>to</code> / <code>min</code> / <code>max</code> / <code>name</code>；只读存储，不写订单流水</td>
+</tr>
+<tr>
+<td>会员查询</td>
+<td><code>GET /members?keyword=</code></td>
+<td>姓名 / 手机号模糊匹配；分页</td>
+</tr>
+</tbody>
+</table>
+<h2>7.9 时序（示意）</h2>
+<div class="mermaid">
+sequenceDiagram
+  participant U as 用户
+  participant W as 端
+  participant A as 导入服务
+  participant D as 会员/卡/价目库
+  U->>W: 上传现有表 / 拍照
+  W->>A: 创建批次 + 文件
+  A-->>W: 表头 + 建议映射 + 识别模板
+  U->>W: 确认 / 自定义 / 跳过 + 勾选
+  W->>A: 保存映射（confirmed）
+  W->>A: 拉取预览统计 + 明细
+  U->>W: 确认无误，导入
+  W->>A: commit（幂等）
+  A->>D: 写入会员与持卡 / 卡模板 / 价目
+  A-->>W: 成功数 + 失败行
+  U->>W: 手动补录失败行
+  W->>A: PUT 失败行（可含多卡）
+  A->>D: 写入会员 + 多张卡
+  A-->>W: 已补录
+</div>
+<hr />
+<h1>模块 8　业务规则</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 <strong>必看</strong> · 测试 ✓</p>
+</blockquote>
+<h2>8.1 数据范围与分期</h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>对象</th>
+<th>入库去向</th>
+<th>本期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>会员与持卡信息 · 会员卡模板 · 价目表</td>
+<td>本系统正式会员（含所持卡）/ 卡模板 / 价目数据</td>
+<td><strong>做</strong>（原型全链路）</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>历史消费记录（Excel）</td>
+<td>独立「历史消费」存储，<strong>不进订单流水</strong></td>
+<td><strong>做</strong>（独立链路 + 历史订单查看）</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>员工 / 提成 / 其他</td>
+<td>—</td>
+<td>不做</td>
+</tr>
+</tbody>
+</table>
+<h2>8.2 会员去重</h2>
+<ul>
+<li>优先<strong>手机号</strong>去重；同表重复导入按手机号不翻倍。  </li>
+<li>无手机号仍可导入，但标「待补全」，<strong>不自动合并</strong>（避免把两个同名的人并成一个）。  </li>
+<li>手机号为空 / 非法时：非法进失败明细（如 f1「手机号格式错误」），为空则入库但标待补全。  </li>
+<li>线上「姓名 + 模糊手机 / 备注」的人工确认合并<strong>本期不做</strong>。  </li>
+</ul>
+<h2>8.3 会员卡模板规则</h2>
+<ul>
+<li><strong>定义</strong>：模板是店铺预置的卡定义（名称 / 充值 / 赠送 / 折扣 / 权益 / 会员价 / 有效期），为会员开卡时从中选择；不是某位会员持有的卡。  </li>
+<li><strong>必须与价目表同批导入</strong>：模板的项目·产品权益与会员价以价目表项目为基准，缺价目表则无法关联。勾选「会员卡模板」时系统<strong>自动锁定并勾选「价目表」</strong>，且价目表在卡模板勾选期间不可单独取消。  </li>
+<li><strong>同批 ≠ 同表</strong>：卡模板与价目表各用一个 Excel 文件分别上传，<strong>不允许合成一张表</strong>；上传页按类别逐类采集，映射页按类别分 tab 确认，两类的列名与字段互不混用。  </li>
+<li><strong>每个类别最多 3 个 Excel</strong>：会员与持卡信息 / 会员卡模板 / 价目表各自独立计数；同类多表<strong>共用一套字段映射</strong>（以第一份列名为准，其余按同名 / 同义列对齐），条数合并累加；列名不一致只提示「列名请保持一致」，不硬阻断。  </li>
+<li><strong>价目表可单独导入</strong>：只含价格，不引用卡权益，逻辑上不受影响。  </li>
+<li><strong>自动生成</strong>：导入会员与持卡信息但未导卡模板时，按「卡种」去重生成模板草案，进入确认页（§6.12）；未勾选的卡种不入库；草案 <code>status=pending</code>（界面「待完善」），权益与会员价留待后续在模板编辑中补齐。  </li>
+<li><strong>草案只生成一次</strong>：返回映射页再进不重复追加；类型页改动勾选后草案与勾选结果重置。  </li>
+<li><strong>草案与本批绑定</strong>：整批删除时一并回滚（§8.9）。  </li>
+<li><strong>会员持有的卡</strong>：可随会员与持卡信息导入（卡种 / 有效期 / 储值余额），也可在失败补录中手工录入；卡必须挂到会员，一个会员可持任意多张，同卡种可重复，补录必须填卡内余额。  </li>
+<li>补录不产生收款单据、不写订单流水；卡余额无法解析的行进失败明细，可通过补录闭环修复。  </li>
+<li>原型卡片（储值 / 次卡 / 套餐）为演示数据，线上模板字段以会员卡模块为准。  </li>
+</ul>
+<h2>8.4 价目表规则</h2>
+<ul>
+<li>按类型列区分项目 / 产品；缺类型列时默认项目（原型明细均为项目）【待联调确认】。  </li>
+<li>价格必填且为有效数字；缺失进失败明细。  </li>
+<li>同名策略（合并 / 新建）需用户选择 —— <strong>本期原型未实现</strong>，仅记录为待定规则。  </li>
+<li>导入后的价目字段、分组与展示规则，以价目表 PRD 为准。  </li>
+</ul>
+<h2>8.5 性别识别</h2>
+<table>
+<thead>
+<tr>
+<th>称呼</th>
+<th>结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>先生 / 男士</td>
+<td>男</td>
+<td>姓名<strong>包含</strong>该词即命中（如「张伟先生」）</td>
+</tr>
+<tr>
+<td>女士 / 小姐 / 太太 / 夫人</td>
+<td>女</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>无以上称呼</td>
+<td>未知</td>
+<td><strong>不猜</strong>；不按首字母 / 头像推断</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>优先级</strong>：姓名中含称呼即命中；「会员与持卡信息」的 12 列<strong>不含性别</strong>，因此性别仅来源于名称推断（<code>genderSource=name</code>），映射页不再有性别行。  </li>
+<li>字典按上表顺序匹配（先男后女），命中即返回，不再继续找。  </li>
+<li>展示口径：<code>男 · 按「先生」推断</code> / <code>女 · 按「女士」推断</code> / <code>未知 · 无称呼可推断</code>；仅用于会员列表，不进导入数据。  </li>
+</ul>
+<h2>8.6 自定义字段映射</h2>
+<ul>
+<li>允许集合 = <strong>当前类别的标准列</strong>：会员与持卡信息即 12 列（会员编号、姓名、首字母、手机号、卡种、卡有效期、储值余额、充值合计、消费合计、消费笔数、距今天数、支付方式）；会员卡模板 8 列；价目表 5 列。  </li>
+<li>比对前去掉所有空白（含全角空格）后全等；不做模糊匹配、不做包含匹配。  </li>
+<li>无效<strong>不阻断</strong>：按跳过处理，行内红字 + 底部提示条切换为 warn + 点下一步 toast 告知。  </li>
+<li>「确认映射关系无误」仍是唯一提交闸口；无效字段不能靠它绕过提示，但可以带提示继续。  </li>
+<li>理由：老系统表头千奇百怪，强制改对会把人卡死在映射页；「跳过 + 明确告知 + 事后可补」保住流程可走完。  </li>
+</ul>
+<h2>8.7 运营标准会员表识别</h2>
+<ul>
+<li>样表列（<code>members.xlsx</code>，12 列）：<strong>会员编号 / 姓名 / 首字母 / 手机号 / 卡种 / 卡有效期 / 储值余额 / 充值合计 / 消费合计 / 消费笔数 / 距今天数 / 支付方式</strong>。  </li>
+<li>命中 <strong>≥8 列</strong>同义列名 → 标「运营标准会员表」，默认整表映射；一行即「会员 + 其持有的卡」（卡种 / 有效期 / 余额在同一行）。  </li>
+<li>消费合计 / 消费笔数 / 距今天数 / 支付方式 → 进旁路摘要，<strong>不写订单流水</strong>。  </li>
+<li>无手机号可导入，但标「待补全」；卡有效期异常数字 → 跳过并进失败明细。  </li>
+<li>缺列不影响导入；缺的字段进入人工映射，至少保留「姓名、手机号、卡种」为推荐。  </li>
+<li>若同一份表同时用于「会员卡模板」，模板需另表提供（8 列）；仅凭会员表的卡种只能生成草案（§6.12），不能还原充值 / 赠送 / 权益 / 会员价。  </li>
+</ul>
+<h2>8.8 失败行与补录</h2>
+<ul>
+<li><strong>单行失败不阻断整批</strong>；成功数照常入库，失败数在结果页明示。  </li>
+<li>失败原因须可读（行号 + 原因 + 原值），支持下载失败明细 Excel（原型为 toast 演示）。  </li>
+<li>手动补录只要求<strong>姓名</strong>；性别 / 手机号 / 卡可空，填了必须合法（§5.7）。  </li>
+<li>一个失败会员可补多张卡；卡余额必填；不设「无卡」状态。  </li>
+<li>补录后<strong>不自动移除</strong>条目，必须点「补录完成」；这样用户还能回去改。  </li>
+<li>「补录完成」后条目不可恢复；要恢复只能重新导入该批。  </li>
+<li>失败行重试（只重试失败行）为 P1；原型未实现。  </li>
+</ul>
+<h2>8.9 整批删除</h2>
+<ul>
+<li>删除范围：本次导入的会员与持卡信息 + 卡模板（含自动生成的草案）+ 价目表 + 已手动补录的条目；<strong>不删除</strong>本店原有数据。  </li>
+<li>必须二次确认，正文列明数量；确认后回引导页并 toast。  </li>
+<li>删除后同批不可恢复，需重新导入。  </li>
+<li>原型为演示态（不真正删内存数据），线上需事务化删除并返回计数。  </li>
+</ul>
+<h2>8.10 历史消费（只读旁路）</h2>
+<ul>
+<li><strong>不写入「订单流水」</strong>，写独立「历史消费」存储（<code>LegacyOrder</code>）；不参与开单 / 退款 / 改单 / 业绩 / 提成 / 会员余额 / 经营分析。  </li>
+<li><strong>不规定字段结构</strong>：整行原样保留（列名与列序不限）；只额外识别<strong>日期、金额、顾客姓名</strong>三项，供列表筛选与搜索。  </li>
+<li><strong>唯一入口是 Excel</strong>（含标准表头展示，无下载）：不上拍照 / OCR；理由见 §6.8 要点 ②。  </li>
+<li>日期与金额<strong>必须能解析</strong>才能入库；姓名可空。解析失败行<strong>不入库</strong>，进失败明细并支持下载，<strong>不做站内补录</strong>。  </li>
+<li>不做自动去重：历史账单无稳定主键，按行追加；列表已有数据再点「导入」时须半屏确认「追加」或「先整批删除再导入」。  </li>
+<li><strong>查看入口已定</strong>：工作台 → 店铺管理 →「历史订单」（列表 / 时间·金额·姓名筛选 / 独立详情）。  </li>
+<li>导入前在引导与说明页<strong>明确告知</strong>：历史消费需单独导入，建议先导会员与持卡信息 / 卡模板 / 价目表；<strong>不设硬门槛</strong>。  </li>
+<li>会员与持卡信息、会员卡模板、价目表<strong>可选择不同来源</strong>（Excel 或拍照，逐类独立），混合批次先拍照、后上传，结果合并展示。  </li>
+</ul>
+<h2>8.11 分流与邀请</h2>
+<ul>
+<li>分流<strong>只负责落点</strong>，不展开版块内承接。  </li>
+<li>本期只有「我要管理店铺」与「先随便看看」产生后续（首页 + 邀请半屏）；其余三支只 toast。  </li>
+<li>邀请只在「分流 → 首页」路径弹一次；跳过不影响首页任何内容。  </li>
+<li>浮球是「稍后再导」的兜底，不是第二套入口流程；工作台入口常驻。  </li>
+<li>原型不做偏好持久化；线上「同账号不反复弹」由服务端记录【待联调确认】。  </li>
+</ul>
+<h2>8.12 占位边界（明确不算实现）</h2>
+<table>
+<thead>
+<tr>
+<th>占位项</th>
+<th>原型表现</th>
+<th>线上应有</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>手机验证码登录</td>
+<td>toast「验证码登录（演示占位）」</td>
+<td>验证码页 + 倒计时 + 校验</td>
+</tr>
+<tr>
+<td>协议勾选</td>
+<td>静态图标</td>
+<td>未勾选拦截登录</td>
+</tr>
+<tr>
+<td>城市 / 搜索 / 店员切换</td>
+<td>无交互</td>
+<td>城市选择、门店搜索、角色切换</td>
+</tr>
+<tr>
+<td>门店信息编辑</td>
+<td>行与箭头为视觉</td>
+<td>名称 / 地区 / 工商信息编辑，图片上传删除，地图选点</td>
+</tr>
+<tr>
+<td>拍照识表</td>
+<td>取景框 + 快门直接跳转</td>
+<td>真实相机 / 相册、OCR、识别草稿可改</td>
+</tr>
+<tr>
+<td>标准表头</td>
+<td>直接进类型页</td>
+<td>页内展示列名 chips + 示例行，不提供下载</td>
+</tr>
+<tr>
+<td>「让 AI 再解释一遍」/「和 AI 说说」</td>
+<td>无行为</td>
+<td>对话式解释</td>
+</tr>
+<tr>
+<td>导入执行</td>
+<td>确定性进度层（2.1s 走满 100%）</td>
+<td>真实解析、分批写入、失败重试</td>
+</tr>
+<tr>
+<td>下载失败明细</td>
+<td>toast</td>
+<td>生成并下载 xls</td>
+</tr>
+<tr>
+<td>会员卡模板列表 / 价目表 / 会员详情</td>
+<td>占位页 / toast</td>
+<td>线上真实页面</td>
+</tr>
+<tr>
+<td>整批删除</td>
+<td>toast + 跳转</td>
+<td>真实事务删除</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>模块 9　文案清单与权限</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 部分 · 测试 ✓</p>
+</blockquote>
+<h2>9.1 文案清单（须与原型一致）</h2>
+<p><strong>登录 / 门店</strong>：本机号码一键登录、手机验证码登录、请输入邀请码（选填）、一键体验、登录即代表已阅读同意《用户协议》和《隐私政策》、门店入驻、我是店员、智能推荐、猜你是这家店的主理人？、我是店主，立即认领、输入门店名称查询、暂无内容、手工创建新门店、附近的门店、认领门店、没有找到您的门店？、手工创建门店、确认门店信息、开完店，就能发活动拉新、管会员卡账、找货源卖货。、经营品类、门店名称、门店图片（提升店铺形象）、上传图片、更换、店主手机号、店主昵称、所在地区、详细地址、地图位置、支持用户手动拖拽打点位置，支持地图放大 缩小 定位、工商信息、选填、一键开店。</p>
+<p><strong>定位</strong>：权限说明、需要定位权限，以便在地图上选择店址或查找附近门店。、拒绝、同意、要允许「剑琅联盟」获取此设备的位置信息吗？、确切位置、大致位置、仅在使用该应用时允许、仅限这一次、不允许。</p>
+<p><strong>分流 / 学习 / 邀请</strong>：欢迎使用剑琅联盟、请选择你现在最想做的事、我要获客、快速发活动拉新客、我要管理店铺、账、卡、员工一手掌握、我要卖货、找靠谱货源上架分销、我要学习、线上线下课程，提升美业技能、先随便看看、学习培训、把老系统数据带过来？、会员与持卡信息、会员卡模板、价目表可自助导入，不必先填模板。、开始导入、稍后再说、数据迁移、导入已完成、是否关闭右下角「数据迁移」浮球？关闭后仍可从工作台进入。、保留、关闭浮球。</p>
+<p><strong>导入引导 / 上传</strong>：4 步把老店数据搬过来、持卡信息、卡模板、价目表都能自助导入。、选要导入什么、勾选类别，逐类选来源、提供数据、上传 Excel，或拍照识别、确认字段对应、核对列名，逐类确认、核对并导入、抽查无误后导入、开始前请注意、卡模板与价目表要同批导入，但请分成两个表分别上传、同类最多 3 个 Excel，共用一套字段映射、历史消费单独导入，不进订单流水、开始选择、上传表格、上传 Excel、第 N / M 类、未选择文件、xls / xlsx / csv · 单个 ≤ 10MB · 最多 3 个、选择文件、再添加、已达上限、已选 N / 3 个表、同类多个表共用一套字段映射，列名请保持一致。、每类最多 3 个表，可先移除一个再添加、已添加 ‹文件›（本类 N/3）、标准表头、当前类别、按「‹类别›」的列名整理首行，识别更准。、查看示例行、收起示例行、不要标题行、合并单元格、空行。、仅本店可见 · 导入后可在结果页整批删除、完成、完成，下一类：‹短名›、完成，进入识别、请先选择表格、本批拍照：‹类别›、对准表格后按下快门。</p>
+<p><strong>类型 / 映射</strong>：这次要导入什么、先勾选要导入的类别，再给每类选一种来源。、会员与持卡信息多为 Excel，也可拍纸质登记本；会员卡模板需引用价目表项目，两者须同批导入。历史消费不进订单流水，需单独导入。、来源、Excel 表格、拍照识别、已有导出表、纸表 / 手写、请选择来源、待上传、待拍摄、还有 N 类未选来源、还有 N 类未采集、会员与持卡信息、会员编号 / 卡种 / 余额…、会员卡模板、卡名称 / 充值 / 权益 / 会员价…、价目表、项目·产品 / 价格 / 会员价…、需与价目表同批导入，但要分成两个表分别上传、已随「会员卡模板」连带导入 · 卡模板的权益与会员价按这里校验、下一步、确认字段对应、已锁定、已返回修改 · 映射已保留，改动仅影响本次导入、映射确认、已确认 N/M、还有 N 项待确认、本类 N 个表共用这一套映射，按第一份的列名对齐。、已识别为会员与持卡信息 / 会员卡模板 / 价目表，AI 已按列名猜好映射、（权益项目与会员价按价目表校验）、待确认、已确认 ✓、确认「会员与持卡信息」映射关系无误 / 确认「会员卡模板」… / 确认「价目表」…、自定义…、自定义字段须与源表列名完全一致；未识别的字段会红字提示，并按跳过处理。、让 AI 再解释一遍。</p>
+<p><strong>确认卡模板</strong>：确认卡模板、按卡种生成卡模板、本批没有导入会员卡模板，已从持卡信息的「卡种」推得 N 张模板草案。储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」，可逐张改后确认。、只有储值与有效期能推断、储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」，均可在这里改；赠送 / 权益 / 会员价无法从持卡信息推断，会以「待完善」状态入库，可在店铺管理里补齐。、全选、已选 N 张、待完善、单卡储值、有效期、修改、收起、储值金额、折扣值按卡种名推断（如「8折」→ 8 折）；卡名称、储值金额、有效期都可改，改完不影响已导入的持卡信息。、确认，生成 N 张模板、本次不生成，继续。</p>
+<p><strong>核对 / 结果</strong>：核对数据、核对将导入的数据、会员与持卡 126 · 卡模板 4 · 价目 42。点分类查看明细。、确认无误，导入、返回修改映射、会员与持卡信息、126 人 · 会员编号 / 卡种 / 余额…、会员卡模板、4 张 · 卡名称 / 充值 / 权益…、价目表、42 项 · 项目·产品 / 价格…、自动生成、Excel、拍照 N 张、会员与持卡明细、卡模板明细、价目表明细、抽样 10 条 · 点行核对字段、核对明细、知道了、导入完成、导入成功、已把老店数据写入本店，可直接开单用。、已入库、查看、条失败，可手动补录、查看明细、已全部补录、本批来源：Excel N 个 · 照片 N 张 · 自动生成卡模板 N 张、去导入历史消费记录、删除本批数据、返回首页、正在导入…。</p>
+<p><strong>导入进度层（识别 / 正式导入 / 历史消费导入共用）</strong>：AI 正在识别、正在导入、正在导入历史消费、共 N 个 Excel 与 M 张照片，识别完会进入下一步、导入完成前请不要关闭页面、请稍候，不要关闭页面、读取文件、识别列名与字段、生成预览、识别完成、校验数据、写入会员与持卡信息、写入卡模板与价目表、处理失败行、导入完成、读取表格、识别日期 / 金额 / 顾客姓名、写入历史订单、完成、0%–100%。</p>
+<p><strong>失败 / 补录</strong>：失败明细、手机号格式错误、卡余额无法解析、姓名：、原值、手动补录、补录完成、失败数据已全部补录、会员与持卡信息已写入本店，可回结果页继续操作。、下载失败明细、返回导入结果、保存并入库、取消、会员卡、尚未补录会员卡，可留空、会员可能没有持卡，性别、手机号、会员卡均可留空；同一卡种可补多张、修改、删除、添加卡、办理类型、办新卡、补录老卡、办理会员卡、补录老卡、修改会员卡、卡内信息、卡内余额、有效期限、充值剩余金额、赠送剩余金额、赠送项目、按补录时刻的余额填写即可，补录不产生收款单据。、确认补录、保存修改。</p>
+<p><strong>查看落点</strong>：会员列表、共 126 人、输入姓名或手机号、取消、未找到匹配的会员、会员卡模板、价目表、原型占位 · 会员卡模板列表以线上系统的真实页面为准、原型占位 · 价目表以线上系统的真实页面为准。</p>
+<p><strong>历史订单 / 历史消费</strong>：历史订单、搜索顾客姓名、筛选、共 16 条 · 合计 ¥9,450、仅用于查看核对，不进订单流水、没有符合条件的历史订单、换个时间或金额范围试试；也可以导入新的历史消费。、导入历史消费、订单详情、已识别、原始字段、只读：历史订单不参与开单、业绩与会员余额计算、把老账单带过来、只用于查看核对历史订单，不参与开单、业绩与会员资产计算。、不进订单流水、只支持 Excel、只认三项、建议先导入会员与持卡信息、会员卡模板、价目表，再导入历史消费。、上传 Excel 表、上传历史消费、列名不必固定，下一步再指定哪一列是日期、金额、顾客姓名。、标准表头、识别更准、建议首行用下面的列名；没用这些列名也能导入，下一步再手工指定哪列是日期、金额、顾客姓名。、历史消费、7 列 · 后 4 列原样保留、消费日期、实收金额、顾客姓名、项目、支付方式、门店、备注、示例、前 3 列会被识别用于筛选与搜索，其余列整行原样保留。、指定字段、哪一列是这些信息、系统已按列名猜好，不对的可以改。、日期、金额、顾客姓名、必填、可空、（不指定）、其余列会原样保留，可在「历史订单」详情里查看。、样例行、消费时间、金额区间、最低、最高、至、只支持按已识别的日期、金额、顾客姓名筛选。、重置、查看结果、核对将导入的数据、条无法识别，导入后可在失败明细下载、确认无误，导入、导入成功、历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。、历史消费、已入库、条失败，下载后修正再传、查看明细、删除本批历史消费、返回工作台、失败明细、金额无法识别、日期格式无法识别、金额为 0 或负数、日期与金额都为空、下载失败行、删除本批历史消费？、将删除本次导入的 16 条历史消费。本店订单流水、会员余额与业绩都不受影响。、先不删、确认删除。</p>
+<p><strong>Toast 全量（27 条，逐字）</strong>：</p>
+<ol>
+<li>验证码登录（演示占位）</li>
+<li>未开启定位，可搜索门店或手工创建</li>
+<li>未获得定位权限，可搜索门店或手工创建</li>
+<li>已定位到附近的 3 家门店</li>
+<li>请至少选择一项</li>
+<li>请先确认映射关系</li>
+<li>未识别的自定义字段已按跳过处理</li>
+<li>请先指定日期与金额</li>
+<li>已选择 历史消费 2023-2025.xlsx（演示）</li>
+<li>已生成 历史消费模板.xlsx（演示）</li>
+<li>已选择 ‹导入类别›导入表.xlsx（演示）</li>
+<li>已拍 1 张，正在识别（演示）</li>
+<li>已生成 失败行.xls（演示）</li>
+<li>已删除本批历史消费</li>
+<li>已删除本批数据，会员与卡已回到导入前状态</li>
+<li>已生成失败明细.xls（演示）</li>
+<li>已删除这张会员卡</li>
+<li>请先填写姓名</li>
+<li>手机号需为 1 开头的 11 位数字</li>
+<li>已补录并入库</li>
+<li>请选择一个卡种</li>
+<li>请填写正确的卡内余额</li>
+<li>已保存会员卡修改</li>
+<li>补录成功，已写入本店会员卡</li>
+<li>会员详情占位</li>
+<li>演示占位</li>
+</ol>
+<p>另有分支提示：「「获客」承接本期不做，敬请期待」/「「卖货」承接本期不做，敬请期待」/「「学习」承接本期不做，敬请期待」。</p>
+<p><strong>Dialog / Sheet</strong>：权限说明 / 需要定位权限，以便在地图上选择店址或查找附近门店。/ 拒绝 · 同意；要允许「剑琅联盟」获取此设备的位置信息吗？/ 仅在使用该应用时允许 · 仅限这一次 · 不允许；把老系统数据带过来？/ 会员与持卡信息、会员卡模板、价目表可自助导入，不必先填模板。/ 开始导入 · 稍后再说；导入已完成 / 是否关闭右下角「数据迁移」浮球？关闭后仍可从工作台进入。/ 保留 · 关闭浮球；核对明细 / 知道了；手动补录 / 保存并入库 · 取消；删除本批数据？/ 将删除本次导入的 126 条会员与持卡信息、4 张卡模板与 42 项价目，已手动补录的 2 条也会一并删除。删除后需重新导入。/ 先不删 · 确认删除；历史订单筛选 / 消费时间 · 金额区间 / 重置 · 查看结果；删除本批历史消费？/ 将删除本次导入的 16 条历史消费。本店订单流水、会员余额与业绩都不受影响。/ 先不删 · 确认删除。</p>
+<p><strong>空态</strong>：暂无内容、尚未补录会员卡，可留空、失败数据已全部补录、未找到匹配的会员、没有符合条件的历史订单。</p>
+<h2>9.2 权限</h2>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>开店入驻</th>
+<th>数据迁移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>店主</td>
+<td>认领 / 创建门店、确认信息、一键开店、选择落点</td>
+<td>全流程：发起导入、改映射、确认导入、补录、下载失败明细、整批删除</td>
+</tr>
+<tr>
+<td>店员</td>
+<td>可被邀请加入；<strong>不应认领门店</strong>（原型「我是店员」为占位）</td>
+<td><strong>只读进度</strong>，不可导入 / 补录 / 删除【待联调确认】</td>
+</tr>
+<tr>
+<td>运营</td>
+<td>不再出现在端上主路径</td>
+<td>代导工具链保留为内部能力</td>
+</tr>
+</tbody>
+</table>
+<p>本期交互原型按<strong>店主</strong>路径演示，不单独做店员只读壳。</p>
+<h2>9.3 文案一致性</h2>
+<ul>
+<li>以 <code>app.js</code> 中的字符串为唯一来源；本文与原型不一致时<strong>改本文</strong>，不要改原型凑文案。  </li>
+<li>禁止把「条失败」写成「条数据失败」、「补录完成」写成「完成补录」、「确认无误，导入」写成「确认导入」等近似改写 —— 这些词同时出现在按钮、toast 与验收项里。  </li>
+<li>数字（126 / 4 / 42 / 2 / 3 家）均为造数，不允许在正式文案里写死；原型演示除外。</li>
+</ul>
+
+<hr />
+<h1>模块 10　P0 验收项</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 ✓ · 测试 <strong>必看</strong></p>
+</blockquote>
+<p>表中<strong>只描述规格要求</strong>（「应为…」），不记录任何自动化执行结果。编号 <code>AC-01</code> 起，按模块分组，测试可直接转成用例。</p>
+<h2>10.1 登录 · 定位 · 认领</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-01</td>
+<td>未登录、未授权定位</td>
+<td>登录成功</td>
+<td>页面进入「认领门店」空态；首先弹出深色「权限说明」对话框，标题「权限说明」、正文「需要定位权限，以便在地图上选择店址或查找附近门店。」、主按钮「同意」、次按钮「拒绝」</td>
+</tr>
+<tr>
+<td>AC-02</td>
+<td>权限说明已展示</td>
+<td>点「拒绝」</td>
+<td>不弹系统弹窗；页面显示「未开启定位，可搜索门店或手工创建」，不出现「附近的门店」列表</td>
+</tr>
+<tr>
+<td>AC-03</td>
+<td>权限说明已展示</td>
+<td>点「同意」</td>
+<td>关闭说明框并弹出系统级位置请求（标题「要允许「剑琅联盟」获取此设备的位置信息吗？」、选项「仅在使用该应用时允许 / 仅限这一次 / 不允许」、地图底图与「确切位置 / 大致位置」）</td>
+</tr>
+<tr>
+<td>AC-04</td>
+<td>系统位置弹窗已出现</td>
+<td>点「不允许」</td>
+<td>显示「未获得定位权限，可搜索门店或手工创建」，附近门店列表与地图打点均不出现</td>
+</tr>
+<tr>
+<td>AC-05</td>
+<td>系统位置弹窗已出现</td>
+<td>点任一允许项</td>
+<td>定位成功，附近门店卡片出现并显示「已定位到附近的 3 家门店」，默认选中「剑琅联盟·静安寺店」</td>
+</tr>
+<tr>
+<td>AC-06</td>
+<td>认领页</td>
+<td>搜索框输入关键字</td>
+<td>列表按门店名称过滤；无命中显示「暂无内容」与「手工创建新门店」</td>
+</tr>
+<tr>
+<td>AC-07</td>
+<td>认领页、已有选中门店</td>
+<td>点「认领门店」</td>
+<td>进入第 3 步「确认门店信息」，经营品类默认「美发」、门店名称预填「剑琅联盟·静安寺店」</td>
+</tr>
+<tr>
+<td>AC-08</td>
+<td>确认信息页、必填项为空</td>
+<td>点「一键开店」</td>
+<td>不跳转，停留在本页并提示缺失的必填项【待联调确认具体提示形态】</td>
+</tr>
+<tr>
+<td>AC-09</td>
+<td>确认信息页、必填齐全</td>
+<td>点「一键开店」</td>
+<td>进入「分流」页，「门店入驻」步骤条为完成态</td>
+</tr>
+<tr>
+<td>AC-10</td>
+<td>任何步骤</td>
+<td>点顶栏返回</td>
+<td>回到上一步且已填内容不丢失</td>
+</tr>
+</tbody>
+</table>
+<h2>10.2 分流 · 首页 · 邀请 · 浮球</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-11</td>
+<td>分流页</td>
+<td>点「我要获客」</td>
+<td>toast「「获客」承接本期不做，敬请期待」，不跳转</td>
+</tr>
+<tr>
+<td>AC-12</td>
+<td>分流页</td>
+<td>点「我要卖货」</td>
+<td>toast「「卖货」承接本期不做，敬请期待」，不跳转</td>
+</tr>
+<tr>
+<td>AC-13</td>
+<td>分流页</td>
+<td>点「我要学习」</td>
+<td>toast「「学习」承接本期不做，敬请期待」，不跳转</td>
+</tr>
+<tr>
+<td>AC-14</td>
+<td>分流页</td>
+<td>点「我要管理店铺」</td>
+<td>进入首页，并弹出「把老系统数据带过来？」底部半屏</td>
+</tr>
+<tr>
+<td>AC-15</td>
+<td>分流页</td>
+<td>点「先随便看看」</td>
+<td>进入首页，并弹出「把老系统数据带过来？」底部半屏</td>
+</tr>
+<tr>
+<td>AC-16</td>
+<td>首页（已登录）</td>
+<td>停留观察</td>
+<td>右下角常驻「数据迁移」浮球；点击直接进入导入引导页</td>
+</tr>
+<tr>
+<td>AC-17</td>
+<td>邀请半屏</td>
+<td>点「开始导入」</td>
+<td>关闭半屏，进入导入引导页，浮球隐藏</td>
+</tr>
+<tr>
+<td>AC-18</td>
+<td>邀请半屏</td>
+<td>点「稍后再说」</td>
+<td>仅关闭半屏，停留首页；浮球继续显示</td>
+</tr>
+<tr>
+<td>AC-19</td>
+<td>导入完成、回到首页</td>
+<td>—</td>
+<td>浮球替换为「导入已完成」态；点击弹出「导入已完成」对话框（标题、说明、按钮「保留」「关闭浮球」）</td>
+</tr>
+<tr>
+<td>AC-20</td>
+<td>悬浮卡已弹出</td>
+<td>点「保留」</td>
+<td>关闭对话框，浮球保留</td>
+</tr>
+<tr>
+<td>AC-21</td>
+<td>悬浮卡已弹出</td>
+<td>点「关闭浮球」</td>
+<td>关闭对话框，浮球隐藏；仍可从工作台进入</td>
+</tr>
+<tr>
+<td>AC-22</td>
+<td>工作台</td>
+<td>点「数据迁移」瓦片</td>
+<td>进入导入引导页；其他瓦片 toast「演示占位」</td>
+</tr>
+</tbody>
+</table>
+<h2>10.3 导入引导 · 来源 · 类型</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-23</td>
+<td>导入引导页</td>
+<td>—</td>
+<td>副文案一句「持卡信息、卡模板、价目表都能自助导入。」；纵向 4 张流程卡（选要导入什么 / 提供数据 / 确认字段对应 / 核对并导入），<strong>每张只配一句副文案</strong>且不展开解释；下方「开始前请注意」<strong>共 3 条短语</strong>：卡模板与价目表同批导入但分成两个表、同类最多 3 个 Excel 共用一套映射、历史消费单独导入不进订单流水；<strong>不再出现去重规则与整批删除说明</strong></td>
+</tr>
+<tr>
+<td>AC-24</td>
+<td>导入引导页</td>
+<td>点「开始选择」</td>
+<td>进入「这次要导入什么」类型页</td>
+</tr>
+<tr>
+<td>AC-25</td>
+<td>类型页</td>
+<td>—</td>
+<td>会员与持卡信息与价目表<strong>默认勾选</strong>、会员卡模板<strong>默认不勾选</strong>；三类的<strong>都不预选来源</strong>；每张卡副文案分别为「会员编号 / 卡种 / 余额…」「卡名称 / 充值 / 权益 / 会员价…」「项目·产品 / 价格 / 会员价…」；每张卡内为<strong>两枚并排等宽的来源按钮</strong>「Excel 表格 ／ 拍照识别」（各 48px 高，含 18px 图标 + 主标 + 副标「已有导出表 / 纸表 · 手写」）；卡头徽标为<strong>「请选择来源」（琥珀色）</strong>；会员卡模板卡底常显「需与价目表同批导入，但要分成两个表分别上传」</td>
+</tr>
+<tr>
+<td>AC-25a</td>
+<td>类型页、某类未选来源</td>
+<td>点「Excel 表格」</td>
+<td>该按钮<strong>立即转为品牌色实心（高亮）</strong>并把来源记为 Excel；同时<strong>弹出说明弹层</strong>：标题「Excel 表格」、副标「X · 数据来源」、一句适用场景、3 条要点、主按钮「去上传表格」、次按钮「取消」；<strong>未点主按钮前不跳页</strong></td>
+</tr>
+<tr>
+<td>AC-25b</td>
+<td>说明弹层已打开</td>
+<td>点「取消」或点遮罩</td>
+<td>弹层关闭；<strong>已选来源与高亮保留</strong>，卡头徽标为「待上传 / 待拍摄」，页面停留不跳转</td>
+</tr>
+<tr>
+<td>AC-25c</td>
+<td>说明弹层已打开</td>
+<td>点主按钮「去上传表格」/「立即拍照」</td>
+<td>分别进入上传页（目标类别行带品牌色描边高亮）与拍照页；若原为另一来源，先清空其已采集内容并 toast「已切换为 Excel，N 张照片已清空」/「已切换为拍照，原 Excel 已移除」</td>
+</tr>
+<tr>
+<td>AC-25d</td>
+<td>类型页、某类已选 Excel 且已上传文件</td>
+<td>再点「Excel 表格」</td>
+<td><strong>不再弹说明层</strong>，直接进上传页并定位该类别；已选拍照且已拍 N 张时同理直达拍照页可继续补拍</td>
+</tr>
+<tr>
+<td>AC-25e</td>
+<td>类型页、某类未勾选</td>
+<td>点该类卡内的来源按钮</td>
+<td>按钮区置灰且<strong>不可点</strong>，不改变来源、不弹层</td>
+</tr>
+<tr>
+<td>AC-25f</td>
+<td>类型页、会员卡模板已勾选</td>
+<td>取消勾选价目表</td>
+<td><strong>不允许</strong>：价目表卡置为依赖锁定态并 toast「价目表与「会员卡模板」绑定，取消卡模板后才能取消价目表」，勾选状态不变</td>
+</tr>
+<tr>
+<td>AC-25g</td>
+<td>类型页、价目表已勾选</td>
+<td>取消勾选会员卡模板</td>
+<td>允许；价目表解除锁定并保持勾选，卡底说明「已随「会员卡模板」连带导入…」消失</td>
+</tr>
+<tr>
+<td>AC-25h</td>
+<td>类型页、价目表已单独勾选、卡模板未勾选</td>
+<td>—</td>
+<td>价目表可正常单独导入：来源可选、上传、映射、核对均按单类进行，不要求补卡模板</td>
+</tr>
+<tr>
+<td>AC-26</td>
+<td>类型页</td>
+<td>点价目表的「拍照识别」并确认「立即拍照」</td>
+<td>进入拍照页；会员与持卡信息 / 会员卡模板的来源与勾选不受影响；价目表徽标为「待拍摄」</td>
+</tr>
+<tr>
+<td>AC-27</td>
+<td>类型页、三项全不选</td>
+<td>点「下一步」</td>
+<td>toast「请至少选择一项」，不跳转</td>
+</tr>
+<tr>
+<td>AC-28</td>
+<td>类型页、仅有 Excel 类目且未选文件</td>
+<td>点「下一步」</td>
+<td>toast「「X」还没上传表格」，进入「上传表格」并<strong>只呈现该类别</strong>：副标题「第 N / M 类」、步骤条（`.up-steps`，已完成打勾 / 当前高亮）、仅该类别的待上传行与标准表头</td>
+</tr>
+<tr>
+<td>AC-28a</td>
+<td>上传表格</td>
+<td>—</td>
+<td>页内<strong>只展示当前类别</strong>的上传行与「标准表头」卡：引导语一句「按「‹类别›」的列名整理首行，识别更准。」；chips 按类别为 会员与持卡信息 <strong>12 列</strong>（分 身份信息 / 持卡与余额 / 旁路字段 三组）、会员卡模板 <strong>8 列</strong>（基础信息 / 折扣权益 / 权益与会员价 / 有效期）、价目表 <strong>5 列</strong>；格式提示只写「不要标题行、合并单元格、空行。」；示例行<strong>默认收起</strong>，点「查看示例行」展开、按钮变「收起示例行」；<strong>页面不提供任何模板下载入口</strong></td>
+</tr>
+<tr>
+<td>AC-29</td>
+<td>上传表格、存在未选文件的类别</td>
+<td>—</td>
+<td>底部按钮随状态变：当前类别未选文件 → 「请先选择表格」；已选且后面还有未完成类别 → 「完成，下一类：‹短名›」；后续都已就绪 → 「完成，进入识别」（单类别为「完成」）。点按缺文件 → toast「「X」还没选择文件」并留在本步；全部就绪但仍有已勾选类别<strong>未选来源</strong> → toast「还有「X」未选来源」并回类型页</td>
+</tr>
+<tr>
+<td>AC-29a</td>
+<td>上传表格</td>
+<td>点某类别的「选择文件」</td>
+<td>toast「已添加 X导入表.xlsx（本类 1/3）」，文件区出现一条文件条并显示「已选 1 / 3 个表」，按钮变「再添加」，行转浅绿就绪态</td>
+</tr>
+<tr>
+<td>AC-29a1</td>
+<td>上传表格、同一类别已选 3 个文件</td>
+<td>再看按钮 / 再点「再添加」</td>
+<td>按钮置灰显示「已达上限」且不可点；若以其他方式触发，toast「每类最多 3 个表，可先移除一个再添加」，文件数不变</td>
+</tr>
+<tr>
+<td>AC-29a2</td>
+<td>上传表格、同一类别已选 2 个文件</td>
+<td>点其中一条文件条的 ×</td>
+<td>只移除该文件，文件数变 1，计数「已选 1 / 3 个表」；再移除最后一条后回到「未选择文件」并显示文件规格提示，底部按钮回到「请先选择表格」</td>
+</tr>
+<tr>
+<td>AC-29b</td>
+<td>拍照页</td>
+<td>点快门（连点两次）</td>
+<td>计数变「已拍 2 张」，缩略图条出现 2 张可删缩略图，每次 toast「已拍第 N 张」；取景区闪光</td>
+</tr>
+<tr>
+<td>AC-29c</td>
+<td>拍照页、本类别 0 张</td>
+<td>点「完成」</td>
+<td>toast「还没有拍摄照片」，留在本页；有照片时 → 回进入前页面，类型页徽标「已拍 N 张」并显示缩略图摘要</td>
+</tr>
+<tr>
+<td>AC-29d</td>
+<td>类型页、某类已拍 N 张</td>
+<td>点「Excel 表格」并确认「去上传表格」</td>
+<td>该类别照片被清空并 toast「已切换为 Excel，N 张照片已清空」→ 进上传页；反向切换（Excel → 拍照并确认）则移除该类别 Excel 文件并 toast「已切换为拍照，原 Excel 已移除」后进相机</td>
+</tr>
+<tr>
+<td>AC-29e</td>
+<td>类型页、选中类别未选来源或未采集</td>
+<td>点「下一步」</td>
+<td>按钮文案先变为「还有 N 类未选来源 / 还有 N 类未采集」；点按后：<strong>未选来源</strong> → toast「「X」还没选来源」+ 高亮该卡且不跳转；拍照类目无照片 → toast「「X」还没有拍照」、高亮并进相机；Excel 类目无文件 → toast 并进上传页（目标行高亮）；不静默跳过</td>
+</tr>
+<tr>
+<td>AC-29f</td>
+<td>待识别内容页</td>
+<td>—</td>
+<td>同屏展示 Excel 清单（文件名 / 类别 / 大小 / 更换 / 删除）与按类别分组的照片缩略图（含补拍），总览显示「N 个 Excel + M 张照片」</td>
+</tr>
+<tr>
+<td>AC-29g</td>
+<td>待识别内容页</td>
+<td>点「开始识别」</td>
+<td>出现全屏进度层（标题「AI 正在识别」，含进度条与百分比），走满后：有 Excel → 映射页，纯照片 → 直接核对页</td>
+</tr>
+<tr>
+<td>AC-29h</td>
+<td>待识别内容页、Excel 与照片都被删空</td>
+<td>点「开始识别」</td>
+<td>toast「还没有可识别的内容」，留在本页</td>
+</tr>
+</tbody>
+</table>
+<h2>10.4 字段映射</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-30</td>
+<td>待识别内容页「开始识别」（有 Excel）</td>
+<td>进入映射页</td>
+<td>顶部「已锁定」隐藏；Excel 类目 ≥2 时页面最先呈现<strong>进度块</strong>（「映射确认」+「已确认 0/N」+ 百分比条 + 「还有 N 项待确认：…」）；类别以<strong>两列卡片式 tab</strong> 呈现（最小高 52px、含类名 + 状态徽标），默认选中<strong>第一个未确认的 Excel 类别</strong>的字段行（会员与持卡信息 12 行，按身份信息 / 持卡与余额 / 旁路字段分组）；底部确认框文案「确认「会员与持卡信息」映射关系无误」</td>
+</tr>
+<tr>
+<td>AC-30a</td>
+<td>映射页、本批 Excel 类目 ≥ 2</td>
+<td>—</td>
+<td>出现卡片式类别 tab（会员与持卡 / 卡模板 / 价目表），未确认为<strong>灰色「待确认」徽标</strong>、已确认为<strong>绿色「已确认 ✓」</strong>；切换 tab 后字段行数随类别变（会员与持卡 12 / 卡模板 8 / 价目 5）</td>
+</tr>
+<tr>
+<td>AC-30b</td>
+<td>映射页、某类别勾选确认</td>
+<td>勾选「确认「‹类别›」映射关系无误」</td>
+<td>该类徽标转「已确认 ✓」、进度条与「已确认 N/M」同步更新；<strong>不自动切页</strong>——下一个未确认 tab 脉冲高亮、toast 提示「已确认「‹类别›」· 还有 N 项待确认」，用户自己决定何时切；全部确认后主按钮转实心「下一步」并 toast「全部映射已确认，可以进入下一步」</td>
+</tr>
+<tr>
+<td>AC-30b2</td>
+<td>映射页（任意类别、任意滚动位置）</td>
+<td>勾选 / 取消勾选确认框</td>
+<td><strong>页面不得位移</strong>：手机框 <code>.phone-inner</code> 的 <code>scrollTop</code> 恒为 0（<code>overflow: clip</code>），框外待命的 sheet 不得被滚入可视区，字段区滚动位置与勾选框位置保持不变</td>
+</tr>
+<tr>
+<td>AC-30c</td>
+<td>映射页、仍有未确认类别</td>
+<td>看底部主按钮</td>
+<td>按钮为 <strong>warn 态</strong>，文案「还有 N 项待确认」；点按不跳转，而是切到第一个未确认类别、目标 tab 播一次脉冲高亮（<code>.map-tab.is-pulse</code>）并 toast 提示该类别</td>
+</tr>
+<tr>
+<td>AC-30d</td>
+<td>映射页、单类别（仅 1 个 Excel 类目）</td>
+<td>—</td>
+<td>进度块与类别 tab <strong>都隐藏</strong>（仅 ≥2 个 Excel 类目时出现），页面只剩字段区与确认勾选；确认后按钮直接变「下一步」</td>
+</tr>
+<tr>
+<td>AC-30e</td>
+<td>映射页、当前类别有 2–3 个 Excel</td>
+<td>切换 tab / 进入该类别</td>
+<td>tab 下方出现琥珀色提示「本类 N 个表共用这一套映射，按第一份的列名对齐。」；字段行与确认勾选<strong>不按文件拆分</strong>（仍然一套）；切换到单文件类别时该提示隐藏</td>
+</tr>
+<tr>
+<td>AC-30b</td>
+<td>映射页、本批含拍照类目</td>
+<td>—</td>
+<td>字段区下方出现提示「另有 价目表 N 张照片 · 自动识别列，无需对齐」；照片类目<strong>不生成 tab</strong></td>
+</tr>
+<tr>
+<td>AC-31</td>
+<td>映射页</td>
+<td>点返回</td>
+<td>回到待识别内容页；已填映射值保留</td>
+</tr>
+<tr>
+<td>AC-32</td>
+<td>映射页</td>
+<td>—</td>
+<td>「首字母」默认「按姓名推导」（<code>derive</code>）；即使用户此前手改，返回再进仍回到默认【待联调确认是否保留手改】</td>
+</tr>
+<tr>
+<td>AC-33</td>
+<td>映射页</td>
+<td>某行选「跳过」</td>
+<td>该行显示「跳过」，点「下一步」不因该行报错</td>
+</tr>
+<tr>
+<td>AC-34</td>
+<td>映射页</td>
+<td>选「自定义…」并输入合法列名</td>
+<td>红字消失，按自定义列参与导入；合法列名按<strong>当前类别</strong>的可选列判定</td>
+</tr>
+<tr>
+<td>AC-35</td>
+<td>映射页</td>
+<td>自定义输入空或非法</td>
+<td>行内红字「未识别到「X」，建议从源表列名中选择；本字段将按跳过处理」；底部提示条变 warn；「下一步」保持置灰</td>
+</tr>
+<tr>
+<td>AC-36</td>
+<td>映射页、仍有类别未勾选确认</td>
+<td>点「下一步」</td>
+<td>toast「请先确认每一类 Excel 的映射关系」，不跳转；全部类别勾选后才可用</td>
+</tr>
+<tr>
+<td>AC-37</td>
+<td>映射页、所有类别已勾选</td>
+<td>点「下一步」</td>
+<td>先判断是否触发自动生成卡模板：<strong>勾了会员与持卡信息、且未勾卡模板</strong> → 进「确认卡模板」；否则直接进「核对数据」。有无效自定义时先 toast「未识别的自定义字段已按跳过处理」</td>
+</tr>
+<tr>
+<td>AC-38</td>
+<td>映射页</td>
+<td>点「让 AI 再解释一遍」</td>
+<td>本期无行为（预留）</td>
+</tr>
+<tr>
+<td>AC-38a</td>
+<td>确认卡模板页</td>
+<td>—</td>
+<td>标题「确认卡模板」；主标题「按卡种生成卡模板」；说明「本批没有导入会员卡模板，已从持卡信息的「卡种」推得 <em class="num-em">N</em> 张模板草案。<strong>储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」</strong>，可逐张改后确认。」；灰底提示「只有储值与有效期能推断 · …」</td>
+</tr>
+<tr>
+<td>AC-38b</td>
+<td>确认卡模板页</td>
+<td>—</td>
+<td>列表按卡种去重（原型按 <code>members.xlsx</code> 实测值：7折 448 人 / 黄金卡 296 / 8折 296 / 6折卡 152 / 6.5折 129 / 5折卡 60 / 7.5折卡 34 / 4折卡 14 / 8.8折卡 2 / 3.8折 1）；每行含复选框、卡名称、持卡人数、推断折扣胶囊与「待完善」标签；顶部「全选」与「已选 N 张」实时联动</td>
+</tr>
+<tr>
+<td>AC-38b2</td>
+<td>确认卡模板页</td>
+<td>看每行的储值/有效期摘要</td>
+<td>显示<strong>单卡口径</strong>的「单卡储值 ¥X · 有效期 永久」，<strong>不得</strong>出现「余额合计」等整类累加值；储值金额等于该卡种下单卡余额的最大值</td>
+</tr>
+<tr>
+<td>AC-38b3</td>
+<td>确认卡模板页</td>
+<td>点某行「修改」</td>
+<td>就地展开「储值金额 / 有效期」两个输入（一次只展开一张）；改储值金额时非数字字符被过滤；把有效期清空并失焦则回落为「永久」；改动实时回写到摘要条，并带到核对页卡模板明细的「充值金额 / 有效期」</td>
+</tr>
+<tr>
+<td>AC-38c</td>
+<td>确认卡模板页、勾选 N 张</td>
+<td>点「确认，生成 N 张模板」</td>
+<td>草案按勾选写入本批（<code>origin=auto</code>、<code>status=pending</code>）→ 进「核对数据」，卡模板行显示「自动生成」徽标与勾选数</td>
+</tr>
+<tr>
+<td>AC-38d</td>
+<td>确认卡模板页</td>
+<td>点「本次不生成，继续」</td>
+<td>不写入任何草案 → 进「核对数据」，卡模板计数为 0；不阻断导入</td>
+</tr>
+<tr>
+<td>AC-38e</td>
+<td>确认卡模板页</td>
+<td>点返回</td>
+<td>回映射页；已确认的映射<strong>保留</strong>，草案勾选状态<strong>保留</strong>；再次点「下一步」不重复追加草案</td>
+</tr>
+</tbody>
+</table>
+<h2>10.5 核对数据</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-39</td>
+<td>核对数据页</td>
+<td>—</td>
+<td>摘要行为「会员与持卡 126 · 卡模板 4 · 价目 42」（数字加粗加大 1 级）；分类行分别为「会员与持卡信息 / 126 人 · 会员编号 / 卡种 / 余额…」「会员卡模板 / 4 张 · 卡名称 / 充值 / 权益…」「价目表 / 42 项 · 项目·产品 / 价格…」</td>
+</tr>
+<tr>
+<td>AC-39a</td>
+<td>核对数据页</td>
+<td>—</td>
+<td>每行分类标题后带来源徽标：Excel 来源显示 <code>Excel</code>，拍照来源显示 <code>拍照 N 张</code>（橙色），自动生成的卡模板显示 <code>自动生成</code>（绿色）</td>
+</tr>
+<tr>
+<td>AC-39b</td>
+<td>核对数据页、本批无 Excel（纯照片）</td>
+<td>点顶部返回</td>
+<td>回到「确认待识别内容」页（不回映射页）</td>
+</tr>
+<tr>
+<td>AC-40</td>
+<td>核对数据页</td>
+<td>点「会员卡模板」/「价目表」分类行</td>
+<td>进入对应明细页（标题「卡模板明细」/「价目表明细」），条数同步；卡模板明细为<strong>全量展示</strong>（不抽样）；所有明细页都<strong>没有</strong>导入按钮</td>
+</tr>
+<tr>
+<td>AC-41</td>
+<td>核对数据页 / 会员与持卡明细</td>
+<td>查看列表字段</td>
+<td>字段为 会员编号 / 姓名 / 手机号 / 卡种 / 储值余额 / 卡有效期；<strong>不展示性别</strong>（性别只在会员列表按称呼推断）</td>
+</tr>
+<tr>
+<td>AC-42</td>
+<td>任一明细视图</td>
+<td>点任意行</td>
+<td>底部弹出「核对明细」半屏；点「知道了」关闭</td>
+</tr>
+<tr>
+<td>AC-43</td>
+<td>核对数据页</td>
+<td>点「确认无误，导入」</td>
+<td>按钮文案变「正在导入…」且置灰，同时弹出全屏进度层（0% → 100% + 当前步骤）；走满后进入「导入完成」</td>
+</tr>
+<tr>
+<td>AC-44</td>
+<td>核对数据页</td>
+<td>点「返回修改映射」</td>
+<td>回到映射页，勾选与选择保持【待联调确认】</td>
+</tr>
+</tbody>
+</table>
+<h2>10.6 导入结果</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-45</td>
+<td>导入完成页</td>
+<td>—</td>
+<td>顶部成功态（勾/对勾 + 「导入成功」+「已把老店数据写入本店，可直接开单用。」）</td>
+</tr>
+<tr>
+<td>AC-46</td>
+<td>导入完成页</td>
+<td>—</td>
+<td>三张卡片（会员与持卡 126 人 / 会员卡模板 4 张 / 价目表 42 项）各带「已入库」，右侧「查看」</td>
+</tr>
+<tr>
+<td>AC-46a</td>
+<td>导入完成页</td>
+<td>—</td>
+<td>清单下方显示「本批来源：Excel N 个 · 照片 M 张」；本批卡模板为自动生成时追加「· 自动生成卡模板 N 张」，按本批实际采集拼接，无该项不显示</td>
+</tr>
+<tr>
+<td>AC-47</td>
+<td>导入完成页</td>
+<td>点「查看」</td>
+<td>会员 → 会员列表（真实）；卡模板 → 占位页「原型占位 · 会员卡模板列表以线上系统的真实页面为准」；价目表 → 占位页与 toast；会员行 → toast「会员详情占位」</td>
+</tr>
+<tr>
+<td>AC-48</td>
+<td>导入完成页、有 2 条失败</td>
+<td>—</td>
+<td>显示失败条「2 条失败 · 可手动补录」+「查看明细」；<strong>不显示</strong>「查询本批导入状态」</td>
+</tr>
+<tr>
+<td>AC-49</td>
+<td>导入完成页</td>
+<td>点「去导入历史消费记录」</td>
+<td>进入历史消费导入说明（独立链路，不上传 P0 类型页）</td>
+</tr>
+<tr>
+<td>AC-50</td>
+<td>导入完成页</td>
+<td>点「删除本批数据」</td>
+<td>弹二次确认，正文含 126 条会员与持卡信息 / 4 张卡模板 / 42 项价目与已补录 2 条；「先不删」关闭，确认后回导入引导页 + toast</td>
+</tr>
+<tr>
+<td>AC-51</td>
+<td>导入完成页</td>
+<td>点「返回首页」</td>
+<td>回首页；浮球为「导入已完成」态（见 AC-19）</td>
+</tr>
+<tr>
+<td>AC-52</td>
+<td>导入完成页</td>
+<td>页面底部</td>
+<td><strong>无</strong>固定底部操作栏与栏内按钮</td>
+</tr>
+</tbody>
+</table>
+<h2>10.7 失败明细 · 手动补录</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-53</td>
+<td>失败明细页</td>
+<td>—</td>
+<td>2 张卡片：赵女士 / 原值 1380013abc / 手机号格式错误；孙先生 / 原值 — / 卡余额无法解析；每张有「手动补录」</td>
+</tr>
+<tr>
+<td>AC-54</td>
+<td>失败明细页</td>
+<td>点「下载失败明细」</td>
+<td>toast「已生成失败明细.xls（演示）」</td>
+</tr>
+<tr>
+<td>AC-55</td>
+<td>失败明细页</td>
+<td>点「返回导入结果」</td>
+<td>回导入完成页</td>
+</tr>
+<tr>
+<td>AC-56</td>
+<td>补录半屏</td>
+<td>—</td>
+<td>含姓名（含性别推断标签）/ 性别 / 手机号 / 会员卡区；卡区空态为「尚未补录会员卡，可留空」；底部「保存并入库」常显</td>
+</tr>
+<tr>
+<td>AC-57</td>
+<td>补录半屏</td>
+<td>姓名留空点「保存并入库」</td>
+<td>toast「请先填写姓名」，不保存</td>
+</tr>
+<tr>
+<td>AC-58</td>
+<td>补录半屏</td>
+<td>手机号填写非法格式</td>
+<td>toast「手机号需为 1 开头的 11 位数字」，不保存</td>
+</tr>
+<tr>
+<td>AC-59</td>
+<td>补录半屏</td>
+<td>姓名「赵女士」</td>
+<td>性别自动「女」，标签「自动识别 · 按姓名推断」</td>
+</tr>
+<tr>
+<td>AC-60</td>
+<td>补录半屏</td>
+<td>点「添加卡」</td>
+<td>从右侧滑入「办理会员卡」层，默认选中「补录老卡」，标题「补录老卡」，底部「确认补录」</td>
+</tr>
+<tr>
+<td>AC-61</td>
+<td>添加卡层</td>
+<td>选卡种</td>
+<td>分组 tab 储值卡 / 次卡 / 套餐；每项显示卡名 + 价格 +（余额 / 共 N 次 / 含 N 次）</td>
+</tr>
+<tr>
+<td>AC-62</td>
+<td>添加卡层、未选卡种</td>
+<td>点「确认补录」</td>
+<td>toast「请选择一个卡种」</td>
+</tr>
+<tr>
+<td>AC-63</td>
+<td>添加卡层、已选卡种、余额空</td>
+<td>点「确认补录」</td>
+<td>toast「请填写正确的卡内余额」</td>
+</tr>
+<tr>
+<td>AC-64</td>
+<td>添加卡层、余额非数字</td>
+<td>点「确认补录」</td>
+<td>同上 toast；余额输入框标红</td>
+</tr>
+<tr>
+<td>AC-65</td>
+<td>添加卡层、合法</td>
+<td>点「确认补录」</td>
+<td>卡写入半屏卡区，显示卡名 + 余额 + 可删；<strong>不产生收款单据</strong></td>
+</tr>
+<tr>
+<td>AC-66</td>
+<td>半屏卡区已有卡</td>
+<td>点「删除」并确认</td>
+<td>toast「已删除这张会员卡」，行消失</td>
+</tr>
+<tr>
+<td>AC-67</td>
+<td>同一个会员卡区</td>
+<td>连续添加同卡种</td>
+<td>允许 2 张并列表，间距为 12px【待联调确认具体值】</td>
+</tr>
+<tr>
+<td>AC-68</td>
+<td>半屏卡区已有卡</td>
+<td>点「修改」</td>
+<td>右侧滑入「修改会员卡」，余额已回填，按钮「保存修改」；保存后 toast「已保存会员卡修改」</td>
+</tr>
+<tr>
+<td>AC-69</td>
+<td>补录半屏、姓名已填</td>
+<td>点「保存并入库」</td>
+<td>toast「补录成功，已写入本店会员卡」；回列表，条目仍在且多出「补录完成」</td>
+</tr>
+<tr>
+<td>AC-70</td>
+<td>条目已有「补录完成」</td>
+<td>点它</td>
+<td>条目从列表移除</td>
+</tr>
+<tr>
+<td>AC-71</td>
+<td>两条都已点「补录完成」</td>
+<td>—</td>
+<td>灰空态「失败数据已全部补录」+ 正文；无「补录完成」按钮</td>
+</tr>
+<tr>
+<td>AC-72</td>
+<td>半屏已关闭</td>
+<td>再次点「手动补录」</td>
+<td>按最近一次保存内容回填；未保存过则回到默认预填</td>
+</tr>
+</tbody>
+</table>
+<h2>10.8 查看落点</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-73</td>
+<td>会员列表</td>
+<td>输入关键字</td>
+<td>按姓名 / 手机号过滤；无命中「未找到匹配的会员」</td>
+</tr>
+<tr>
+<td>AC-74</td>
+<td>会员列表</td>
+<td>点「取消」</td>
+<td>清空搜索并还原列表</td>
+</tr>
+<tr>
+<td>AC-75</td>
+<td>会员列表</td>
+<td>点任意会员行</td>
+<td>toast「会员详情占位」</td>
+</tr>
+<tr>
+<td>AC-76</td>
+<td>会员卡模板列表 / 价目表</td>
+<td>进入</td>
+<td>显示对应占位文案，不做真实列表</td>
+</tr>
+</tbody>
+</table>
+<h2>10.9 通用</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-77</td>
+<td>任意页</td>
+<td>手机竖屏 390 宽</td>
+<td>布局不横向溢出；映射表横向滚动，返回与「已锁定」固定在左侧</td>
+</tr>
+<tr>
+<td>AC-78</td>
+<td>任意页</td>
+<td>键盘弹出（补录半屏）</td>
+<td>输入框不被遮挡；底部按钮可点（参考 <code>--kb-h</code> 键盘避让）</td>
+</tr>
+<tr>
+<td>AC-79</td>
+<td>任意半屏 / 对话框</td>
+<td>点遮罩</td>
+<td>可关闭；关闭后页面状态保持</td>
+</tr>
+<tr>
+<td>AC-80</td>
+<td>任意页</td>
+<td>重复点主按钮</td>
+<td>不产生重复批次 / 重复入库（导入按钮须置灰防重）</td>
+</tr>
+</tbody>
+</table>
+<h2>10.10 P1 验收项（不阻塞本期）</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-P1-01</td>
+<td>历史消费真实 Excel 解析：大文件分片、异常行定位到真实行号</td>
+</tr>
+<tr>
+<td>AC-P1-02</td>
+<td>失败行只重试（不重跑整批）</td>
+</tr>
+<tr>
+<td>AC-P1-03</td>
+<td>失败明细真实下载 xls</td>
+</tr>
+<tr>
+<td>AC-P1-04</td>
+<td>店员只读视图与权限拦截</td>
+</tr>
+<tr>
+<td>AC-P1-05</td>
+<td>邀请弹层同账号只弹一次（服务端记录）</td>
+</tr>
+<tr>
+<td>AC-P1-06</td>
+<td>同名价目合并 / 新建选择</td>
+</tr>
+</tbody>
+</table>
+<h2>10.11 历史订单 / 历史消费验收</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置</th>
+<th>当</th>
+<th>则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-H-01</td>
+<td>工作台</td>
+<td>查看「店铺管理」分组</td>
+<td>末位新增「历史订单」瓦片；点它 → 历史订单列表</td>
+</tr>
+<tr>
+<td>AC-H-02</td>
+<td>历史订单列表</td>
+<td>—</td>
+<td>按日期倒序；行含姓名（空则「未留姓名」）、日期 · 项目、金额；顶部汇总「共 N 条 · 合计 ¥X」</td>
+</tr>
+<tr>
+<td>AC-H-03</td>
+<td>历史订单列表</td>
+<td>搜索框输入「李女士」</td>
+<td>只按顾客姓名过滤，列表与汇总同步更新；清空后恢复全量</td>
+</tr>
+<tr>
+<td>AC-H-04</td>
+<td>历史订单列表</td>
+<td>点「筛选」，填时间区间与金额区间后「查看结果」</td>
+<td>半屏关闭，列表按闭区间过滤；「重置」只清时间与金额，不清姓名搜索</td>
+</tr>
+<tr>
+<td>AC-H-05</td>
+<td>历史订单列表</td>
+<td>点任一行</td>
+<td>进入独立详情页：金额 / 日期 / 姓名 + 「已识别」三项 + 「原始字段」原样罗列，空值显示「—」</td>
+</tr>
+<tr>
+<td>AC-H-06</td>
+<td>历史订单详情</td>
+<td>—</td>
+<td>无编辑、无单条删除、无转开单入口</td>
+</tr>
+<tr>
+<td>AC-H-07</td>
+<td>历史订单列表 / 导入完成页</td>
+<td>点「导入」/「去导入历史消费记录」</td>
+<td>进入导入说明；说明含「不进订单流水 / 只支持 Excel / 只认三项」，并提示先导会员、卡、价目（不拦路）</td>
+</tr>
+<tr>
+<td>AC-H-08</td>
+<td>导入说明</td>
+<td>点「上传 Excel 表」→「选择文件」</td>
+<td>说明页<strong>只有「上传 Excel 表」一个按钮</strong>（无「先下载模板」）；上传页展示「标准表头」卡（7 列 chips + 示例行，常显），<strong>无任何下载入口</strong>；选文件后进入指定字段页；日期默认「消费日期」、金额默认「实收金额」、姓名默认「顾客姓名」</td>
+</tr>
+<tr>
+<td>AC-H-09</td>
+<td>指定字段页</td>
+<td>日期或金额选为空后点「下一步」</td>
+<td>toast「请先指定日期与金额」，不跳转</td>
+</tr>
+<tr>
+<td>AC-H-10</td>
+<td>核对页</td>
+<td>—</td>
+<td>显示总条数、起止日期、合计金额；抽样 5 条；失败条数 > 0 时显示「N 条无法识别」</td>
+</tr>
+<tr>
+<td>AC-H-11</td>
+<td>核对页</td>
+<td>点「确认无误，导入」</td>
+<td>进结果页；清单显示条数与「已入库」；<strong>无</strong>会员与持卡 / 卡模板 / 价目三行</td>
+</tr>
+<tr>
+<td>AC-H-12</td>
+<td>结果页</td>
+<td>点失败条</td>
+<td>进失败明细：行号 + 原因 + 原值；<strong>无</strong>「手动补录」；「下载失败行」→ toast</td>
+</tr>
+<tr>
+<td>AC-H-13</td>
+<td>结果页</td>
+<td>点「删除本批历史消费」→「确认删除」</td>
+<td>弹二次确认（文案注明不影响订单流水 / 会员 / 业绩）；确认后条数归零、删除入口隐藏，历史订单列表回到空态</td>
+</tr>
+<tr>
+<td>AC-H-14</td>
+<td>历史订单为空</td>
+<td>—</td>
+<td>显示空态文案与「导入历史消费」按钮</td>
+</tr>
+<tr>
+<td>AC-H-15</td>
+<td>数据隔离</td>
+<td>导入历史消费后查看订单流水 / 会员 / 业绩</td>
+<td>均<strong>不出现</strong>历史消费数据，数值不变</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>模块 11　非功能要求与风险</h1>
+<blockquote>
+<p>读者：前端 ✓ · 后端 ✓ · 测试 ✓</p>
+</blockquote>
+<h2>11.1 性能</h2>
+<ul>
+<li>映射页与核对页首屏 ≤ 2s（近 3 年数据量下的统计接口）；明细只取抽样 10 条。  </li>
+<li>导入提交须异步：端上展示进度，服务端按 500 条 / 批分片写入，失败行单独回收。  </li>
+<li>大表（≥ 5 万行）解析不得阻塞端上交互；上传即返回批次 id。  </li>
+</ul>
+<h2>11.2 安全与隐私</h2>
+<ul>
+<li>文件仅本次导入可见，不跨门店；下载失败明细须鉴权。  </li>
+<li>手机号在列表页<strong>部分脱敏</strong>展示（如 138****0000）【待联调确认】；补录页明文可编辑。  </li>
+<li>上传文件不落公开桶；解析完成后按保留策略清理。  </li>
+</ul>
+<h2>11.3 兼容与适配</h2>
+<ul>
+<li>端上按 390 逻辑宽设计，桌面预览居中；映射表允许横向滚动。  </li>
+<li>iOS Safari / Android Chrome 需支持半屏 + 底部键盘避让（<code>--kb-h</code>）。  </li>
+<li>拍照入口依赖相机权限；拒绝后回到上传路径，不得死锁。  </li>
+</ul>
+<h2>11.4 可用性</h2>
+<ul>
+<li>任何一步失败都要能「回来」：映射可返回、核对可返回、失败可补录。  </li>
+<li>所有破坏性操作（整批删除、删卡、补录完成）都有确认或明确不可逆提示。  </li>
+<li>文案不出现「导入失败」这类终局词；失败按条处理，整批仍算成功。  </li>
+</ul>
+<h2>11.5 风险</h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>影响</th>
+<th>应对</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>老系统表头各不相同</td>
+<td>映射经常识别不到</td>
+<td>自定义输入 + 跳过兜底 + 事后补录；不阻断流程</td>
+</tr>
+<tr>
+<td>无手机号会员</td>
+<td>无法去重</td>
+<td>允许入库并标「待补全」，不做自动合并</td>
+</tr>
+<tr>
+<td>卡余额语义差异（金额 / 次数 / 项目）</td>
+<td>补录口径不一致</td>
+<td>卡种分组与口径提示；余额只收金额，余次走卡种 meta</td>
+</tr>
+<tr>
+<td>历史消费与订单流水混淆</td>
+<td>财务口径错</td>
+<td>独立存储 + 列表 / 详情 / 结果页三处明示「不进订单流水」；不做转开单入口</td>
+</tr>
+<tr>
+<td>历史账单字段结构差异大</td>
+<td>日期 / 金额识别失败行多</td>
+<td>只识别三项 + 失败行可下载修正再传；不支持站内逐条补录，避免维护任意列的补录表单</td>
+</tr>
+<tr>
+<td>分类来源混合导致步骤变长</td>
+<td>用户以为要传两遍</td>
+<td>类型页每类内选来源 + 拍照页 / 上传页明确标注本批类目；顺序固定「先拍照、后上传」</td>
+</tr>
+<tr>
+<td>整批删除误操作</td>
+<td>数据丢失</td>
+<td>二次确认 + 明示已补录项 + 不可恢复提示</td>
+</tr>
+<tr>
+<td>多入口（浮球 / 工作台 / 邀请）状态不同步</td>
+<td>用户看到矛盾状态</td>
+<td>以批次状态为唯一来源，端上只做展示</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>模块 12　交付物与里程碑</h1>
+<blockquote>
+<p>读者：全员</p>
+</blockquote>
+<h2>12.1 本期交付</h2>
+<table>
+<thead>
+<tr>
+<th>交付物</th>
+<th>形态</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交互原型</td>
+<td>单页 HTML + JS（可演示全链路）</td>
+<td><code>RTA开店流程与数据导入/index.html</code></td>
+</tr>
+<tr>
+<td>本文档</td>
+<td>PRD HTML</td>
+<td><code>RTA开店流程与数据导入/PRD-开店入驻与数据迁移.html</code></td>
+</tr>
+<tr>
+<td>对标研究</td>
+<td>静态 HTML（线上参考，不在本原型内）</td>
+<td><code>RTA开店流程与数据导入/对标-登录入驻体验优化.html</code></td>
+</tr>
+<tr>
+<td>样表</td>
+<td>运营标准会员表</td>
+<td><code>RTA开店流程与数据导入/members.xlsx</code></td>
+</tr>
+</tbody>
+</table>
+<h2>12.2 里程碑</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>内容</th>
+<th>出口条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M1 · 对齐</td>
+<td>原型与本文一致；分流、定位、映射、补录口径确认</td>
+<td>产品 + 设计评审通过</td>
+</tr>
+<tr>
+<td>M2 · 端上</td>
+<td>31 屏 + 10 浮层按本文实现，文案逐字对齐</td>
+<td>AC-01 ~ AC-80 与 AC-H-01 ~ AC-H-15 全量走查</td>
+</tr>
+<tr>
+<td>M3 · 服务</td>
+<td>批次、映射、导入、失败回收、补录、整批删除；历史消费独立存储与查询</td>
+<td>幂等与事务删除验证通过</td>
+</tr>
+<tr>
+<td>M4 · 灰度</td>
+<td>选 5~10 家老店试导，收集表头样本</td>
+<td>映射命中率与补录率达标</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>失败重试、店员只读、真实下载、历史消费按更细维度分析</td>
+<td>另行排期</td>
+</tr>
+</tbody>
+</table>
+<h2>12.3 待确认清单</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+<th>默认处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>历史消费是否与会员 / 价目建立关联</td>
+<td>本期<strong>不关联</strong>：只存原始字段 + 日期 / 金额 / 姓名三项索引（见 §8.10）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>店员能否发起导入</td>
+<td>按不可（只读）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>性别手改后返回是否保留</td>
+<td>按回到默认自动识别</td>
+</tr>
+<tr>
+<td>4</td>
+<td>价目同名合并 / 新建</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>手机号脱敏口径</td>
+<td>列表脱敏、补录明文</td>
+</tr>
+<tr>
+<td>6</td>
+<td>接口路径与字段名</td>
+<td>以联调为准，本文 7.8 仅示意</td>
+</tr>
+<tr>
+<td>7</td>
+<td>拍照 OCR 供应商与准确率目标</td>
+<td>未定</td>
+</tr>
+<tr>
+<td>8</td>
+<td>导入后「会员卡」真实列表页归属</td>
+<td>以线上会员卡模块为准</td>
+</tr>
+<tr>
+<td>9</td>
+<td>历史订单列表分页 / 加载更多</td>
+<td>原型一次性渲染 16 条；线上按 50 条分页【待确认】</td>
+</tr>
+<tr>
+<td>10</td>
+<td>历史消费重复导入是否去重</td>
+<td>本期不去重，按行追加；重复导入用整批删除回滚</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p class="foot-note">本文档与 <code>RTA开店流程与数据导入/index.html</code> 同步维护。文案、状态、数量以原型为准；本文与原型冲突时，先改本文再改原型，避免双向漂移。</p>
+
+</article></div>
+
+<script src="assets/vendor/mermaid.min.js"></script>
+<script>
+(function(){
+  if (!window.mermaid) return;
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#fff5f6',
+      primaryBorderColor: '#F32F41',
+      primaryTextColor: '#1f2329',
+      secondaryColor: '#f2f3f5',
+      tertiaryColor: '#ffffff',
+      lineColor: '#8f959e',
+      fontFamily: 'PingFang SC, Microsoft YaHei, sans-serif'
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

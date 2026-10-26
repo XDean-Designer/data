@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>剑琅联盟 · 开店入驻与数据迁移</title>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="shell.css">
+<link rel="stylesheet" href="workbench.css">
+<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="app.css">
+<script src="mobile-preview.js"></script>
+</head>
+<body>
+<aside class="site-nav">
+  <div class="nav-brand">
+    <div class="t">开店入驻 · 数据迁移</div>
+    <div class="s">RTA 交互原型 v0.3</div>
+  </div>
+  <div class="nav-group">
+    <div class="g-t">开店入驻</div>
+    <button type="button" class="nav-item on" data-flow="login"><span class="idx">1</span>登录</button>
+    <button type="button" class="nav-item" data-flow="claim"><span class="idx">2</span>认领门店</button>
+    <button type="button" class="nav-item" data-flow="confirm"><span class="idx">3</span>确认门店</button>
+    <button type="button" class="nav-item" data-flow="triage"><span class="idx">4</span>分流</button>
+  </div>
+  <div class="nav-group">
+    <div class="g-t">落点</div>
+    <button type="button" class="nav-item" data-flow="home"><span class="idx">H</span>首页</button>
+    <button type="button" class="nav-item" data-flow="workbench"><span class="idx">W</span>工作台</button>
+  </div>
+  <div class="nav-group">
+    <div class="g-t">数据迁移</div>
+    <button type="button" class="nav-item" data-flow="import-overview"><span class="idx">概</span>本店概况</button>
+    <button type="button" class="nav-item" data-flow="import-guide"><span class="idx">G</span>流程引导</button>
+    <button type="button" class="nav-item" data-flow="import-select"><span class="idx">I</span>导入类型</button>
+    <button type="button" class="nav-item" data-flow="import-source"><span class="idx">II</span>上传表格</button>
+    <button type="button" class="nav-item" data-flow="import-camera"><span class="idx">📷</span>拍照演示</button>
+    <button type="button" class="nav-item" data-flow="import-queue"><span class="idx">III</span>待识别内容</button>
+    <button type="button" class="nav-item" data-flow="import-map"><span class="idx">IV</span>映射确认</button>
+    <button type="button" class="nav-item" data-flow="import-tpl-gen"><span class="idx">IV·</span>确认卡模板</button>
+    <button type="button" class="nav-item" data-flow="import-preview"><span class="idx">V</span>核对数据</button>
+    <button type="button" class="nav-item" data-flow="import-preview-detail"><span class="idx">V·</span>预览明细</button>
+    <button type="button" class="nav-item" data-flow="import-result"><span class="idx">VI</span>导入结果</button>
+    <button type="button" class="nav-item" data-flow="import-fail"><span class="idx">VII</span>失败明细</button>
+    <button type="button" class="nav-item" data-flow="legacy-card"><span class="idx">C</span>添加卡</button>
+    <button type="button" class="nav-item" data-flow="legacy-detail"><span class="idx">C·</span>补录老卡</button>
+    <button type="button" class="nav-item" data-flow="members"><span class="idx">M</span>会员列表</button>
+    <button type="button" class="nav-item" data-flow="card-list"><span class="idx">卡</span>会员卡模板</button>
+    <button type="button" class="nav-item" data-flow="price-list"><span class="idx">价</span>价目表</button>
+  </div>
+  <div class="nav-group">
+    <div class="g-t">历史订单</div>
+    <button type="button" class="nav-item" data-flow="history-orders"><span class="idx">史</span>历史订单</button>
+    <button type="button" class="nav-item" data-flow="history-detail"><span class="idx">史·</span>订单详情</button>
+    <button type="button" class="nav-item" data-flow="history-import-intro"><span class="idx">历</span>导入说明</button>
+    <button type="button" class="nav-item" data-flow="history-import-upload"><span class="idx">历·</span>上传历史消费</button>
+    <button type="button" class="nav-item" data-flow="history-import-map"><span class="idx">历··</span>指定字段</button>
+    <button type="button" class="nav-item" data-flow="history-import-preview"><span class="idx">历···</span>核对历史数据</button>
+    <button type="button" class="nav-item" data-flow="history-import-result"><span class="idx">历····</span>导入完成</button>
+    <button type="button" class="nav-item" data-flow="history-import-fail"><span class="idx">历·····</span>失败明细</button>
+  </div>
+  <div class="nav-group">
+    <div class="g-t">对标研究</div>
+    <a class="nav-link" href="对标-登录入驻体验优化.html" target="_blank"><span class="idx">B</span>入驻链路对标</a>
+  </div>
+  <div class="nav-group grow">
+    <div class="g-t">文档</div>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v1.8</a>
+  </div>
+</aside>
+<div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
+<div class="nav-edge-hit" id="navEdgeHit" aria-hidden="true"></div>
+
+<div class="stage">
+  <div id="frame" class="phone-shell">
+    <div class="phone-inner phone">
+      <div class="status-bar">
+        <div class="status-bar__time">9:41</div>
+        <div class="status-bar__icons">
+          <img src="assets/ic_cellular.svg" alt="" width="19" height="12">
+          <img src="assets/ic_wifi.svg" alt="" width="17" height="12">
+          <img src="assets/ic_battery.svg" alt="" width="27" height="13">
+        </div>
+      </div>
+
+      <!-- login -->
+      <div class="screen active" id="screen-login" data-flow="login">
+        <div class="login-screen">
+          <div class="login-logo-wrap" aria-hidden="true">
+            <img class="login-logo-wrap__inner" src="assets/figma/login/logo-inner.png" alt="">
+          </div>
+          <div class="login-phone">136****5726</div>
+          <div class="login-actions">
+            <button type="button" class="btn-primary login-btn-primary" id="btnLoginPrimary">本机号码一键登录</button>
+            <button type="button" class="btn-outline login-btn-outline" id="btnLoginSms">手机验证码登录</button>
+          </div>
+          <div class="login-invite">
+            <label class="login-invite__field">
+              <img class="login-invite__ico" src="assets/figma/login/ticket.svg" alt="" width="22" height="22">
+              <input class="login-invite__input" type="text" placeholder="请输入邀请码（选填）" autocomplete="off">
+            </label>
+          </div>
+          <div class="login-pill-row">
+            <button type="button" class="login-pill" id="btnLoginExperience">
+              <span class="login-pill__text">一键体验</span>
+              <img class="login-pill__play" src="assets/figma/login/play.svg" alt="" width="24" height="24">
+            </button>
+          </div>
+          <div class="login-agree">
+            <img class="login-agree__check" src="assets/figma/login/check-off.svg" alt="" width="12" height="12">
+            <span>登录即代表已阅读同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- claim -->
+      <div class="screen hidden" id="screen-claim" data-flow="claim">
+        <header class="page-title-bar claim-nav">
+          <button type="button" class="back" data-go="login" aria-label="返回">
+            <img src="assets/figma/claim/ico-back.svg" alt="" width="24" height="24">
+          </button>
+          <span class="title">门店入驻</span>
+          <button type="button" class="claim-nav__role">
+            <span>我是店员</span>
+            <span class="claim-nav__staff" aria-hidden="true">
+              <img src="assets/figma/claim/ico-staff-a.svg" alt="" width="14" height="14">
+              <img src="assets/figma/claim/ico-staff-b.svg" alt="" width="14" height="14">
+            </span>
+          </button>
+        </header>
+        <div class="scroll-body claim-body">
+          <div class="claim-reco">
+            <div class="claim-reco__head">
+              <span class="claim-reco__head-tag">智能推荐</span>
+              <span class="claim-reco__head-lead">猜你是这家店的主理人？</span>
+            </div>
+            <div class="claim-reco__body">
+              <div class="claim-reco__name">右尚造型（浦东1店）</div>
+              <div class="claim-reco__loc">
+                <img src="assets/figma/claim/ico-loc.svg" alt="" width="14" height="14">
+                <span>距您246m丨上海市浦东新区花木路188号</span>
+              </div>
+              <div class="claim-reco__cta-wrap">
+                <button type="button" class="claim-reco__cta" data-claim-go>我是店主，立即认领</button>
+              </div>
+            </div>
+          </div>
+          <div class="claim-search">
+            <button type="button" class="claim-search__city">上海市<img src="assets/figma/claim/ico-down.svg" alt="" width="12" height="12"></button>
+            <span class="claim-search__sep" aria-hidden="true"></span>
+            <input class="claim-search__input" type="search" placeholder="输入门店名称查询">
+          </div>
+          <div class="claim-empty">
+            <div class="claim-empty__art">
+              <img src="assets/figma/claim/ico-empty.svg" alt="" width="144" height="144">
+              <span class="claim-empty__text">暂无内容</span>
+            </div>
+            <button type="button" class="claim-empty__btn" id="btnClaimEmptyCreate">手工创建新门店</button>
+          </div>
+          <div class="claim-sec-head">
+            <h2 class="claim-sec-title">附近的门店</h2>
+          </div>
+          <div class="claim-list">
+            <div class="claim-item claim-item--highlight">
+              <div class="claim-item__main">
+                <div class="claim-item__name-row">
+                  <span class="claim-item__name">右尚造型（世纪公园店）</span>
+                  <span class="claim-tag claim-tag--hair">美发</span>
+                  <span class="claim-tag claim-tag--beauty">美容</span>
+                </div>
+                <div class="claim-item__loc">
+                  <img src="assets/figma/claim/ico-loc.svg" alt="" width="12" height="12">
+                  <span>距您86m丨浦东新区花木路188号</span>
+                </div>
+              </div>
+              <button type="button" class="claim-item__btn" data-claim-go>认领门店</button>
+            </div>
+            <div class="claim-item">
+              <div class="claim-item__main">
+                <div class="claim-item__name-row">
+                  <span class="claim-item__name">右尚造型（张江店）</span>
+                  <span class="claim-tag claim-tag--hair">美发</span>
+                </div>
+                <div class="claim-item__loc">
+                  <img src="assets/figma/claim/ico-loc.svg" alt="" width="12" height="12">
+                  <span>距您420m丨浦东新区祖冲之路899号</span>
+                </div>
+              </div>
+              <button type="button" class="claim-item__btn" data-claim-go>认领门店</button>
+            </div>
+            <div class="claim-item">
+              <div class="claim-item__main">
+                <div class="claim-item__name-row">
+                  <span class="claim-item__name">悦己美容工作室</span>
+                  <span class="claim-tag claim-tag--beauty">美容</span>
+                </div>
+                <div class="claim-item__loc">
+                  <img src="assets/figma/claim/ico-loc.svg" alt="" width="12" height="12">
+                  <span>距您680m丨浦东新区张杨路501号</span>
+                </div>
+              </div>
+              <button type="button" class="claim-item__btn" data-claim-go>认领门店</button>
+            </div>
+          </div>
+        </div>
+        <div class="claim-footer">
+          <span class="claim-footer__hint">没有找到您的门店？</span>
+          <button type="button" class="btn-primary claim-footer__btn" id="btnClaimManual">手工创建门店</button>
+        </div>
+      </div>
+
+      <!-- confirm -->
+      <div class="screen hidden" id="screen-confirm" data-flow="confirm">
+        <header class="page-title-bar confirm-nav">
+          <button type="button" class="back" data-go="claim" aria-label="返回">
+            <img src="assets/figma/confirm/ico-back.svg" alt="" width="24" height="24">
+          </button>
+          <span class="title">确认门店信息</span>
+        </header>
+        <div id="confirmTip" class="confirm-tip">
+          <span>开完店，就能发活动拉新、管会员卡账、找货源卖货。</span>
+          <button type="button" class="confirm-tip__close" id="btnConfirmTipClose" aria-label="关闭">×</button>
+        </div>
+        <div class="scroll-body confirm-form">
+          <div class="confirm-cats-card">
+            <div class="confirm-cats-card__label">经营品类<span class="req">*</span></div>
+            <div class="confirm-cats">
+              <button type="button" class="confirm-cat on" data-cat="hair">
+                <img src="assets/figma/confirm/ico-hair.svg" alt="" width="20" height="20">
+                <span>美发</span>
+              </button>
+              <button type="button" class="confirm-cat" data-cat="beauty">
+                <img src="assets/figma/confirm/ico-beauty.svg" alt="" width="20" height="20">
+                <span>美容</span>
+              </button>
+              <button type="button" class="confirm-cat" data-cat="nail">
+                <img src="assets/figma/confirm/ico-nail.svg" alt="" width="20" height="20">
+                <span>美甲</span>
+              </button>
+            </div>
+          </div>
+          <div class="confirm-panel">
+            <button type="button" class="confirm-row" aria-label="编辑门店名称">
+              <span class="confirm-row__label">门店名称<span class="req">*</span></span>
+              <span class="confirm-row__value">右尚造型（浦东店）</span>
+              <img class="confirm-row__chev" src="assets/figma/confirm/ico-chevron.svg" alt="" width="16" height="16">
+            </button>
+            <div class="confirm-block">
+              <div class="confirm-block__label">门店图片<span class="confirm-block__sub">（提升店铺形象）</span></div>
+              <div class="confirm-img-strip-wrap">
+                <div class="confirm-img-strip">
+                  <button type="button" class="confirm-img-tile confirm-img-tile--upload" aria-label="上传图片">
+                    <img src="assets/figma/confirm/ico-upload.svg" alt="" width="24" height="24">
+                    <span>上传图片</span>
+                  </button>
+                  <div class="confirm-img-tile confirm-img-tile--photo">
+                    <img src="assets/figma/confirm/store-1.png" alt="">
+                    <span class="confirm-img-tile__bar">更换</span>
+                    <button type="button" class="confirm-img-tile__del" aria-label="删除"><img src="assets/figma/confirm/ico-del.svg" alt="" width="16" height="16"></button>
+                  </div>
+                  <div class="confirm-img-tile confirm-img-tile--photo">
+                    <img src="assets/figma/confirm/store-2.png" alt="">
+                    <span class="confirm-img-tile__bar">更换</span>
+                    <button type="button" class="confirm-img-tile__del" aria-label="删除"><img src="assets/figma/confirm/ico-del.svg" alt="" width="16" height="16"></button>
+                  </div>
+                  <div class="confirm-img-tile confirm-img-tile--photo">
+                    <img src="assets/figma/confirm/store-3.png" alt="">
+                    <span class="confirm-img-tile__bar">更换</span>
+                    <button type="button" class="confirm-img-tile__del" aria-label="删除"><img src="assets/figma/confirm/ico-del.svg" alt="" width="16" height="16"></button>
+                  </div>
+                  <div class="confirm-img-tile confirm-img-tile--photo">
+                    <img src="assets/figma/confirm/store-4.png" alt="">
+                    <span class="confirm-img-tile__bar">更换</span>
+                    <button type="button" class="confirm-img-tile__del" aria-label="删除"><img src="assets/figma/confirm/ico-del.svg" alt="" width="16" height="16"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="confirm-row confirm-row--static">
+              <span class="confirm-row__label">店主手机号<span class="req">*</span></span>
+              <span class="confirm-row__value">175 0989 0024</span>
+            </div>
+            <div class="confirm-row confirm-row--static">
+              <span class="confirm-row__label">店主昵称<span class="req">*</span></span>
+              <span class="confirm-row__value">老板</span>
+            </div>
+            <button type="button" class="confirm-row">
+              <span class="confirm-row__label">所在地区</span>
+              <span class="confirm-row__value">上海市/上海市/黄浦区</span>
+              <img class="confirm-row__chev" src="assets/figma/confirm/ico-chevron.svg" alt="" width="16" height="16">
+            </button>
+            <div class="confirm-row confirm-row--static">
+              <span class="confirm-row__label">详细地址</span>
+              <span class="confirm-row__value confirm-row__value--ellipsis">淮海中路222号4-33号力宝广场</span>
+            </div>
+            <div class="confirm-block confirm-block--map">
+              <div class="confirm-block__label">地图位置<span class="req">*</span></div>
+              <p class="confirm-map-hint">支持用户手动拖拽打点位置，支持地图放大 缩小 定位</p>
+              <div class="confirm-map-wrap">
+                <img class="confirm-map-img" src="assets/figma/confirm/map.png" alt="地图">
+                <img class="confirm-map-pin" src="assets/figma/confirm/ico-pin.svg" alt="">
+                <button type="button" class="confirm-map-locate" aria-label="定位">
+                  <img src="assets/figma/confirm/ico-locate.svg" alt="" width="20" height="20">
+                </button>
+              </div>
+            </div>
+            <button type="button" class="confirm-row confirm-row--last">
+              <span class="confirm-row__label">工商信息</span>
+              <span class="confirm-row__value confirm-row__value--muted">选填</span>
+              <img class="confirm-row__chev" src="assets/figma/confirm/ico-chevron.svg" alt="" width="16" height="16">
+            </button>
+          </div>
+        </div>
+        <div class="confirm-cta-bar">
+          <button type="button" class="btn-primary confirm-cta-bar__btn" id="btnConfirmOpen">一键开店</button>
+        </div>
+      </div>
+
+      <!-- triage -->
+      <div class="screen hidden" id="screen-triage" data-flow="triage">
+        <div class="triage">
+          <div class="triage__head">
+            <h1>欢迎使用剑琅联盟</h1>
+            <p class="lead">请选择你现在最想做的事</p>
+          </div>
+          <button type="button" class="choice choice--rts" data-triage="rts">
+            <div class="choice-ico"><img src="assets/figma/triage/ico-rts.png" width="48" height="48" alt=""></div>
+            <div class="choice-body">
+              <div class="code">我要获客</div>
+              <div class="q">快速发活动拉新客</div>
+            </div>
+            <div class="choice-chevron"><img src="assets/figma/triage/ico-chevron.png" width="20" height="20" alt=""></div>
+          </button>
+          <button type="button" class="choice choice--rtb" data-triage="rtb">
+            <div class="choice-ico"><img src="assets/figma/triage/ico-rtb.png" width="48" height="48" alt=""></div>
+            <div class="choice-body">
+              <div class="code">我要管理店铺</div>
+              <div class="q">账、卡、员工一手掌握</div>
+            </div>
+            <div class="choice-chevron"><img src="assets/figma/triage/ico-chevron.png" width="20" height="20" alt=""></div>
+          </button>
+          <button type="button" class="choice choice--rtp" data-triage="rtp">
+            <div class="choice-ico"><img src="assets/figma/triage/ico-rtp.png" width="48" height="48" alt=""></div>
+            <div class="choice-body">
+              <div class="code">我要卖货</div>
+              <div class="q">找靠谱货源上架分销</div>
+            </div>
+            <div class="choice-chevron"><img src="assets/figma/triage/ico-chevron.png" width="20" height="20" alt=""></div>
+          </button>
+          <button type="button" class="choice choice--rtl" data-triage="rtl">
+            <div class="choice-ico"><img src="assets/figma/triage/ico-rtl.png" width="48" height="48" alt=""></div>
+            <div class="choice-body">
+              <div class="code">我要学习</div>
+              <div class="q">线上线下课程，提升美业技能</div>
+            </div>
+            <div class="choice-chevron"><img src="assets/figma/triage/ico-chevron.png" width="20" height="20" alt=""></div>
+          </button>
+          <div class="triage__foot">
+            <button type="button" class="skip" id="btnTriageSkip">先随便看看</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- home (开单结账 2.0 s0) -->
+      <div class="screen hidden v2-home" id="screen-home" data-flow="home">
+        <div class="vh-scroll">
+          <div class="vh-hero">
+            <img class="vh-hero__bg" src="assets/home/hero-header.png" alt="" draggable="false" decoding="async">
+            <div class="vh-status">
+              <div class="time">9:41</div>
+              <div class="icons">
+                <img src="assets/ic_cellular.svg" alt="">
+                <img src="assets/ic_wifi.svg" alt="">
+                <img src="assets/ic_battery.svg" alt="">
+              </div>
+            </div>
+            <div class="vh-store">
+              <button type="button" class="vh-store__left" aria-label="门店">
+                <img class="vh-store__logo" src="assets/home/store-logo.svg" alt="">
+                <span class="vh-store__txt">
+                  <span class="vh-store__name">悦己美发沙龙</span>
+                  <span class="vh-store__role">店长：张淼</span>
+                </span>
+                <img class="vh-store__chev" src="assets/home/chevron-down.svg" alt="">
+              </button>
+              <div class="vh-store__acts">
+                <button type="button" id="btnHomeWorkbench" aria-label="工作台"><img src="assets/home/icon-grid.svg" alt=""></button>
+                <button type="button" aria-label="扫一扫"><img src="assets/home/icon-scan.svg" alt=""></button>
+                <button type="button" aria-label="消息"><img src="assets/home/icon-bell.svg" alt=""></button>
+              </div>
+            </div>
+          </div>
+          <div class="vh-body">
+            <section class="vh-kpi is-collapsed" aria-label="个人业绩">
+              <div class="vh-kpi__hd">
+                <div class="vh-kpi__title">个人业绩<em>今日</em></div>
+              </div>
+              <div class="vh-kpi__main">
+                <div class="vh-kpi__cols">
+                  <div class="vh-kpi__col">
+                    <div class="vh-kpi__lab">业绩(¥)</div>
+                    <div class="vh-kpi__num is-red">8420</div>
+                  </div>
+                  <div class="vh-kpi__col">
+                    <div class="vh-kpi__lab">提成(¥)</div>
+                    <div class="vh-kpi__num is-blue">1260</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section class="vh-actions vh-actions--shot" aria-label="快捷开单">
+              <img class="vh-actions__shot" src="assets/home/actions-card.png" alt="" draggable="false">
+            </section>
+            <section class="vh-biz" aria-label="经营数据">
+              <div class="vh-biz__hd">经营数据</div>
+              <div class="vh-biz__sec-lab">门店业绩</div>
+              <div class="vh-biz__metrics">
+                <div class="vh-biz__m"><div class="vh-biz__m-lab">劳动业绩(¥)</div><div class="vh-biz__m-num">9990</div></div>
+                <div class="vh-biz__m"><div class="vh-biz__m-lab">产品业绩(¥)</div><div class="vh-biz__m-num">7170</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+        <nav class="vh-tabbar" aria-label="底部导航">
+          <img class="vh-tabbar__img" src="assets/home/tabbar-float.png" alt="" draggable="false">
+          <div class="vh-tabbar__hots">
+            <button type="button" aria-label="首页"></button>
+            <button type="button" aria-label="客户"></button>
+            <button type="button" aria-label="助手"></button>
+            <button type="button" aria-label="小店"></button>
+            <button type="button" aria-label="获客"></button>
+          </div>
+        </nav>
+      </div>
+
+      <!-- workbench -->
+      <div class="screen hidden" id="screen-workbench" data-flow="workbench">
+        <div class="page-title-bar"><span class="title">工作台</span></div>
+        <div class="page-body wb-body">
+          <section class="wb-sec">
+            <h2 class="wb-sec__title">常用功能</h2>
+            <div class="wb-grid">
+              <button type="button" class="wb-tile" data-wb="bill"><span class="wb-tile__icon"><img src="assets/workbench/bill.png" alt="" width="42" height="42"></span><span class="wb-tile__label">开单</span></button>
+              <button type="button" class="wb-tile" data-wb="flow"><span class="wb-tile__icon"><img src="assets/workbench/flow.png" alt="" width="42" height="42"></span><span class="wb-tile__label">订单流水</span></button>
+              <button type="button" class="wb-tile" data-wb="appt"><span class="wb-tile__badge">3</span><span class="wb-tile__icon"><img src="assets/workbench/appt.png" alt="" width="42" height="42"></span><span class="wb-tile__label">预约管理</span></button>
+              <button type="button" class="wb-tile" data-wb="hold"><span class="wb-tile__icon"><img src="assets/workbench/hold.png" alt="" width="42" height="42"></span><span class="wb-tile__label">挂单</span></button>
+            </div>
+          </section>
+          <section class="wb-sec">
+            <h2 class="wb-sec__title">经营管理</h2>
+            <div class="wb-grid">
+              <button type="button" class="wb-tile" data-wb="analysis"><span class="wb-tile__icon"><img src="assets/workbench/analysis.png" alt="" width="42" height="42"></span><span class="wb-tile__label">经营分析</span></button>
+              <button type="button" class="wb-tile" data-wb="customer"><span class="wb-tile__icon"><img src="assets/workbench/customer.png" alt="" width="42" height="42"></span><span class="wb-tile__label">客户管理</span></button>
+              <button type="button" class="wb-tile" data-wb="self"><span class="wb-tile__icon"><img src="assets/workbench/self.png" alt="" width="42" height="42"></span><span class="wb-tile__label">自助收银</span></button>
+              <button type="button" class="wb-tile" data-wb="expense"><span class="wb-tile__icon"><img src="assets/workbench/expense.png" alt="" width="42" height="42"></span><span class="wb-tile__label">支出管理</span></button>
+            </div>
+          </section>
+          <section class="wb-sec">
+            <h2 class="wb-sec__title">营销获客</h2>
+            <div class="wb-grid">
+              <button type="button" class="wb-tile" data-wb="mall"><span class="wb-tile__trial">限时体验</span><span class="wb-tile__icon"><img src="assets/workbench/mall.png" alt="" width="42" height="42"></span><span class="wb-tile__label">商城</span></button>
+              <button type="button" class="wb-tile" data-wb="supplier"><span class="wb-tile__icon"><img src="assets/workbench/supplier.png" alt="" width="42" height="42"></span><span class="wb-tile__label">供应商</span></button>
+              <button type="button" class="wb-tile" data-wb="works"><span class="wb-tile__icon"><img src="assets/workbench/works.png" alt="" width="42" height="42"></span><span class="wb-tile__label">作品管理</span></button>
+              <button type="button" class="wb-tile" data-wb="coupon"><span class="wb-tile__trial">限时体验</span><span class="wb-tile__icon"><img src="assets/workbench/coupon.png" alt="" width="42" height="42"></span><span class="wb-tile__label">优惠券</span></button>
+              <button type="button" class="wb-tile" data-wb="reputation"><span class="wb-tile__icon"><img src="assets/workbench/reputation.png" alt="" width="42" height="42"></span><span class="wb-tile__label">店铺口碑</span></button>
+              <button type="button" class="wb-tile" data-wb="poster"><span class="wb-tile__icon"><img src="assets/workbench/poster.png" alt="" width="42" height="42"></span><span class="wb-tile__label">海报工坊</span></button>
+              <button type="button" class="wb-tile" data-wb="newguest"><span class="wb-tile__icon"><img src="assets/workbench/newguest.png" alt="" width="42" height="42"></span><span class="wb-tile__label">新客礼遇</span></button>
+            </div>
+          </section>
+          <section class="wb-sec">
+            <h2 class="wb-sec__title">店铺管理</h2>
+            <div class="wb-grid">
+              <button type="button" class="wb-tile" data-wb="price"><span class="wb-tile__icon"><img src="assets/workbench/price.png" alt="" width="42" height="42"></span><span class="wb-tile__label">价目表</span></button>
+              <button type="button" class="wb-tile" data-wb="card"><span class="wb-tile__icon"><img src="assets/workbench/card.png" alt="" width="42" height="42"></span><span class="wb-tile__label">卡管理</span></button>
+              <button type="button" class="wb-tile" data-wb="store"><span class="wb-tile__icon"><img src="assets/workbench/store.png" alt="" width="42" height="42"></span><span class="wb-tile__label">门店管理</span></button>
+              <button type="button" class="wb-tile" data-wb="decor"><span class="wb-tile__icon"><img src="assets/workbench/decor.png" alt="" width="42" height="42"></span><span class="wb-tile__label">店铺装修</span></button>
+              <button type="button" class="wb-tile" data-wb="stock"><span class="wb-tile__trial">限时体验</span><span class="wb-tile__icon"><img src="assets/workbench/stock.png" alt="" width="42" height="42"></span><span class="wb-tile__label">库存管理</span></button>
+              <button type="button" class="wb-tile" data-wb="device"><span class="wb-tile__icon"><img src="assets/workbench/device.png" alt="" width="42" height="42"></span><span class="wb-tile__label">设备管理</span></button>
+              <button type="button" class="wb-tile" data-wb="popup"><span class="wb-tile__icon"><img src="assets/workbench/popup.png" alt="" width="42" height="42"></span><span class="wb-tile__label">小程序弹窗</span></button>
+              <button type="button" class="wb-tile" data-wb="tuangou-set"><span class="wb-tile__icon"><img src="assets/workbench/tuangou-set.svg" alt="" width="42" height="42"></span><span class="wb-tile__label">团购设置</span></button>
+              <button type="button" class="wb-tile" data-wb="migrate"><span class="wb-tile__icon"><img src="assets/workbench/stock.png" alt="" width="42" height="42"></span><span class="wb-tile__label">数据迁移</span></button>
+              <button type="button" class="wb-tile" data-wb="history"><span class="wb-tile__icon"><img src="assets/workbench/flow.png" alt="" width="42" height="42"></span><span class="wb-tile__label">历史订单</span></button>
+            </div>
+          </section>
+          <section class="wb-sec">
+            <h2 class="wb-sec__title">员工管理</h2>
+            <div class="wb-grid">
+              <button type="button" class="wb-tile" data-wb="staff"><span class="wb-tile__icon"><img src="assets/workbench/staff.png" alt="" width="42" height="42"></span><span class="wb-tile__label">员工管理</span></button>
+              <button type="button" class="wb-tile" data-wb="rank"><span class="wb-tile__trial">限时体验</span><span class="wb-tile__icon"><img src="assets/workbench/rank.png" alt="" width="42" height="42"></span><span class="wb-tile__label">业绩排行</span></button>
+              <button type="button" class="wb-tile" data-wb="salary"><span class="wb-tile__icon"><img src="assets/workbench/salary.png" alt="" width="42" height="42"></span><span class="wb-tile__label">员工薪资</span></button>
+              <button type="button" class="wb-tile" data-wb="commission"><span class="wb-tile__icon"><img src="assets/workbench/commission.png" alt="" width="42" height="42"></span><span class="wb-tile__label">提成设置</span></button>
+            </div>
+          </section>
+          <section class="wb-sec">
+            <h2 class="wb-sec__title">学习培训</h2>
+            <div class="wb-grid">
+              <button type="button" class="wb-tile" data-wb="learn"><span class="wb-tile__icon"><img src="assets/workbench/learn.png" alt="" width="42" height="42"></span><span class="wb-tile__label">学习培训</span></button>
+              <button type="button" class="wb-tile" data-wb="course"><span class="wb-tile__icon"><img src="assets/workbench/course.png" alt="" width="42" height="42"></span><span class="wb-tile__label">课程广场</span></button>
+              <button type="button" class="wb-tile" data-wb="signup"><span class="wb-tile__icon"><img src="assets/workbench/signup.png" alt="" width="42" height="42"></span><span class="wb-tile__label">我的报名</span></button>
+              <button type="button" class="wb-tile" data-wb="teacher"><span class="wb-tile__icon"><img src="assets/workbench/teacher.png" alt="" width="42" height="42"></span><span class="wb-tile__label">讲师入驻</span></button>
+            </div>
+          </section>
+        </div>
+        <nav class="wb-tabbar wb-tabbar--four" aria-label="底部导航">
+          <button type="button" class="wb-tab" id="wbTabHome" data-wb-tab="home" aria-label="首页">
+            <span class="wb-tab__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
+            <span>首页</span>
+          </button>
+          <button type="button" class="wb-tab is-on" data-wb-tab="workbench" aria-label="工作台">
+            <span class="wb-tab__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+            <span>工作台</span>
+          </button>
+          <button type="button" class="wb-tab" data-wb-tab="msg" aria-label="消息">
+            <span class="wb-tab__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></span>
+            <span>消息</span>
+          </button>
+          <button type="button" class="wb-tab" data-wb-tab="me" aria-label="我的">
+            <span class="wb-tab__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+            <span>我的</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- import-overview：已有数据后再进「数据迁移」 -->
+      <div class="screen hidden" id="screen-import-overview" data-flow="import-overview">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">数据迁移</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>本店已有导入数据</h2>
+            <p>可继续补充，或先查看 / 删除后再导入。再导入前须明确「合并」或「清空本类」。</p>
+          </div>
+          <div class="stock-list" id="stockList">
+            <div class="stock-list__item" data-stock="member">
+              <span class="stock-list__label">会员与持卡</span>
+              <span class="stock-list__val"><em class="num-em" id="stockMember">0</em> 人</span>
+              <span class="stock-list__tag" id="stockMemberTag">未导入</span>
+            </div>
+            <div class="stock-list__item" data-stock="card">
+              <span class="stock-list__label">会员卡模板</span>
+              <span class="stock-list__val"><em class="num-em" id="stockCard">0</em> 张</span>
+              <span class="stock-list__tag" id="stockCardTag">未导入</span>
+            </div>
+            <div class="stock-list__item" data-stock="price">
+              <span class="stock-list__label">价目表</span>
+              <span class="stock-list__val"><em class="num-em" id="stockPrice">0</em> 项</span>
+              <span class="stock-list__tag" id="stockPriceTag">未导入</span>
+            </div>
+          </div>
+          <p class="import-note">历史消费在「历史订单」单独导入，不在此统计。</p>
+          <div class="overview-view-row">
+            <button type="button" class="overview-view-link" data-overview-view="member">查看会员</button>
+            <button type="button" class="overview-view-link" data-overview-view="card">查看卡模板</button>
+            <button type="button" class="overview-view-link" data-overview-view="price">查看价目</button>
+          </div>
+        </div>
+        <div class="import-foot import-foot--stack">
+          <button type="button" class="btn-primary" id="btnOverviewContinue">继续补充导入</button>
+          <button type="button" class="btn-ghost" id="btnOverviewDelete">删除已导入数据</button>
+        </div>
+      </div>
+
+      <!-- import-guide -->
+      <div class="screen hidden" id="screen-import-guide" data-flow="import-guide">
+        <header class="page-title-bar"><span class="title">数据迁移</span></header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>4 步把老店数据搬过来</h2>
+            <p>持卡信息、卡模板、价目表都能自助导入。</p>
+          </div>
+
+          <ol class="guide-steps">
+            <li class="guide-step">
+              <span class="guide-step__num" aria-hidden="true">1</span>
+              <span class="guide-step__body">
+                <b>选要导入什么</b>
+                <span>勾选类别，逐类选来源</span>
+              </span>
+            </li>
+            <li class="guide-step">
+              <span class="guide-step__num" aria-hidden="true">2</span>
+              <span class="guide-step__body">
+                <b>提供数据</b>
+                <span>上传 Excel，或拍照识别</span>
+              </span>
+            </li>
+            <li class="guide-step">
+              <span class="guide-step__num" aria-hidden="true">3</span>
+              <span class="guide-step__body">
+                <b>确认字段对应</b>
+                <span>核对列名，逐类确认</span>
+              </span>
+            </li>
+            <li class="guide-step">
+              <span class="guide-step__num" aria-hidden="true">4</span>
+              <span class="guide-step__body">
+                <b>核对并导入</b>
+                <span>抽查无误后导入</span>
+              </span>
+            </li>
+          </ol>
+
+          <div class="guide-notes">
+            <div class="guide-notes__title">开始前请注意</div>
+            <ul>
+              <li>卡模板与价目表要<strong>同批导入</strong>，但请<strong>分成两个表</strong>分别上传</li>
+              <li>同类最多 3 个 Excel，共用一套字段映射</li>
+              <li>历史消费<strong>单独导入</strong>，不进订单流水</li>
+            </ul>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportGuideNext">开始选择</button>
+        </div>
+      </div>
+
+      <!-- import-select -->
+      <div class="screen hidden" id="screen-import-select" data-flow="import-select">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnImportSelectBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">数据迁移</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>这次要导入什么</h2>
+            <p>先勾选要导入的类别，再给每类选一种来源。已有数据的类须在下一步选择合并或清空。</p>
+          </div>
+          <div class="import-note">会员与持卡信息多为 Excel，也可拍纸质登记本；会员卡模板需引用价目表项目，两者须同批导入。历史消费不进订单流水，需单独导入。</div>
+          <div class="import-card on" data-import-card="member">
+            <button type="button" class="import-card__main" data-import-check="member">
+              <span class="import-card__check"></span>
+              <span class="import-card__ico" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c0-3.7 3.2-5.6 7.2-5.6s7.2 1.9 7.2 5.6"/></svg>
+              </span>
+              <span class="import-card__text">
+                <b>会员与持卡信息<span class="import-card__state is-pick" id="state-member">请选择来源</span></b>
+                <span>会员编号 / 卡种 / 余额…</span>
+              </span>
+            </button>
+            <div class="src-btns" role="group" aria-label="会员数据来源">
+              <button type="button" class="src-btn" aria-pressed="false" data-src-for="member" data-src="excel">
+                <svg class="src-btn__ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+                <span class="src-btn__text"><b>Excel 表格</b><span>已有导出表</span></span>
+              </button>
+              <button type="button" class="src-btn" aria-pressed="false" data-src-for="member" data-src="photo">
+                <svg class="src-btn__ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                <span class="src-btn__text"><b>拍照识别</b><span>纸表 / 手写</span></span>
+              </button>
+            </div>
+            <div class="import-card__thumbs hidden" id="thumbs-member" data-thumbs-for="member"></div>
+          </div>
+          <div class="import-card on" data-import-card="card">
+            <button type="button" class="import-card__main" data-import-check="card">
+              <span class="import-card__check"></span>
+              <span class="import-card__ico" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="2.6"/><path d="M2.8 10.2h18.4"/><path d="M6.6 14.6h4.2"/></svg>
+              </span>
+              <span class="import-card__text">
+                <b>会员卡模板<span class="import-card__state is-pick" id="state-card">请选择来源</span></b>
+                <span>卡名称 / 充值 / 权益 / 会员价…</span>
+              </span>
+            </button>
+            <div class="src-btns" role="group" aria-label="会员卡模板数据来源">
+              <button type="button" class="src-btn" aria-pressed="false" data-src-for="card" data-src="excel">
+                <svg class="src-btn__ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+                <span class="src-btn__text"><b>Excel 表格</b><span>已有导出表</span></span>
+              </button>
+              <button type="button" class="src-btn" aria-pressed="false" data-src-for="card" data-src="photo">
+                <svg class="src-btn__ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                <span class="src-btn__text"><b>拍照识别</b><span>纸表 / 手写</span></span>
+              </button>
+            </div>
+            <div class="import-card__thumbs hidden" id="thumbs-card" data-thumbs-for="card"></div>
+            <p class="import-card__dep" id="depCard">需与价目表同批导入，但要分成两个表分别上传</p>
+          </div>
+          <div class="import-card on" data-import-card="price">
+            <button type="button" class="import-card__main" data-import-check="price">
+              <span class="import-card__check"></span>
+              <span class="import-card__ico" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.3 13.4l-6.9 6.9a2.1 2.1 0 0 1-2.9 0l-7.1-7.1a2 2 0 0 1-.6-1.4V5.4a2 2 0 0 1 2-2h6.4a2 2 0 0 1 1.4.6l7.7 7.7a2.1 2.1 0 0 1 0 1.7z"/><circle cx="8.1" cy="8.1" r="1.5"/></svg>
+              </span>
+              <span class="import-card__text">
+                <b>价目表<span class="import-card__state is-pick" id="state-price">请选择来源</span></b>
+                <span>项目·产品 / 价格 / 会员价…</span>
+              </span>
+            </button>
+            <div class="src-btns" role="group" aria-label="价目表数据来源">
+              <button type="button" class="src-btn" aria-pressed="false" data-src-for="price" data-src="excel">
+                <svg class="src-btn__ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+                <span class="src-btn__text"><b>Excel 表格</b><span>已有导出表</span></span>
+              </button>
+              <button type="button" class="src-btn" aria-pressed="false" data-src-for="price" data-src="photo">
+                <svg class="src-btn__ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                <span class="src-btn__text"><b>拍照识别</b><span>纸表 / 手写</span></span>
+              </button>
+            </div>
+            <div class="import-card__thumbs hidden" id="thumbs-price" data-thumbs-for="price"></div>
+            <p class="import-card__dep import-card__dep--link hidden" id="depPrice">已随「会员卡模板」连带导入 · 卡模板的权益与会员价按这里校验</p>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportSelectNext">下一步</button>
+        </div>
+      </div>
+
+      <!-- import-source → 上传表格 -->
+      <div class="screen hidden" id="screen-import-source" data-flow="import-source">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-select" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">上传表格</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2 id="uploadStepTitle">上传 Excel</h2>
+            <p id="importUploadFor">第 1 / 2 类</p>
+          </div>
+          <div class="up-steps" id="uploadSteps"></div>
+          <div class="upload-list" id="importUploadList"></div>
+          <div class="hdr-card" id="hdrCard">
+            <div class="hdr-card__head">
+              <span class="hdr-card__title">标准表头</span>
+              <span class="hdr-card__tag" id="hdrTag">当前类别</span>
+            </div>
+            <p class="hdr-card__lead" id="hdrLead">首行改成下列列名，识别更准。</p>
+            <div class="hdr-card__body" id="hdrGroups"></div>
+            <button type="button" class="hdr-card__toggle" id="btnHdrToggle" aria-expanded="false">查看示例行</button>
+            <p class="hdr-card__hint" id="hdrHint">不要标题行、合并单元格、空行。</p>
+          </div>
+          <p class="import-trust-note">仅本店可见 · 导入后可在结果页整批删除</p>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportUploadDone">完成</button>
+        </div>
+      </div>
+
+      <!-- import-camera -->
+      <div class="screen hidden" id="screen-import-camera" data-flow="import-camera">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnCameraBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">拍照识别</span>
+          <span class="cam-count" id="importCameraCount">已拍 0 张</span>
+        </header>
+        <div class="import-camera">
+          <div class="cam-head">
+            <span class="cam-head__cat" id="importCameraFor">价目表</span>
+            <span class="cam-head__tip">整张表格入框，可连拍多页</span>
+          </div>
+          <p class="cam-demo hidden" id="importCameraDemo">当前环境无法调用相机，已切换演示模式 · 快门会生成示例照片</p>
+          <div class="import-camera__vf" id="importCameraVf">
+            <video class="cam-video hidden" id="importCameraVideo" autoplay playsinline muted></video>
+            <div class="import-camera__grid" aria-hidden="true"></div>
+            <div class="import-camera__frame" aria-hidden="true"></div>
+            <p class="import-camera__tip">把整张表格放进框内，四角对齐</p>
+          </div>
+          <div class="cam-strip" id="importCameraStrip">
+            <p class="cam-strip__empty" id="importCameraStripEmpty">拍摄后在这里预览</p>
+          </div>
+          <div class="cam-foot">
+            <button type="button" class="cam-foot__side" id="btnCameraAlbum">相册<span>占位</span></button>
+            <button type="button" class="import-camera__shutter" id="btnImportCameraShutter" aria-label="快门"></button>
+            <button type="button" class="cam-foot__side cam-foot__side--done" id="btnCameraDone">完成</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- import-queue：确认待识别内容 -->
+      <div class="screen hidden" id="screen-import-queue" data-flow="import-queue">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-select" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">确认待识别内容</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>AI 会一起识别这些内容</h2>
+            <p>Excel 需下一步对齐列名；照片自动识别列，无需指定字段。</p>
+          </div>
+          <div class="queue-summary" id="queueSummary"></div>
+          <div class="queue-sec">
+            <div class="queue-sec__head">
+              <span class="queue-sec__title">Excel 表格</span>
+              <span class="queue-sec__count" id="queueExcelCount">0 个</span>
+            </div>
+            <div class="queue-list" id="queueExcelList"></div>
+          </div>
+          <div class="queue-sec">
+            <div class="queue-sec__head">
+              <span class="queue-sec__title">照片</span>
+              <span class="queue-sec__count" id="queuePhotoCount">0 张</span>
+            </div>
+            <div id="queuePhotoGroups"></div>
+          </div>
+          <p class="queue-note" id="queueNote">同一类别只保留一种来源；需要换来源请返回上一步。</p>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnQueueStart">开始识别</button>
+        </div>
+      </div>
+
+      <!-- import-map -->
+      <div class="screen hidden" id="screen-import-map" data-flow="import-map">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnImportMapBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">确认字段对应</span>
+          <span class="import-map-lock-badge hidden" id="importMapLockBadge">已锁定</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-return-hint hidden" id="importMapReturnHint">已返回修改 · 映射已保留，改动仅影响本次导入</div>
+          <div class="import-head">
+            <p id="importMapLead">已识别为<strong>会员与持卡信息表</strong>，AI 已按列名猜好映射</p>
+          </div>
+          <div class="map-progress" id="mapProgress">
+            <div class="map-progress__top">
+              <b>映射确认</b>
+              <span id="mapProgressText">已确认 0/2</span>
+            </div>
+            <div class="map-progress__bar" aria-hidden="true"><i id="mapProgressBar"></i></div>
+            <p class="map-progress__hint" id="mapProgressHint">还有 2 项待确认</p>
+          </div>
+          <div class="map-tabs" id="importMapTabs" role="tablist" aria-label="按类别确认映射"></div>
+          <p class="map-multi-note hidden" id="mapMultiNote"></p>
+          <div id="importMapRows"></div>
+          <div class="map-photo-note hidden" id="importMapPhotoNote"></div>
+          <label class="import-map-ack" id="btnImportMapAck">
+            <input type="checkbox" class="import-map-ack__input" id="importMapAckInput">
+            <span class="import-map-ack__box" aria-hidden="true"></span>
+            <span id="importMapAckText">确认映射关系无误</span>
+          </label>
+          <p class="import-map-tip">自定义字段须与源表列名完全一致；未识别的字段会红字提示，并按跳过处理。</p>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportMapPreview" disabled>下一步</button>
+          <button type="button" class="btn-ghost">让 AI 再解释一遍</button>
+        </div>
+      </div>
+
+      <!-- import-tpl-gen（据卡种自动生成卡模板，与用户确认后并入本批） -->
+      <div class="screen hidden" id="screen-import-tpl-gen" data-flow="import-tpl-gen">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-map" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">确认卡模板</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>按卡种生成卡模板</h2>
+            <p id="tplGenLead">本批没有导入会员卡模板，已从持卡信息的「卡种」推得 <strong>10</strong> 张模板草案。<b>储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」</b>，可逐张改后确认。</p>
+          </div>
+          <div class="tpl-gen-note">
+            <b>只有储值与有效期能推断</b>
+            <span>储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」，均可在这里改；赠送 / 权益 / 会员价无法从持卡信息推断，会以「待完善」状态入库，可在店铺管理里补齐。</span>
+          </div>
+          <div class="tpl-gen-bar">
+            <label class="tpl-gen-all">
+              <input type="checkbox" id="tplGenAll" checked>
+              <span>全选</span>
+            </label>
+            <span id="tplGenCount">已选 10 张</span>
+          </div>
+          <div class="tpl-gen-list" id="tplGenList"></div>
+          <p class="tpl-gen-foot" id="tplGenFoot">折扣值按卡种名推断（如「8折」→ 8 折）；卡名称、储值金额、有效期都可改，改完不影响已导入的持卡信息。</p>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnTplGenNext">确认，生成 10 张模板</button>
+          <button type="button" class="btn-ghost" id="btnTplGenSkip">本次不生成，继续</button>
+        </div>
+      </div>
+
+      <!-- import-preview（分类概览，仅此页可确认导入） -->
+      <div class="screen hidden" id="screen-import-preview" data-flow="import-preview">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnImportPreviewTopBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">核对数据</span>
+        </header>
+        <div class="scroll-body import-body import-preview-body">
+          <div class="import-head">
+            <h2>核对将导入的数据</h2>
+            <p class="import-preview-sub" id="importPreviewSub">会员 <em class="num-em">126</em> · 卡 <em class="num-em">98</em> · 价目 <em class="num-em">42</em>。点分类查看明细。</p>
+          </div>
+          <div id="importPreviewTypes"></div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportPreviewConfirm">确认无误，导入</button>
+          <button type="button" class="btn-ghost" id="btnImportPreviewBack">返回修改映射</button>
+        </div>
+      </div>
+
+      <!-- import-preview-detail（单类明细，不可确认导入） -->
+      <div class="screen hidden" id="screen-import-preview-detail" data-flow="import-preview-detail">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-preview" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title" id="importPreviewDetailTitle">会员明细</span>
+        </header>
+        <div class="scroll-body import-body import-preview-body">
+          <div class="import-head">
+            <p class="import-preview-sub" id="importPreviewDetailSub">抽样预览，点行可核对字段</p>
+          </div>
+          <div class="import-preview-cards" id="importPreviewCards"></div>
+        </div>
+      </div>
+
+      <!-- import-result -->
+      <div class="screen hidden" id="screen-import-result" data-flow="import-result">
+        <header class="page-title-bar"><span class="title">导入完成</span></header>
+        <div class="scroll-body import-body import-result-body">
+          <div class="import-success">
+            <div class="import-success__icon" aria-hidden="true">✓</div>
+            <h2 class="import-success__title">导入成功</h2>
+            <p class="import-success__lead">已把老店数据写入本店，可直接开单用。</p>
+          </div>
+          <div class="import-success-list">
+            <div class="import-success-list__item">
+              <span class="import-success-list__label">会员与持卡</span>
+              <span class="import-success-list__val"><em class="num-em" id="resultMemberCount">126</em> 人</span>
+              <span class="import-success-list__ok" id="resultMemberOk">已入库</span>
+              <button type="button" class="import-success-list__view" data-result-view="member">查看</button>
+            </div>
+            <div class="import-success-list__item">
+              <span class="import-success-list__label">会员卡模板</span>
+              <span class="import-success-list__val"><em class="num-em" id="resultCardCount">4</em> 张</span>
+              <span class="import-success-list__ok" id="resultCardOk">已入库</span>
+              <button type="button" class="import-success-list__view" data-result-view="card">查看</button>
+            </div>
+            <div class="import-success-list__item">
+              <span class="import-success-list__label">价目表</span>
+              <span class="import-success-list__val"><em class="num-em" id="resultPriceCount">42</em> 项</span>
+              <span class="import-success-list__ok" id="resultPriceOk">已入库</span>
+              <button type="button" class="import-success-list__view" data-result-view="price">查看</button>
+            </div>
+          </div>
+          <p class="import-result-merge hidden" id="importResultMerge"></p>
+          <p class="import-result-sources" id="importResultSources">本批来源：Excel 3 个</p>
+          <button type="button" class="import-fail" id="btnImportFailRow">
+            <span><b><em class="num-em" id="importFailCount">2</em> 条失败</b><span id="importFailTail">，可手动补录</span></span>
+            <span class="import-fail__link" id="importFailHint">查看明细</span>
+          </button>
+          <div class="import-result-actions">
+            <button type="button" class="import-result-link" id="btnImportHistory">去导入历史消费记录</button>
+            <button type="button" class="import-result-link import-result-link--danger" id="btnImportDeleteBatch">删除本批数据</button>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportBackHome">返回首页</button>
+        </div>
+      </div>
+
+      <!-- import-fail -->
+      <div class="screen hidden" id="screen-import-fail" data-flow="import-fail">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-result" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">失败明细 · <em class="num-em" id="failScreenCount">2</em> 条</span>
+        </header>
+        <div class="scroll-body import-body" id="importFailList">
+          <div class="import-fail-item" data-fail-id="f1">
+            <div class="import-fail-item__row"><strong>第 47 行</strong><span class="import-fail-item__reason">手机号格式错误</span></div>
+            <p class="import-fail-item__meta">姓名：赵女士 · 原值 1380013abc</p>
+            <div class="import-fail-item__acts">
+              <button type="button" class="import-fail-item__fix" data-fail-fix="f1">手动补录</button>
+              <button type="button" class="import-fail-item__done hidden" data-fail-done="f1">补录完成</button>
+            </div>
+          </div>
+          <div class="import-fail-item" data-fail-id="f2">
+            <div class="import-fail-item__row"><strong>第 103 行</strong><span class="import-fail-item__reason">卡余额无法解析</span></div>
+            <p class="import-fail-item__meta">姓名：孙先生 · 原值 ¥—</p>
+            <div class="import-fail-item__acts">
+              <button type="button" class="import-fail-item__fix" data-fail-fix="f2">手动补录</button>
+              <button type="button" class="import-fail-item__done hidden" data-fail-done="f2">补录完成</button>
+            </div>
+          </div>
+          <div class="import-fail-empty hidden" id="importFailEmpty">
+            <div class="import-fail-empty__icon" aria-hidden="true">✓</div>
+            <p class="import-fail-empty__title">失败数据已全部补录</p>
+            <p class="import-fail-empty__hint">会员与持卡信息已写入本店，可回结果页继续操作。</p>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnImportFailDownload">下载失败明细</button>
+          <button type="button" class="btn-ghost" data-go="import-result">返回导入结果</button>
+        </div>
+      </div>
+
+      <!-- legacy-card：失败补录 → 添加卡（右侧滑入，选中「补录老卡」） -->
+      <div class="screen hidden" id="screen-legacy-card" data-flow="legacy-card">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnLegacyCardBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">添加卡</span>
+        </header>
+        <div class="scroll-body import-body legacy-body">
+          <div class="legacy-member" id="legacyMemberRow"></div>
+
+          <div class="legacy-section">
+            <div class="legacy-section__title">办理类型</div>
+            <div class="add-card-mode">
+              <button type="button" class="add-card-mode__btn" data-legacy-mode="new">办新卡</button>
+              <button type="button" class="add-card-mode__btn is-on" data-legacy-mode="legacy">补录老卡</button>
+            </div>
+          </div>
+
+          <div class="legacy-section">
+            <div class="legacy-section__title">办理会员卡</div>
+            <div class="legacy-group-tabs" id="legacyGroupTabs" role="tablist" aria-label="会员卡分组"></div>
+            <div class="legacy-card-list" id="legacyCardList"></div>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnLegacyCardNext">下一步</button>
+        </div>
+      </div>
+
+      <!-- legacy-detail：补录老卡 -->
+      <div class="screen hidden" id="screen-legacy-detail" data-flow="legacy-detail">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnLegacyDetailBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title" id="legacyDetailTitle">补录老卡</span>
+        </header>
+        <div class="scroll-body import-body legacy-body">
+          <div class="legacy-member" id="legacyDetailMember"></div>
+          <div class="legacy-picked" id="legacyDetailCard"></div>
+
+          <div class="legacy-section">
+            <div class="legacy-section__title">卡内信息</div>
+            <label class="legacy-field">
+              <span class="legacy-field__label">卡内余额<em>*</em></span>
+              <span class="legacy-field__ctrl legacy-field__ctrl--money">
+                <span class="legacy-field__unit">¥</span>
+                <input type="text" id="legacyBalance" inputmode="decimal" placeholder="0.00" autocomplete="off">
+              </span>
+            </label>
+            <label class="legacy-field">
+              <span class="legacy-field__label">有效期限</span>
+              <span class="legacy-field__ctrl">
+                <input type="text" id="legacyExpiry" placeholder="如 2027-12-31" autocomplete="off">
+              </span>
+            </label>
+            <label class="legacy-field">
+              <span class="legacy-field__label">充值剩余金额</span>
+              <span class="legacy-field__ctrl legacy-field__ctrl--money">
+                <span class="legacy-field__unit">¥</span>
+                <input type="text" id="legacyRechargeLeft" inputmode="decimal" placeholder="0.00" autocomplete="off">
+              </span>
+            </label>
+            <label class="legacy-field">
+              <span class="legacy-field__label">赠送剩余金额</span>
+              <span class="legacy-field__ctrl legacy-field__ctrl--money">
+                <span class="legacy-field__unit">¥</span>
+                <input type="text" id="legacyBonusLeft" inputmode="decimal" placeholder="0.00" autocomplete="off">
+              </span>
+            </label>
+            <label class="legacy-field">
+              <span class="legacy-field__label">赠送项目</span>
+              <span class="legacy-field__ctrl">
+                <input type="text" id="legacyBonusItems" placeholder="如 头皮护理 ×2" autocomplete="off">
+              </span>
+            </label>
+          </div>
+          <p class="legacy-hint">按补录时刻的余额填写即可，补录不产生收款单据。</p>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnLegacyConfirm">确认补录</button>
+        </div>
+      </div>
+
+      <!-- card-list：原型占位 -->
+      <div class="screen hidden" id="screen-card-list" data-flow="card-list">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-result" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">会员卡模板</span>
+        </header>
+        <div class="scroll-body import-body">
+          <p class="proto-note">原型占位 · 会员卡模板列表以线上系统的真实页面为准</p>
+          <div class="proto-list">
+            <div class="proto-list__item"><b>黄金卡</b><span>充 2000 送 200 · 全场 8 折 · 296 人持卡</span></div>
+            <div class="proto-list__item"><b>8折卡</b><span>充 1000 送 100 · 全场 8 折 · 296 人持卡</span></div>
+            <div class="proto-list__item"><b>7.5折卡</b><span>充 800 送 80 · 全场 7.5 折 · 34 人持卡</span></div>
+            <div class="proto-list__item"><b>6折卡</b><span>充 500 送 50 · 指定项目 6 折 · 152 人持卡</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- price-list：原型占位 -->
+      <div class="screen hidden" id="screen-price-list" data-flow="price-list">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-result" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">价目表</span>
+        </header>
+        <div class="scroll-body import-body">
+          <p class="proto-note">原型占位 · 价目表以线上系统的真实页面为准</p>
+          <div class="proto-list">
+            <div class="proto-list__item"><b>剪发</b><span>项目 · ¥68 / 次</span></div>
+            <div class="proto-list__item"><b>烫发</b><span>项目 · ¥288 / 次</span></div>
+            <div class="proto-list__item"><b>染发</b><span>项目 · ¥368 / 次</span></div>
+            <div class="proto-list__item"><b>头皮护理</b><span>项目 · ¥168 / 次</span></div>
+            <div class="proto-list__item"><b>造型设计</b><span>项目 · ¥128 / 次</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- members -->
+      <div class="screen hidden members-screen" id="screen-members" data-flow="members">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-result" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">会员列表</span>
+          <span class="members-count-badge" id="membersCountBadge">共 126 人</span>
+        </header>
+        <div class="members-layout">
+          <div class="pick-search members-pick-search">
+            <div class="box">
+              <input class="pick-inp" type="search" id="membersSearchInput" autocomplete="off" placeholder="输入姓名或手机号">
+              <img src="assets/member/ic_search.svg" alt="" width="16" height="16">
+            </div>
+            <button class="cancel" type="button" id="btnMembersSearchCancel">取消</button>
+          </div>
+          <div class="members-main">
+            <div class="pick-list" id="membersPickList"></div>
+            <div class="index-bar hidden" id="membersIndexBar" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 历史订单（只读旁路） ===== -->
+      <div class="screen hidden" id="screen-history-orders" data-flow="history-orders">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">历史订单</span>
+          <button type="button" class="history-import-btn" id="btnHistoryOrdersImport">导入</button>
+        </header>
+        <div class="history-bar">
+          <div class="history-search">
+            <img src="assets/member/ic_search.svg" alt="" width="16" height="16">
+            <input type="search" id="historySearch" placeholder="搜索顾客姓名" autocomplete="off">
+          </div>
+          <button type="button" class="history-filter-btn" id="btnHistoryFilter">筛选</button>
+        </div>
+        <p class="history-summary" id="historySummary">共 0 条 · 合计 ¥0</p>
+        <div class="scroll-body history-body">
+          <div class="history-list" id="historyList"></div>
+          <div class="history-empty hidden" id="historyEmpty">
+            <p class="history-empty__title">没有符合条件的历史订单</p>
+            <p class="history-empty__hint">换个时间或金额范围试试；也可以导入新的历史消费。</p>
+            <button type="button" class="btn-primary" id="btnHistoryEmptyImport">导入历史消费</button>
+          </div>
+        </div>
+        <p class="history-foot-note">仅用于查看核对，不进订单流水</p>
+      </div>
+
+      <div class="screen hidden" id="screen-history-detail" data-flow="history-detail">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-orders" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">订单详情</span>
+        </header>
+        <div class="scroll-body history-detail-body" id="historyDetailBody"></div>
+      </div>
+
+      <!-- ===== 历史消费导入 ===== -->
+      <div class="screen hidden" id="screen-history-import-intro" data-flow="history-import-intro">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-orders" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">导入历史消费</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>把老账单带过来</h2>
+            <p>只用于查看核对历史订单，不参与开单、业绩与会员资产计算。</p>
+          </div>
+          <ul class="history-import-points">
+            <li>
+              <b>不进订单流水</b>
+              <span>导入后只出现在「历史订单」，不影响本店经营数据与会员余额。</span>
+            </li>
+            <li>
+              <b>只支持 Excel</b>
+              <span>历史账单手写、截图多，拍照识别不可靠，本功能只接受表格。</span>
+            </li>
+            <li>
+              <b>只认三项</b>
+              <span>日期、金额、顾客姓名用于筛选搜索；其余列原样保留，可在详情里查看。</span>
+            </li>
+          </ul>
+          <div class="import-note">建议先导入会员与持卡信息、会员卡模板、价目表，再导入历史消费。</div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnHistoryImportStart">上传 Excel 表</button>
+        </div>
+      </div>
+
+      <div class="screen hidden" id="screen-history-import-upload" data-flow="history-import-upload">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-import-intro" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">上传历史消费</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <p>列名不必固定，下一步再指定哪一列是日期、金额、顾客姓名。</p>
+          </div>
+          <button type="button" class="upload-drop" id="btnHistoryPickFile">
+            <span class="upload-drop__ico" aria-hidden="true"></span>
+            <b>选择文件</b>
+            <span>xls / xlsx / csv · 单表 ≤ 10MB</span>
+          </button>
+          <div class="hdr-card">
+            <div class="hdr-card__head">
+              <span class="hdr-card__title">标准表头</span>
+              <span class="hdr-card__tag">识别更准</span>
+            </div>
+            <p class="hdr-card__lead">建议首行用下面的列名；没用这些列名也能导入，下一步再手工指定哪列是日期、金额、顾客姓名。</p>
+            <div class="hdr-card__body">
+              <div class="hdr-group">
+                <div class="hdr-group__head"><b>历史消费</b><span>7 列 · 后 4 列原样保留</span></div>
+                <div class="hdr-group__chips">
+                  <span>消费日期</span><span>实收金额</span><span>顾客姓名</span><span>项目</span><span>支付方式</span><span>门店</span><span>备注</span>
+                </div>
+                <div class="hdr-group__eg"><i>示例</i>2025-12-28 · 1280 · 李女士 · 染发 + 护理 · 微信 · 悦己美发沙龙 · 办卡前消费</div>
+              </div>
+            </div>
+            <p class="hdr-card__hint">前 3 列会被识别用于筛选与搜索，其余列整行原样保留。</p>
+          </div>
+          <p class="import-trust-note">仅本店可见 · 只用于「历史订单」查看 · 可整批删除</p>
+        </div>
+      </div>
+
+      <div class="screen hidden" id="screen-history-import-map" data-flow="history-import-map">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-import-upload" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">指定字段</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>哪一列是这些信息</h2>
+            <p>系统已按列名猜好，不对的可以改。</p>
+          </div>
+          <div class="map-rows">
+            <label class="map-row">
+              <span class="map-row__label">日期<em>必填</em></span>
+              <select class="map-row__select" id="historyMapDate"></select>
+            </label>
+            <label class="map-row">
+              <span class="map-row__label">金额<em>必填</em></span>
+              <select class="map-row__select" id="historyMapAmount"></select>
+            </label>
+            <label class="map-row">
+              <span class="map-row__label">顾客姓名<em class="is-opt">可空</em></span>
+              <select class="map-row__select" id="historyMapName"></select>
+            </label>
+          </div>
+          <p class="map-hint">其余列会原样保留，可在「历史订单」详情里查看。</p>
+          <div class="history-sample">
+            <div class="history-sample__title">样例行</div>
+            <div class="history-sample__row"><span>消费日期</span><span>实收金额</span><span>顾客姓名</span></div>
+            <div class="history-sample__row"><span>2025-12-28</span><span>¥1,280</span><span>李女士</span></div>
+            <div class="history-sample__row"><span>2025-11-09</span><span>¥680</span><span>王先生</span></div>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnHistoryMapNext">下一步</button>
+        </div>
+      </div>
+
+      <div class="screen hidden" id="screen-history-import-preview" data-flow="history-import-preview">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-import-map" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">核对数据</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="import-head">
+            <h2>核对将导入的数据</h2>
+            <p id="historyPreviewLead">共 0 条</p>
+          </div>
+          <div class="history-preview-list" id="historyPreviewList"></div>
+          <div class="import-fail hidden" id="historyPreviewWarn">
+            <span><b><em class="num-em" id="historyPreviewFailCount">0</em> 条无法识别</b><span>，导入后可在失败明细下载</span></span>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnHistoryPreviewConfirm">确认无误，导入</button>
+        </div>
+      </div>
+
+      <div class="screen hidden" id="screen-history-import-result" data-flow="history-import-result">
+        <header class="page-title-bar"><span class="title">导入完成</span></header>
+        <div class="scroll-body import-body import-result-body">
+          <div class="import-success">
+            <div class="import-success__icon" aria-hidden="true">✓</div>
+            <h2 class="import-success__title">导入成功</h2>
+            <p class="import-success__lead" id="historyResultLead">历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。</p>
+          </div>
+          <div class="import-success-list">
+            <div class="import-success-list__item">
+              <span class="import-success-list__label">历史消费</span>
+              <span class="import-success-list__val"><em class="num-em" id="historyResultCount">128</em> 条</span>
+              <span class="import-success-list__ok">已入库</span>
+              <button type="button" class="import-success-list__view" data-go="history-orders">查看</button>
+            </div>
+          </div>
+          <p class="history-result-note">不进订单流水，仅用于查看核对；会员余额与业绩不受影响。</p>
+          <button type="button" class="import-fail" id="btnHistoryFailRow">
+            <span><b><em class="num-em" id="historyFailCount">0</em> 条失败</b><span>，下载后修正再传</span></span>
+            <span class="import-fail__link">查看明细</span>
+          </button>
+          <div class="import-result-actions">
+            <button type="button" class="import-result-link import-result-link--danger" id="btnHistoryDeleteBatch">删除本批历史消费</button>
+          </div>
+        </div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" data-go="workbench">返回工作台</button>
+        </div>
+      </div>
+
+      <div class="screen hidden" id="screen-history-import-fail" data-flow="history-import-fail">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-import-result" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">失败明细 · <em class="num-em" id="historyFailScreenCount">0</em> 条</span>
+        </header>
+        <div class="scroll-body import-body" id="historyFailList"></div>
+        <div class="import-foot">
+          <button type="button" class="btn-primary" id="btnHistoryFailDownload">下载失败行</button>
+        </div>
+      </div>
+
+      <!-- overlays -->
+      <div class="overlay-mask" id="inviteMask" aria-hidden="true"></div>
+      <div class="invite-sheet" id="inviteSheet" role="dialog" aria-labelledby="inviteTitle">
+        <div class="invite-sheet__handle"></div>
+        <h3 id="inviteTitle">把老系统数据带过来？</h3>
+        <p>会员与持卡信息、会员卡模板、价目表可自助导入，不必先填模板。</p>
+        <div class="invite-sheet__actions">
+          <button type="button" class="btn-primary" id="btnInviteStart">开始导入</button>
+          <button type="button" class="btn-ghost" id="btnInviteLater">稍后再说</button>
+        </div>
+      </div>
+
+      <button type="button" class="migrate-fab" id="migrateFab" aria-label="数据迁移">
+        <span class="migrate-fab__close" id="migrateFabClose" aria-label="关闭">×</span>
+        数据<br>迁移
+      </button>
+
+      <div class="dialog-mask" id="fabCloseDialog" aria-hidden="true">
+        <div class="dialog-card">
+          <h4>导入已完成</h4>
+          <p>是否关闭右下角「数据迁移」浮球？关闭后仍可从工作台进入。</p>
+          <div class="dialog-card__row">
+            <button type="button" class="btn-outline" id="btnFabCloseNo">保留</button>
+            <button type="button" class="btn-primary" id="btnFabCloseYes">关闭浮球</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-mask" id="srcDialogMask" aria-hidden="true">
+        <div class="dialog-card src-dialog" id="srcDialog" role="dialog" aria-labelledby="srcDialogTitle" aria-describedby="srcDialogLead">
+          <span class="src-dialog__ico" id="srcDialogIco" aria-hidden="true"></span>
+          <h4 id="srcDialogTitle">Excel 表格</h4>
+          <p class="src-dialog__sub" id="srcDialogSub">会员 · 数据来源</p>
+          <p class="src-dialog__lead" id="srcDialogLead"></p>
+          <ul class="src-dialog__list" id="srcDialogList"></ul>
+          <div class="dialog-card__row">
+            <button type="button" class="btn-outline" id="btnSrcDialogCancel">取消</button>
+            <button type="button" class="btn-primary" id="btnSrcDialogOk">去上传表格</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay-mask" id="previewDetailMask" aria-hidden="true"></div>
+      <div class="preview-detail-sheet" id="previewDetailSheet" role="dialog" aria-labelledby="previewDetailTitle">
+        <div class="preview-detail-sheet__handle"></div>
+        <h3 id="previewDetailTitle">核对明细</h3>
+        <dl class="preview-detail-dl" id="previewDetailBody"></dl>
+        <button type="button" class="btn-primary" id="btnPreviewDetailClose">知道了</button>
+      </div>
+
+      <!-- 定位：App 内说明（对照现状实拍） -->
+      <div class="overlay-mask loc-mask" id="locExplainMask" aria-hidden="true"></div>
+      <div class="loc-explain-dialog" id="locExplainDialog" role="dialog" aria-labelledby="locExplainTitle" aria-hidden="true">
+        <h3 id="locExplainTitle">权限说明</h3>
+        <p>需要定位权限，以便在地图上选择店址或查找附近门店。</p>
+        <div class="loc-explain-dialog__row">
+          <button type="button" class="btn-outline" id="btnLocExplainReject">拒绝</button>
+          <button type="button" class="btn-primary" id="btnLocExplainAgree">同意</button>
+        </div>
+      </div>
+
+      <!-- 定位：系统权限样式 -->
+      <div class="overlay-mask loc-mask" id="locSysMask" aria-hidden="true"></div>
+      <div class="loc-sys-dialog" id="locSysDialog" role="dialog" aria-labelledby="locSysTitle" aria-hidden="true">
+        <div class="loc-sys-dialog__pin" aria-hidden="true">📍</div>
+        <p id="locSysTitle">要允许「剑琅联盟」获取此设备的位置信息吗？</p>
+        <div class="loc-sys-dialog__precision" aria-hidden="true">
+          <div class="loc-sys-dialog__prec on"><span>确切位置</span></div>
+          <div class="loc-sys-dialog__prec"><span>大致位置</span></div>
+        </div>
+        <button type="button" class="loc-sys-dialog__opt" data-loc-allow="while">仅在使用该应用时允许</button>
+        <button type="button" class="loc-sys-dialog__opt" data-loc-allow="once">仅限这一次</button>
+        <button type="button" class="loc-sys-dialog__opt loc-sys-dialog__opt--deny" id="btnLocSysDeny">不允许</button>
+      </div>
+
+      <!-- 失败手动补录半屏 -->
+      <div class="overlay-mask" id="failFixMask" aria-hidden="true"></div>
+      <div class="fail-fix-sheet" id="failFixSheet" role="dialog" aria-labelledby="failFixTitle">
+        <div class="preview-detail-sheet__handle"></div>
+        <h3 id="failFixTitle">手动补录</h3>
+        <p class="fail-fix-sheet__hint" id="failFixHint">补全后写入本店会员，会员卡可单独补录</p>
+        <label class="fail-fix-field">姓名<input type="text" id="failFixName" autocomplete="off"></label>
+        <div class="fail-fix-field fail-fix-field--gender">
+          <span class="fail-fix-field__label">性别</span>
+          <div class="fail-fix-gender" id="failFixGender" role="radiogroup" aria-label="选择性别">
+            <button type="button" class="fail-fix-gender__opt" data-fail-gender="男" role="radio" aria-checked="false">男</button>
+            <button type="button" class="fail-fix-gender__opt" data-fail-gender="女" role="radio" aria-checked="false">女</button>
+          </div>
+        </div>
+        <label class="fail-fix-field">手机号<input type="tel" id="failFixPhone" inputmode="numeric" maxlength="11" placeholder="可不填，填写需 11 位" autocomplete="off"></label>
+        <div class="fail-fix-cards">
+          <div class="fail-fix-cards__head">
+            <span class="fail-fix-cards__title" id="failFixCardsTitle">会员卡</span>
+            <button type="button" class="fail-fix-cards__add" id="btnFailFixAddCard">+ 添加会员卡</button>
+          </div>
+          <div class="fail-fix-cards__list" id="failFixCardList"></div>
+          <p class="fail-fix-cards__empty" id="failFixCardEmpty">尚未补录会员卡，可留空</p>
+        </div>
+        <p class="fail-fix-card__note">会员可能没有持卡，性别、手机号、会员卡均可留空；同一卡种可补多张</p>
+        <button type="button" class="btn-primary" id="btnFailFixSave">保存并入库</button>
+        <button type="button" class="btn-ghost" id="btnFailFixCancel">取消</button>
+      </div>
+
+      <!-- 删除本批确认 -->
+      <div class="overlay-mask" id="delBatchMask" aria-hidden="true"></div>
+      <div class="del-batch-dialog" id="delBatchDialog" role="dialog" aria-labelledby="delBatchTitle" aria-hidden="true">
+        <h3 id="delBatchTitle">删除本批数据？</h3>
+        <p id="delBatchBody">将删除本次导入的 <em class="num-em" id="delBatchMemberCount">126</em> 条会员与持卡信息、<em class="num-em" id="delBatchCardCount">4</em> 张卡模板与 <em class="num-em" id="delBatchPriceCount">42</em> 项价目，已手动补录的条目也会一并删除。删除后需重新导入。</p>
+        <div class="del-batch-dialog__row">
+          <button type="button" class="btn-outline" id="btnDelBatchCancel">先不删</button>
+          <button type="button" class="btn-primary" id="btnDelBatchConfirm">确认删除</button>
+        </div>
+      </div>
+
+      <!-- 再导入模式：合并 / 清空本类（强制二选一） -->
+      <div class="overlay-mask" id="reimportModeMask" aria-hidden="true"></div>
+      <div class="invite-sheet reimport-sheet" id="reimportModeSheet" role="dialog" aria-labelledby="reimportModeTitle">
+        <div class="invite-sheet__handle"></div>
+        <h3 id="reimportModeTitle">本店已有同类数据</h3>
+        <p>下列类别已有入库数据。请为每一类选择处理方式，不可跳过。</p>
+        <div class="reimport-mode-list" id="reimportModeList"></div>
+        <div class="invite-sheet__actions">
+          <button type="button" class="btn-primary" id="btnReimportModeOk" disabled>确认并继续</button>
+          <button type="button" class="btn-ghost" id="btnReimportModeCancel">返回修改类别</button>
+        </div>
+      </div>
+
+      <!-- 历史再导：追加 / 先删除再导 -->
+      <div class="overlay-mask" id="historyReimportMask" aria-hidden="true"></div>
+      <div class="invite-sheet" id="historyReimportSheet" role="dialog" aria-labelledby="historyReimportTitle">
+        <div class="invite-sheet__handle"></div>
+        <h3 id="historyReimportTitle">本店已有历史订单</h3>
+        <p id="historyReimportLead">当前约有 <em class="num-em" id="historyReimportCount">0</em> 条。系统不去重，请选择本次导入方式。</p>
+        <div class="invite-sheet__actions">
+          <button type="button" class="btn-primary" id="btnHistoryReimportAppend">追加导入</button>
+          <button type="button" class="btn-ghost" id="btnHistoryReimportReplace">先整批删除再导入</button>
+          <button type="button" class="btn-ghost" id="btnHistoryReimportCancel">取消</button>
+        </div>
+      </div>
+
+      <!-- 历史订单筛选半屏 -->
+      <div class="overlay-mask" id="historyFilterMask" aria-hidden="true"></div>
+      <div class="filter-sheet" id="historyFilterSheet" role="dialog" aria-labelledby="historyFilterTitle">
+        <div class="preview-detail-sheet__handle"></div>
+        <h3 id="historyFilterTitle">筛选</h3>
+        <div class="filter-row">
+          <span class="filter-row__label">消费时间</span>
+          <div class="filter-range">
+            <input type="date" id="historyFrom" aria-label="开始日期">
+            <span class="filter-range__sep">至</span>
+            <input type="date" id="historyTo" aria-label="结束日期">
+          </div>
+        </div>
+        <div class="filter-row">
+          <span class="filter-row__label">金额区间</span>
+          <div class="filter-range">
+            <input type="number" id="historyMin" placeholder="最低" inputmode="decimal">
+            <span class="filter-range__sep">–</span>
+            <input type="number" id="historyMax" placeholder="最高" inputmode="decimal">
+          </div>
+        </div>
+        <p class="filter-hint">只支持按已识别的日期、金额、顾客姓名筛选。</p>
+        <div class="filter-actions">
+          <button type="button" class="btn-outline" id="btnHistoryFilterReset">重置</button>
+          <button type="button" class="btn-primary" id="btnHistoryFilterApply">查看结果</button>
+        </div>
+      </div>
+
+      <!-- 删除本批历史消费 -->
+      <div class="overlay-mask" id="historyDelMask" aria-hidden="true"></div>
+      <div class="del-batch-dialog" id="historyDelDialog" role="dialog" aria-labelledby="historyDelTitle" aria-hidden="true">
+        <h3 id="historyDelTitle">删除本批历史消费？</h3>
+        <p>将删除本次导入的 <em class="num-em" id="historyDelCount">128</em> 条历史消费。本店订单流水、会员余额与业绩都不受影响。</p>
+        <div class="del-batch-dialog__row">
+          <button type="button" class="btn-outline" id="btnHistoryDelCancel">先不删</button>
+          <button type="button" class="btn-primary" id="btnHistoryDelConfirm">确认删除</button>
+        </div>
+      </div>
+
+      <!-- 统一导入进度层（识别 / 正式导入 / 历史消费导入共用） -->
+      <div class="import-progress hidden" id="importProgress" role="dialog" aria-modal="true" aria-labelledby="importProgressTitle" aria-hidden="true">
+        <div class="import-progress__card">
+          <p class="import-progress__title" id="importProgressTitle">正在识别…</p>
+          <p class="import-progress__sub" id="importProgressSub">正在解析 Excel 与照片</p>
+          <div class="import-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="importProgressTrack">
+            <i id="importProgressBar"></i>
+          </div>
+          <div class="import-progress__meta">
+            <span id="importProgressStep">准备中</span>
+            <b id="importProgressPct">0%</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast-msg" id="protoToast" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

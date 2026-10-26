@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>剑琅联盟 · 线上入驻链路 · 头部产品对标</title>
+<style>
+  :root {
+    --brand: #E85D4C;
+    --brand-deep: #C43C2C;
+    --water: #3B9EA0;
+    --metal: #8B7355;
+    --paper: #F7F3EB;
+    --ink: #2C2416;
+    --ink-sec: #5A5248;
+    --ink-3: #8A8278;
+    --card: #FFFEFA;
+    --line: #E5DCCE;
+    --hi: #D64545;
+    --mid: #D4890A;
+    --lo: #2F9E6B;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink); background: var(--paper); font-size: 14px; line-height: 1.7;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(247,243,235,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 24px;
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  }
+  .topbar .brand { font-weight: 800; font-size: 14px; color: var(--brand-deep); }
+  .topbar a { color: var(--ink-sec); text-decoration: none; font-size: 12px; font-weight: 600; }
+  .topbar a:hover { color: var(--brand); }
+  .main { margin: 0 auto; padding: 28px 40px 96px; max-width: 1040px; }
+  .hero {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px 28px 22px; margin-bottom: 24px;
+    box-shadow: 0 1px 0 rgba(44,36,22,.04);
+  }
+  .hero .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: .08em;
+    color: var(--metal); text-transform: uppercase; margin: 0 0 8px;
+  }
+  .hero h1 { font-size: 28px; font-weight: 800; margin: 0 0 12px; line-height: 1.25; }
+  .hero h1 em { font-style: normal; color: var(--brand); }
+  .hero .lede { color: var(--ink-sec); margin: 0 0 16px; max-width: 50em; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #F5EDE0; color: var(--ink-sec);
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+  }
+  .pill strong { color: var(--ink); }
+  .pill.ok { background: #E6F5EC; color: #1F7A4D; }
+  .pill.warn { background: #FDECEA; color: var(--brand-deep); }
+  h2 {
+    font-size: 20px; font-weight: 800; margin: 40px 0 14px;
+    padding: 10px 14px; background: linear-gradient(90deg, #F5EDE0, transparent);
+    border-left: 4px solid var(--metal); border-radius: 0 6px 6px 0;
+  }
+  h3 { font-size: 16px; font-weight: 700; margin: 26px 0 10px; }
+  h4 { font-size: 14px; font-weight: 700; margin: 16px 0 8px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0 12px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--brand-deep); }
+  .reader-note {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--water);
+    border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; color: var(--ink-sec);
+  }
+  .reader-note.warn { border-left-color: var(--mid); }
+  .reader-note.risk { border-left-color: var(--hi); }
+  .reader-note.ok { border-left-color: var(--lo); }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; background: var(--card); font-size: 13px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #F0E9DC; font-weight: 700; white-space: nowrap; }
+  tr:nth-child(even) td { background: #FCFAF6; }
+  td.nowrap { white-space: nowrap; }
+  td.strike { color: var(--ink-3); }
+  code {
+    background: #F0E9DC; border-radius: 4px; padding: 1px 5px;
+    font-family: Consolas, Monaco, monospace; font-size: 12px; color: #A63D4A;
+  }
+  .flow { display: grid; gap: 10px; margin: 14px 0 18px; }
+  .flow-row {
+    display: grid; grid-template-columns: 96px 1fr; gap: 12px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; align-items: start;
+  }
+  .flow-row .step {
+    font-size: 12px; font-weight: 800; color: #fff;
+    background: var(--brand); border-radius: 8px; padding: 8px 10px; text-align: center; line-height: 1.3;
+  }
+  .flow-row .step.sec { background: var(--water); }
+  .flow-row .step.dim { background: var(--metal); }
+  .flow-row .step.ghost { background: #C9C0B4; }
+  .flow-row h4 { margin: 0 0 4px; }
+  .flow-row p { margin: 0; font-size: 13px; color: var(--ink-sec); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 820px) {
+    .main { padding: 20px 16px 72px; }
+    .grid2, .grid3, .flow-row { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 22px; }
+  }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px;
+    border-radius: 4px; color: #fff; vertical-align: 1px;
+  }
+  .badge.p0 { background: var(--hi); }
+  .badge.p1 { background: var(--mid); }
+  .badge.tbd { background: var(--ink-3); }
+  .badge.new { background: var(--water); }
+  .foot { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; }
+  .toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px; margin: 0 0 24px; font-size: 13px;
+  }
+  .toc ol { margin: 6px 0 0; padding-left: 20px; }
+  .toc a { color: var(--ink-sec); text-decoration: none; font-weight: 600; }
+  .toc a:hover { color: var(--brand); }
+  .src { font-size: 11px; color: var(--ink-3); }
+  .src a { color: var(--metal); }
+  .case {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; margin: 10px 0;
+  }
+  .case h4 { margin: 0 0 6px; font-size: 14px; }
+  .case h4 span { font-size: 11px; font-weight: 600; color: var(--ink-3); margin-left: 6px; }
+  .case ul { margin: 6px 0 4px; padding-left: 20px; }
+  .case li { font-size: 13px; }
+  .quote {
+    border-left: 3px solid var(--line); padding: 2px 0 2px 10px; margin: 8px 0 0;
+    font-size: 12px; color: var(--ink-sec);
+  }
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <span class="brand">RTA · 对标研究</span>
+  <a href="#s0">摘要</a>
+  <a href="#s1">事实基准</a>
+  <a href="#s2">已撤回结论</a>
+  <a href="#s3">样本</a>
+  <a href="#s4">逐态对标</a>
+  <a href="#s5">逐家证据</a>
+  <a href="#s6">诊断</a>
+  <a href="#s7">改进清单</a>
+  <a href="#s8">数据导入</a>
+  <a href="#s9">动线与信任</a>
+  <a href="#s10">待核与验收</a>
+  <a href="#s11">来源</a>
+  <a href="index.html">← 回原型</a>
+</nav>
+
+<main class="main">
+  <header class="hero" id="s0">
+    <p class="eyebrow">Benchmark Research · v2.0 · 2026-10-22</p>
+    <h1>线上入驻链路<em>· 头部产品对标</em></h1>
+    <p class="lede">
+      本文档的事实基准是<strong>线上 App 的现状实拍</strong>，不是交互原型。
+      取 6 家国内头部商家侧产品的登录 / 定位与门店发现 / 认领 / 资料与资质 / 审核做法，
+      逐态对照线上真实链路，找出能落地的改点；每条改点标注<strong>实拍证据 + 对标出处</strong>。
+    </p>
+    <div class="pill-row">
+      <span class="pill warn"><strong>事实基准</strong> 开店分流与承接方案 · 现状实拍</span>
+      <span class="pill"><strong>样本</strong> 抖音来客 · 美团商家 · 有赞 · 微盟 · 千牛/淘宝 · 企业微信</span>
+      <span class="pill ok"><strong>产出</strong> P0 3 项 · P1 2 项 · 待核 2 项</span>
+      <span class="pill"><strong>边界</strong> 不含分流与承接（另文已定）</span>
+    </div>
+  </header>
+
+  <div class="toc">
+    <strong>目录</strong>
+    <ol>
+      <li><a href="#s1">事实基准：线上真实链路</a></li>
+      <li><a href="#s2">已撤回的结论（v1.0 勘误）</a></li>
+      <li><a href="#s3">对标样本与取证方式</a></li>
+      <li><a href="#s4">逐态对标总表</a></li>
+      <li><a href="#s5">逐家拆解与证据</a></li>
+      <li><a href="#s6">线上链路诊断</a></li>
+      <li><a href="#s7">改进清单（P0 / P1 / 待核）</a></li>
+      <li><a href="#s8">数据导入：新增功能的设计要点</a></li>
+      <li><a href="#s9">改后动线与信任感</a></li>
+      <li><a href="#s10">待核清单与验收口径</a></li>
+      <li><a href="#s11">来源清单</a></li>
+    </ol>
+  </div>
+
+  <div class="reader-note ok">
+    <strong>一句话结论</strong>：线上链路<strong>不是没有降级路径，而是降级路径只有一半</strong>——
+    拒绝定位后只能「手工创建新门店」，系统不允许后只能「去设置」，已被认领后只能「申请加入」。
+    三条旁路都只有一个出口，用户有店却被迫新建、有凭证却无处提交。
+    对标的共同做法是：<strong>每条旁路都留两个出口</strong>（搜索 / 创建、搜索 / 设置、加入 / 申诉）。
+  </div>
+
+  <!-- ========== 01 ========== -->
+  <h2 id="s1">01 · 事实基准：线上真实链路</h2>
+  <p>
+    来源：<a href="https://xdean-designer.github.io/reports/%E5%89%91%E7%90%85%E8%81%94%E7%9B%9F%E5%BC%80%E5%BA%97%E5%88%86%E6%B5%81%E4%B8%8E%E6%89%BF%E6%8E%A5%E6%96%B9%E6%A1%88-%E7%B2%BE%E7%AE%80%E7%89%88.html" target="_blank" rel="noopener">《剑琅联盟 · 开店分流与承接方案（精简版）》</a>
+    §01「现状实拍 · 四条泳道」。以下 7 个状态全部来自该页实拍，未做推断。
+  </p>
+  <table>
+    <thead><tr><th>#</th><th>状态</th><th>泳道</th><th>实拍呈现</th><th>可继续的分支</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td><td class="nowrap"><strong>封面页</strong></td><td class="nowrap">① 启动与登录</td>
+        <td>品牌与价值主张</td><td>→ 登录页</td>
+      </tr>
+      <tr>
+        <td>2</td><td class="nowrap"><strong>登录页</strong></td><td class="nowrap">① 启动与登录</td>
+        <td>提供「本机一键登录」与「手机验证码登录」两个入口</td>
+        <td>一键登录（转圈等运营商结果）/ 验证码（手机号 → 验证码）</td>
+      </tr>
+      <tr>
+        <td>3</td><td class="nowrap"><strong>定位权限说明</strong></td><td class="nowrap">② 定位与门店</td>
+        <td>App 内自建说明弹窗，可选「同意 / 拒绝」</td>
+        <td>同意 → 系统权限；拒绝 → 空态门店列表</td>
+      </tr>
+      <tr>
+        <td>4</td><td class="nowrap"><strong>系统定位权限</strong></td><td class="nowrap">② 定位与门店</td>
+        <td>点「同意」后立刻弹出系统权限</td>
+        <td>允许 → 附近门店列表；不允许 → 授权失败</td>
+      </tr>
+      <tr>
+        <td>5</td><td class="nowrap"><strong>门店列表 · 三分支</strong></td><td class="nowrap">② 定位与门店</td>
+        <td>
+          <strong>允许</strong>：附近可认领门店<br>
+          <strong>拒绝</strong>：空态「定位失败 / 暂无内容」，可手工创建新门店<br>
+          <strong>不允许</strong>：授权失败，提示需在设置开启定位 →「去设置」跳系统应用信息页
+        </td>
+        <td>→ 认领</td>
+      </tr>
+      <tr>
+        <td>6</td><td class="nowrap"><strong>认领门店</strong></td><td class="nowrap">③ 认领与填资料</td>
+        <td>认领成功；若「已被认领」弹窗，可「取消」或「申请加入」</td>
+        <td>成功 → 填资料；已认领 → 旁路，无法直接走完开店主干</td>
+      </tr>
+      <tr>
+        <td>7</td><td class="nowrap"><strong>开店填资料</strong></td><td class="nowrap">③ 认领与填资料</td>
+        <td>创建店铺流程第 1 步 → 第 2 步 → 第 3 步，走完<strong>随即进入首页</strong></td>
+        <td>→ 首页（落点写死）</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="reader-note warn">
+    <strong>证据边界（必须先说清）</strong>
+    <ul>
+      <li>实拍泳道在「进入首页」处收束。<strong>进入首页之后的获客死结、分流缺失</strong>属另一份文档的范围，本文档不重复提方案，只在 §9 引用。</li>
+      <li>实拍<strong>未拍到</strong>：3 步表单是否有进度 / 草稿 / 即时校验；提交后是否有审核中 / 驳回态；首页是否有审核状态卡片。这三项列入 §10 待核，<strong>不当作已确认问题</strong>。</li>
+      <li><strong>数据导入线上尚不存在</strong>，处于产品原型阶段。该段以原型为准，按「新增功能」做对标设计（§8），不归入「修线上问题」。</li>
+    </ul>
+  </div>
+
+  <!-- ========== 02 ========== -->
+  <h2 id="s2">02 · 已撤回的结论（v1.0 勘误）</h2>
+  <p>
+    v1.0 把交互原型当成了线上系统，因此有 4 条判断不成立。原文保留在此以便对照，<strong>正文与改进清单已不再采用</strong>。
+  </p>
+  <table>
+    <thead><tr><th>v1.0 结论</th><th>实拍真相</th><th>处理</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="strike">登录页「一键登录 / 验证码 / 一键体验」三入口并列，主次不清</td>
+        <td>线上只有<strong>两个</strong>入口：本机一键登录、手机验证码登录。<strong>没有「一键体验」</strong></td>
+        <td>整条撤回</td>
+      </tr>
+      <tr>
+        <td class="strike">定位「拒绝即停在登录」，是硬门槛与死路</td>
+        <td>线上<strong>有降级</strong>：拒绝 → 空态门店列表，可手工创建；系统不允许 → 授权失败 →「去设置」</td>
+        <td>撤回，改为判断「降级路径是否够用」</td>
+      </tr>
+      <tr>
+        <td class="strike">开店资料是一张长表单，一次填完、无分段</td>
+        <td>线上<strong>已经是 3 步</strong>（第 1 / 2 / 3 步）</td>
+        <td>撤回，改为待核「3 步内是否有进度、草稿、即时校验」</td>
+      </tr>
+      <tr>
+        <td class="strike">「落点写死首页、缺问需」是本文档要修的问题</td>
+        <td>问题真实存在，但<strong>另一份文档已定案</strong>四选一分流与四版块承接</td>
+        <td>不再重复提方案，仅引用</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ========== 03 ========== -->
+  <h2 id="s3">03 · 对标样本与取证方式</h2>
+  <p>
+    选取标准：① 面向<strong>线下门店商家</strong>（与剑琅同类）；② 入驻链路公开可查；③ 覆盖本地生活平台、电商 SaaS、电商平台、协同办公四类。
+    只采信<strong>官方帮助中心 / 官方产品手册 / 官方注册页</strong>；二手文章仅补流程细节并标注。
+  </p>
+  <table>
+    <thead><tr><th>产品</th><th>为什么选它</th><th>主要来源</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap"><strong>抖音来客</strong></td>
+        <td>本地生活商家入驻标准样本；<strong>门店发现与认领</strong>的两条旁路最完整</td>
+        <td class="src"><a href="https://www.kancloud.cn/cy78/qqqq/3152458" target="_blank" rel="noopener">APP 产品功能用户使用手册 · 2.2 认领门店并入驻</a></td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>美团商家</strong></td>
+        <td>开店宝把入驻做成 4 步可视化；<strong>已被认领有明确申诉通道</strong></td>
+        <td class="src"><a href="https://e.dianping.com/vg-pc-platform-zdc/create-poi/index.html" target="_blank" rel="noopener">开店宝 · 商家入驻</a> / <a href="https://kf.dianping.com/csCenter/app/questions/4148" target="_blank" rel="noopener">商家常见问题</a></td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>有赞</strong></td>
+        <td>主体认证 6 步；<strong>企业名称模糊搜索自动带出</strong>，是省字段的典型</td>
+        <td class="src"><a href="https://help.youzan.com/displaylist/detail_13_13-2-45402" target="_blank" rel="noopener">店铺主体信息认证教程</a></td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>微盟</strong></td>
+        <td>注册门槛最低、协议就近；认证按需后置</td>
+        <td class="src"><a href="https://account.weimob.com/register" target="_blank" rel="noopener">账号注册</a></td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>千牛 / 淘宝</strong></td>
+        <td>实名校验前置；<strong>可改字段给修改额度</strong></td>
+        <td class="src"><a href="https://www.taobao.com/go/chn/mall/zhaoshang_home.php" target="_blank" rel="noopener">天猫招商 · 入驻流程</a> / <a href="https://diantuoyi.com/article/9630.html" target="_blank" rel="noopener">淘宝开店产品白皮书</a></td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>企业微信</strong></td>
+        <td>先创建、后认证解锁额度；<strong>主体验证多选一</strong></td>
+        <td class="src"><a href="https://open.work.weixin.qq.com/wwopen/manual/detail?t=register" target="_blank" rel="noopener">创建并注册企业</a> / <a href="https://www.qusiyi.com/wecom-user-guide/76.html" target="_blank" rel="noopener">管理端认证</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="src">
+    横向依据另补两组：定位权限（<a href="https://web.developers.google.cn/articles/permissions-best-practices?hl=zh-cn" target="_blank" rel="noopener">web.dev 权限最佳实践</a>、
+    <a href="https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1809" target="_blank" rel="noopener">小米位置权限标准</a>、
+    <a href="https://developer.open-douyin.com/helpCenter/home/detail/883/921" target="_blank" rel="noopener">抖音开放平台 · 未授权处理</a>）；
+    长表单与草稿（<a href="https://www.saasui.design/blog/saas-form-design-ux-patterns" target="_blank" rel="noopener">SaaS 表单模式</a>、
+    <a href="https://appmaster.io/blog/save-and-resume-multi-step-wizard" target="_blank" rel="noopener">多步向导 save-and-resume</a>）。
+  </p>
+
+  <!-- ========== 04 ========== -->
+  <h2 id="s4">04 · 逐态对标总表</h2>
+  <p>以线上实拍的状态为行，看头部在同一动作上的取舍。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>线上状态</th><th>抖音来客</th><th>美团商家</th><th>有赞</th><th>微盟</th><th>千牛 / 淘宝</th><th>企业微信</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="nowrap"><strong>① 登录</strong></td>
+        <td>注册后进首页，<strong>首页先给「所需材料」</strong></td>
+        <td>注册后进开店宝，底部「免费入驻」</td>
+        <td>真实手机号注册，认证环节再验短信</td>
+        <td>手机号 + 验证码，主按钮写「免费创建店铺」</td>
+        <td>淘宝账号 + <strong>已实名支付宝</strong>双前置，主体须一致</td>
+        <td>企业名 / 行业 / 规模 + 管理员手机验证 + 微信扫码</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>② 定位与门店发现</strong></td>
+        <td><strong>搜索门店为主，不依赖定位</strong>；找不到再创建</td>
+        <td>开店宝「选择门店」，可搜索</td>
+        <td>无门店概念</td>
+        <td>无门店概念</td>
+        <td>无门店概念</td>
+        <td>无门店概念</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>③ 认领</strong></td>
+        <td>确认门店信息；<strong>有误可编辑</strong>，<strong>找不到可创建</strong></td>
+        <td>选门店 → 提交材料 → 等待审核 → 完成认领（4 步可见）</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>④ 已被他人认领</strong></td>
+        <td>以门店搜索与创建兜底</td>
+        <td><strong>提交营业执照 + 身份证 + 门店名称地址，核实相符即处理</strong></td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>⑤ 填资料</strong></td>
+        <td>材料前置；<strong>经营品类默认带入 POI 类目</strong></td>
+        <td>提交材料，资质须与门店主体一致</td>
+        <td>6 步；<strong>企业名称 / 信用代码模糊搜索带出</strong></td>
+        <td>认证后置到开通支付 / 小程序时</td>
+        <td>填店名 → 支付宝认证 → 实人扫脸；<strong>店名 180 天可改 3 次</strong></td>
+        <td><strong>先建团队可用，认领企业后解锁 1000 人</strong></td>
+      </tr>
+      <tr>
+        <td class="nowrap"><strong>⑥ 提交之后</strong></td>
+        <td>1–3 工作日；首页「审核详情」；短信；<strong>不通过按提示改后重提</strong></td>
+        <td>约 3 工作日；短信；<strong>已提交不可改，驳回后可改</strong></td>
+        <td>1 工作日；<strong>提交后不可撤回</strong>，不通过重新提交</td>
+        <td>微信支付审核约 5 工作日，通过后 10 天内签约</td>
+        <td>天猫 7 工作日；<strong>资质未过须 15 工作日内改并提交，逾期重置</strong></td>
+        <td>认证 5–15 工作日；<strong>对公打款 / 法人扫脸 / 电子执照三选一</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="reader-note warn">
+    <strong>两条反向教训</strong>：美团与有赞都明确「<strong>提交后不可修改</strong>，只能等驳回」。
+    所以提交前必须有复核、过程中必须有草稿；否则一次手误要重走整条链。
+  </div>
+
+  <!-- ========== 05 ========== -->
+  <h2 id="s5">05 · 逐家拆解与证据</h2>
+
+  <div class="case">
+    <h4>抖音来客 <span>本地生活 · 门店发现的两条旁路最完整</span></h4>
+    <ul>
+      <li><strong>材料前置</strong>：首页可查看入驻「所需材料」，准备好再开始。</li>
+      <li><strong>搜索优先，不依赖定位</strong>：进入门店搜索页搜店 → 确认信息。</li>
+      <li><strong>两条旁路都给出口</strong>：「门店信息有误，可以编辑修改」「找不到需要认领的门店，可以创建门店」。</li>
+      <li><strong>少填一个字段</strong>：经营品类<strong>默认带入 POI 类目</strong>，商家只补执照里有的经营范围。</li>
+      <li><strong>审核可预期</strong>：1–3 工作日、首页「审核详情」、短信通知、不通过按提示改后重提。</li>
+      <li><strong>能力分层</strong>：入驻通过后才绑收款账户与抖音号。</li>
+    </ul>
+    <p class="quote">「搜索需要认领的门店，并确认门店信息：a. 如果门店信息有误，可以编辑修改；b. 如果找不到需要认领的门店，可以创建门店。」</p>
+    <p class="src">来源：<a href="https://www.kancloud.cn/cy78/qqqq/3152458" target="_blank" rel="noopener">抖音来客 APP 产品功能用户使用手册 · 2.2</a></p>
+  </div>
+
+  <div class="case">
+    <h4>美团商家 <span>本地生活 · 认领冲突有申诉通道</span></h4>
+    <ul>
+      <li><strong>进度可视</strong>：开店宝固定 4 步——选择门店 → 提交材料 → 等待审核 → 完成认领。</li>
+      <li><strong>被占店有出口</strong>：门店已被他人认领，可提交营业执照与身份证信息及门店名称、地址，<strong>信息相符即认定为恶意认领</strong>，由平台处理。</li>
+      <li><strong>重复建店有提示</strong>：提交被驳回且提示「平台已收录」时，说明与已有门店高度重合，要求<strong>去系统里选择已有门店</strong>而不是继续新建。</li>
+      <li><strong>时效与驳回</strong>：约 3 个工作日、短信通知；驳回后按提示改材料再提交。</li>
+    </ul>
+    <p class="quote">「已被他人认领，您可以向在线客服提交营业执照和身份证信息及门店名称、门店地址，如果执照信息与门店信息相符，就认为是被恶意认领。」</p>
+    <p class="src">来源：<a href="https://kf.dianping.com/csCenter/app/questions/4148" target="_blank" rel="noopener">商家客服知识库</a>；<a href="https://e.dianping.com/vg-pc-platform-zdc/create-poi/index.html" target="_blank" rel="noopener">开店宝 · 商家入驻</a>；<a href="https://123.meituan.com/serve/biz-detail/business/173" target="_blank" rel="noopener">酒店商家入驻 FAQ</a></p>
+  </div>
+
+  <div class="case">
+    <h4>有赞 <span>电商 SaaS · 把字段问少</span></h4>
+    <ul>
+      <li><strong>六步拆解</strong>：选主体与类目 → 短信验证 → 主体信息 → 法人信息 → 经营信息 → 审核及公示。</li>
+      <li><strong>能搜就不填</strong>：主体信息可<strong>按企业名称或统一社会信用代码模糊搜索</strong>，自动带出免填。</li>
+      <li><strong>材料清单随选择变化</strong>：主体类型与类目不同，所需材料不同；最多可选 5 个类目。</li>
+      <li><strong>渐进权限</strong>：审核期间可正常操作，但<strong>不能提现</strong>。</li>
+      <li><strong>反例</strong>：提交后不可撤回 / 修改，只能等审核结束；不通过需重新提交。</li>
+    </ul>
+    <p class="src">来源：<a href="https://help.youzan.com/displaylist/detail_13_13-2-45402" target="_blank" rel="noopener">店铺主体信息认证教程</a>；<a href="https://help.youzan.com/displaylist/detail_53_53-2-276159" target="_blank" rel="noopener">店铺认证使用教程</a></p>
+  </div>
+
+  <div class="case">
+    <h4>微盟 <span>电商 SaaS · 门槛最低</span></h4>
+    <ul>
+      <li>手机号 + 验证码即可注册，主按钮写「<strong>免费创建店铺</strong>」而非「注册账号」。</li>
+      <li>协议链接<strong>紧跟按钮</strong>（《注册协议》《个人信息处理规则》），不额外占一屏。</li>
+      <li>店铺认证、公众号 / 小程序授权、微信支付开通各自独立，按需再走。</li>
+    </ul>
+    <p class="src">来源：<a href="https://account.weimob.com/register" target="_blank" rel="noopener">微盟 · 账号注册</a></p>
+  </div>
+
+  <div class="case">
+    <h4>千牛 / 淘宝 <span>电商平台 · 给「可能填错」的字段留额度</span></h4>
+    <ul>
+      <li>淘宝账号与支付宝双实名，<strong>主体须一致</strong>，否则直接驳回。</li>
+      <li>开店流程内完成支付宝认证 + <strong>实人扫脸</strong>（法人或实际经营人）。</li>
+      <li><strong>店铺名开店后 180 天内可改 3 次</strong>——把易错字段的修改成本显式化。</li>
+      <li>开店后 5 周不发商品，店铺会被删除（用后续动作驱动上线）。</li>
+    </ul>
+    <p class="src">来源：<a href="https://www.taobao.com/go/chn/mall/zhaoshang_home.php" target="_blank" rel="noopener">天猫招商 · 入驻流程</a>；<a href="https://diantuoyi.com/article/9630.html" target="_blank" rel="noopener">淘宝开店产品白皮书（二手，仅补细节）</a></p>
+  </div>
+
+  <div class="case">
+    <h4>企业微信 <span>协同 · 渐进式准入</span></h4>
+    <ul>
+      <li><strong>先能用</strong>：企业名 / 行业 / 规模 + 管理员手机验证 + 微信扫码即可开始用。</li>
+      <li><strong>再解锁</strong>：上传营业执照「认领企业」后，成员上限 1000 人并开放更多 OA 能力。</li>
+      <li><strong>验证多选一</strong>：对公打款 / 法人扫脸 / 电子营业执照，按实际情况挑最省事的一种。</li>
+      <li><strong>材料示例</strong>：认证页给公函示例与材料清单，减少「交了才知道不对」。</li>
+    </ul>
+    <p class="src">来源：<a href="https://open.work.weixin.qq.com/wwopen/manual/detail?t=register" target="_blank" rel="noopener">创建并注册企业</a>；<a href="https://www.qusiyi.com/wecom-user-guide/76.html" target="_blank" rel="noopener">管理端认证说明</a></p>
+  </div>
+
+  <h3>5.1 横向依据：定位权限</h3>
+  <div class="grid2">
+    <div class="reader-note">
+      <strong>请求前先说明，拒绝后给替代</strong>
+      <ul>
+        <li>预提示：先讲「为什么需要、只在前台用」，用户点了肯定回应<strong>再</strong>触发系统弹窗。</li>
+        <li>数据：无用户意图的权限弹窗约 <strong>12%</strong> 被允许；有交互后升到约 <strong>30%</strong>。</li>
+        <li>拒绝后<strong>必须给备选方案</strong>（手动输入地址 / 选城市），不得强制授权，48 小时内不得重复索权。</li>
+        <li>抖音开放平台对未授权场景明确「<strong>推荐</strong>提供手动选择地理位置的能力」。</li>
+      </ul>
+      <p class="src">
+        <a href="https://web.developers.google.cn/articles/permissions-best-practices?hl=zh-cn" target="_blank" rel="noopener">web.dev</a> ·
+        <a href="https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1809" target="_blank" rel="noopener">小米</a> ·
+        <a href="https://developer.open-douyin.com/helpCenter/home/detail/883/921" target="_blank" rel="noopener">抖音开放平台</a>
+      </p>
+    </div>
+    <div class="reader-note">
+      <strong>对线上链路的直接含义</strong>
+      <ul>
+        <li>线上已有「说明 → 系统权限」两段，<strong>这一段做对了</strong>，不需要重做。</li>
+        <li>缺的是「拒绝之后」：空态只给「手工创建新门店」，等于把「我有店」的用户推向「新建一家店」。</li>
+        <li>行业做法是同日径给两个出口：<strong>按名称搜索已有门店</strong> + 找不到才创建。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== 06 ========== -->
+  <h2 id="s6">06 · 线上链路诊断</h2>
+  <p>只列<strong>有实拍证据</strong>的问题；证据不足的进 §10 待核。</p>
+  <table>
+    <thead><tr><th>线上状态</th><th>实拍现状</th><th>缺的那个出口</th><th>用户后果</th><th>对标差距</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap">封面 / 登录</td>
+        <td>封面讲价值主张；登录两个入口</td>
+        <td>没有「开店要准备什么」的预告</td>
+        <td>填到一半才发现要执照 / 门店照，中断</td>
+        <td>抖音首页「所需材料」；企业微信认证材料清单</td>
+      </tr>
+      <tr>
+        <td class="nowrap">定位说明</td>
+        <td>App 内说明 → 系统权限</td>
+        <td>—</td>
+        <td>—</td>
+        <td><strong>已符合行业做法，保留</strong></td>
+      </tr>
+      <tr>
+        <td class="nowrap">门店列表 · 拒绝</td>
+        <td>空态「定位失败 / 暂无内容」，<strong>只能手工创建新门店</strong></td>
+        <td><strong>按名称搜索门店</strong></td>
+        <td>有店的老板被迫新建 → 重复门店、后续认领冲突</td>
+        <td>抖音「搜索 + 找不到才创建」；美团「选择门店」</td>
+      </tr>
+      <tr>
+        <td class="nowrap">门店列表 · 不允许</td>
+        <td>授权失败 →「去设置」跳系统应用信息页</td>
+        <td><strong>「暂不开启，先按城市 / 名称找」</strong></td>
+        <td>不愿开系统定位的用户被卡在设置页外</td>
+        <td>抖音开放平台「推荐手动选择位置」；小米「拒绝应给备选方案」</td>
+      </tr>
+      <tr>
+        <td class="nowrap">认领 · 已被认领</td>
+        <td>弹窗「该店已被认领」，可取消或<strong>申请加入</strong></td>
+        <td><strong>提交凭证申诉</strong>（真店主被他人占店）</td>
+        <td>真店主只能求加入别人，或被永久挡在门外</td>
+        <td>美团「执照 + 身份证 + 店名地址，核实后处理」</td>
+      </tr>
+      <tr>
+        <td class="nowrap">认领 · 信息有误</td>
+        <td>实拍未呈现编辑入口</td>
+        <td><strong>就地修正门店名称 / 地址</strong></td>
+        <td>只能认领一个错名字的店</td>
+        <td>抖音「门店信息有误可以编辑修改」</td>
+      </tr>
+      <tr>
+        <td class="nowrap">填资料 3 步</td>
+        <td>第 1 / 2 / 3 步 → 首页</td>
+        <td>待核（进度 / 草稿 / 即时校验）；<strong>提交后无审核态</strong></td>
+        <td>「到底开成了没有」没有答案</td>
+        <td>抖音审核详情 + 驳回重提；美团 4 步进度；天猫 7 工作日</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ========== 07 ========== -->
+  <h2 id="s7">07 · 改进清单</h2>
+  <p>按「先补出口、再补预期、最后补信任」排序。每条写清<strong>实拍证据 → 对标出处 → 落点 → 收益</strong>。</p>
+
+  <h3>7.1 P0 · 每条旁路补齐第二个出口</h3>
+  <table>
+    <thead><tr><th>#</th><th>改进</th><th>实拍证据</th><th>对标出处</th><th>落点</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap"><span class="badge p0">P0-1</span></td>
+        <td><strong>拒绝定位后的空态加「按名称搜索门店」</strong>：空态从「暂无内容 + 手工创建」改为「搜索框 + 附近推荐 + 找不到再创建」</td>
+        <td>泳道② 拒绝后空态，仅「可手工创建新门店」</td>
+        <td>抖音来客：搜索门店 → 找不到才创建；美团开店宝「选择门店」</td>
+        <td>门店列表空态；搜索复用认领页搜索能力</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge p0">P0-2</span></td>
+        <td><strong>系统权限「不允许」加第二出口</strong>：授权失败页除「去设置」外，加「暂不开启，按城市 / 名称查找门店」；不再 48 小时内重复索权</td>
+        <td>泳道②「不允许 → 授权失败 → 去设置」单行道</td>
+        <td>抖音开放平台「推荐提供手动选择地理位置」；小米标准「拒绝后应提供备选方案」；web.dev 替代方案原则</td>
+        <td>授权失败页次按钮 + 城市选择</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge p0">P0-3</span></td>
+        <td><strong>「已被认领」补申诉通道</strong>：除「申请加入」外，加「我是店主，提交凭证」——上传执照 + 身份证 + 店名地址，进人工核验队列</td>
+        <td>泳道③ 旁路弹窗仅「取消 / 申请加入」</td>
+        <td>美团：提交执照与身份证、店名地址，信息相符即认定为恶意认领并处理</td>
+        <td>已被认领弹窗第三按钮 + 申诉半屏</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>7.2 P1 · 补预期与省字段</h3>
+  <table>
+    <thead><tr><th>#</th><th>改进</th><th>实拍证据</th><th>对标出处</th><th>落点</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap"><span class="badge p1">P1-1</span></td>
+        <td><strong>材料清单前置</strong>：封面或登录后一张「开店要准备」清单（执照 / 门店照 / 收款信息 / 门店地址），可勾选</td>
+        <td>实拍无材料预告，第 3 步才暴露所需材料</td>
+        <td>抖音来客首页「所需材料」；企业微信「认证需准备的材料」</td>
+        <td>封面次区域或登录后一次性提示</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge p1">P1-2</span></td>
+        <td><strong>门店信息可编辑</strong>：认领确认页允许就地改门店名称 / 地址，改动标记待审核</td>
+        <td>实拍无编辑入口</td>
+        <td>抖音来客「门店信息有误可以编辑修改」</td>
+        <td>认领确认页</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>7.3 待核项（先确认再决定改不改）</h3>
+  <table>
+    <thead><tr><th>#</th><th>疑点</th><th>若答案为「没有」，则改</th><th>对标出处</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap"><span class="badge tbd">TBD-1</span></td>
+        <td>3 步表单是否有<strong>进度提示、草稿保存、即时校验</strong></td>
+        <td>补「第 N / 3 步 + 还需 N 项 + 已保存」；离开可续填</td>
+        <td>有赞 6 步；SaaS 表单「拆步 + 可见终点 + 自动保存」</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge tbd">TBD-2</span></td>
+        <td>提交后是否有<strong>审核中 / 驳回重传</strong>态（含首页审核卡片）</td>
+        <td>补审核屏：进度 + 预计 1–3 工作日 + 驳回原因 + 只改被驳回项</td>
+        <td>抖音审核详情 + 短信 + 驳回重提；美团 4 步；天猫 7 工作日 + 15 日修改窗口</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="reader-note">
+    <strong>取舍</strong>：P0 三项都只加「第二个出口」，不删现有路径——线上已有「手工创建」「去设置」「申请加入」三条路，
+    改动是<strong>并列补一条</strong>，不是推翻重做，风险与成本都可控。
+  </div>
+
+  <!-- ========== 08 ========== -->
+  <h2 id="s8">08 · 数据导入：新增功能的设计要点</h2>
+  <div class="reader-note warn">
+    <strong>定位说明</strong>：数据导入<strong>线上尚不存在</strong>，目前处于产品原型阶段。
+    这一段以原型为准，按「新增功能」设计，<strong>不属于修复线上问题</strong>；本节给的是新功能该长什么样，不是线上缺陷。
+  </div>
+
+  <h3>8.1 原型已有能力（作为设计基线）</h3>
+  <ul>
+    <li>链路：选择对象 → 数据来源 → <strong>映射确认</strong> → 核对数据 → 导入结果 → 失败明细。</li>
+    <li>核对页分两层：<strong>分类概览</strong>（唯一可确认导入的闸口）+ <strong>单一类别明细</strong>（只读，不可导入）。</li>
+    <li>失败行有<strong>就地半屏补录</strong>通道，不必整批重来。</li>
+    <li>样表基准：<code>members.xlsx</code> —— 会员编号 / 姓名 / 首字母 / 手机号 / 卡种 / 卡有效期 / 储值余额 / 充值合计 / 消费合计 / 消费笔数 / 距今天数 / 支付方式。</li>
+  </ul>
+
+  <h3>8.2 新增功能值得借鉴的 4 条</h3>
+  <table>
+    <thead><tr><th>#</th><th>设计要点</th><th>对标出处</th><th>为什么需要</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap"><span class="badge new">N-1</span></td>
+        <td><strong>样表与字段清单前置</strong>：选来源页给「推荐格式」（即 members.xlsx 的 12 列）+「你的表差哪几列」</td>
+        <td>抖音来客「首页可查看所需材料」；企业微信「认证需准备的材料」</td>
+        <td>老店导出的表五花八门，先对齐字段能大幅降低映射失败</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge new">N-2</span></td>
+        <td><strong>映射可回改</strong>：映射页确认后仍能从核对页返回改映射，不清空已识别数据</td>
+        <td>SaaS 表单「允许回退且不丢已填内容」</td>
+        <td>映射错了要能只改一行，而不是整批重来</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge new">N-3</span></td>
+        <td><strong>用途与可撤回说明</strong>：选来源页一行「仅本店可见 · 仅用于建会员 / 卡 / 价目 · 可整批删除」；结果页给「删除本批」</td>
+        <td>有赞主体认证的用途与协议明示；企业微信认证材料与用途说明</td>
+        <td>会员表是老店最敏感资产，说不清用途就不敢传</td>
+      </tr>
+      <tr>
+        <td class="nowrap"><span class="badge new">N-4</span></td>
+        <td><strong>防重复导入</strong>：确认按钮 loading + 禁用；结果未知时给「查询本批状态」而不是再点一次</td>
+        <td>SaaS 表单最佳实践：防双击、按钮显示进度</td>
+        <td>重复导入会产生重复会员与重复余额</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="reader-note ok">
+    <strong>落地状态</strong>：N-1 ～ N-4 已按上表落到交互原型（线上尚无数据导入，以原型为准）。
+    对应改动：数据来源页（N-1 / N-3）、映射确认页（N-2）、核对页（N-4）、导入结果页（N-3 / N-4）。
+  </div>
+
+  <!-- ========== 09 ========== -->
+  <h2 id="s9">09 · 改后动线与信任感</h2>
+  <h3>9.1 线上入驻段改后动线</h3>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="step">① 封面</div>
+      <div>
+        <h4>价值主张 + 一句准备</h4>
+        <p>保留品牌与价值主张；补一行「开店约 3 分钟，需准备执照、门店照、门店地址」，可展开细项。</p>
+      </div>
+    </div>
+    <div class="flow-row">
+      <div class="step">② 登录</div>
+      <div>
+        <h4>保持两个入口</h4>
+        <p>本机一键登录 + 手机验证码登录，已符合行业做法（微盟同构），本轮不动。</p>
+      </div>
+    </div>
+    <div class="flow-row">
+      <div class="step sec">③ 定位</div>
+      <div>
+        <h4>说明与系统权限保持不变</h4>
+        <p>这一段线上已做对：先 App 内说明、再系统弹窗。不改。</p>
+      </div>
+    </div>
+    <div class="flow-row">
+      <div class="step sec">④ 门店列表</div>
+      <div>
+        <h4>三条分支各补第二个出口</h4>
+        <p><strong>允许</strong>：附近门店（不变）。<strong>拒绝</strong>：空态改为「搜索门店 + 附近推荐 + 找不到再创建」。<strong>不允许</strong>：授权失败页加「暂不开启，按城市 / 名称查找」。</p>
+      </div>
+    </div>
+    <div class="flow-row">
+      <div class="step dim">⑤ 认领</div>
+      <div>
+        <h4>信息可改，冲突可申诉</h4>
+        <p>认领确认页允许改名称 / 地址；「已被认领」弹窗给三选一：取消 · 申请加入 · 我是店主提交凭证。</p>
+      </div>
+    </div>
+    <div class="flow-row">
+      <div class="step dim">⑥ 填资料</div>
+      <div>
+        <h4>3 步保留，补进度与可续</h4>
+        <p>顶部「第 N / 3 步 · 还需 N 项」；离开再回已填内容仍在（若线上已具备则不动，见 TBD-1）。</p>
+      </div>
+    </div>
+    <div class="flow-row">
+      <div class="step ghost">⑦ 提交之后</div>
+      <div>
+        <h4>有审核态才叫走完</h4>
+        <p>审核中：进度 + 预计 1–3 个工作日 + 可否补材料；驳回：原因 + 只改被驳回项（若线上已具备则不动，见 TBD-2）。</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>9.2 与分流 / 承接的边界（仅引用，不重提方案）</h3>
+  <div class="reader-note">
+    实拍泳道③ 显示「走完开店，随即进入首页」、泳道④ 显示「获客无新手引导、发布活动撞上价目表死结」。
+    这两件事<strong>已由《开店分流与承接方案》定案</strong>：开店完成插入四选一问需并跳转高亮 TAB；获客在发布路径内就地建 1 个项目。
+    本文档不重复设计，只确认一件事：<strong>分流必须发生在落到首页之前</strong>，否则本文档补的「审核态」之后会直接掉进未分流首页。
+  </div>
+
+  <h3>9.3 信任感：把四处不确定逐条消掉</h3>
+  <table>
+    <thead><tr><th>线上触点</th><th>用户心里的话</th><th>补什么</th><th>对标</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap">拒绝定位后的空态</td>
+        <td>「不让我定位，是不是就不给我找店了？」</td>
+        <td>明说「不开定位也能按名称找店」，并真给搜索框</td>
+        <td>抖音开放平台手动选位置；小米备选方案</td>
+      </tr>
+      <tr>
+        <td class="nowrap">系统权限不允许</td>
+        <td>「我不想去设置里翻。」</td>
+        <td>「暂不开启」可继续走，不重复索权</td>
+        <td>小米 48 小时索权上限</td>
+      </tr>
+      <tr>
+        <td class="nowrap">门店已被认领</td>
+        <td>「这明明是我的店，凭什么说他认领了？」</td>
+        <td>给凭证申诉入口，说清核验依据与处理时效</td>
+        <td>美团「信息相符即认定为恶意认领」</td>
+      </tr>
+      <tr>
+        <td class="nowrap">提交开店之后</td>
+        <td>「我提交了，然后呢？」</td>
+        <td>审核态 + 预计时长 + 结果通知方式</td>
+        <td>抖音审核详情 + 短信；天猫 7 工作日</td>
+      </tr>
+      <tr>
+        <td class="nowrap">导入会员表（新增）</td>
+        <td>「这是我家全部客人，能随便传吗？」</td>
+        <td>用途一行 + 仅本店可见 + 可整批删除</td>
+        <td>有赞主体认证的用途与协议明示</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ========== 10 ========== -->
+  <h2 id="s10">10 · 待核清单与验收口径</h2>
+
+  <h3>10.1 待核清单（需线上确认，本文档不预设答案）</h3>
+  <table>
+    <thead><tr><th>#</th><th>要确认的事</th><th>确认方式</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="nowrap">TBD-1</td>
+        <td>3 步表单内是否有进度、草稿、即时校验、剩余项</td>
+        <td>线上走一遍 3 步，故意中途退出再进</td>
+        <td>决定是否需要补草稿与进度</td>
+      </tr>
+      <tr>
+        <td class="nowrap">TBD-2</td>
+        <td>提交后是否有审核中 / 驳回态；首页是否有审核卡片</td>
+        <td>线上提交一单，观察首页与消息</td>
+        <td>决定是否需要补审核屏</td>
+      </tr>
+      <tr>
+        <td class="nowrap">TBD-3</td>
+        <td>定位说明弹窗的原文与「拒绝」按钮文案</td>
+        <td>截图核对</td>
+        <td>决定是否需要改文案（不改流程）</td>
+      </tr>
+      <tr>
+        <td class="nowrap">TBD-4</td>
+        <td>「申请加入」之后是什么流程（谁审批、多久）</td>
+        <td>点进去走一遍</td>
+        <td>决定申诉通道是否可与它合并</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>10.2 验收口径（按规格写，待实现后核对）</h3>
+  <ul>
+    <li><strong>拒绝定位</strong>：空态出现搜索框，能按名称搜到已有门店；搜不到才引导创建。</li>
+    <li><strong>系统不允许</strong>：授权失败页除「去设置」外有「暂不开启」；选它可继续按城市 / 名称找店，且不再弹系统权限。</li>
+    <li><strong>已被认领</strong>：弹窗有三个选项；选「我是店主提交凭证」可上传执照、身份证并提交，有受理反馈。</li>
+    <li><strong>材料清单</strong>：封面或登录后能看到开店所需材料，且与实际 3 步所收字段一致。</li>
+    <li><strong>门店信息</strong>：认领确认页可改名称 / 地址，改动有「待审核」标识。</li>
+    <li><strong>新增功能（数据导入）</strong>：选来源页有推荐格式与用途说明；映射可从核对页回改；确认按钮防重复；结果页可删除本批。</li>
+  </ul>
+
+  <h3>10.3 本轮不做</h3>
+  <ul>
+    <li>不改分流与承接（另一份文档已定案）。</li>
+    <li>不重做「定位说明 → 系统权限」两段（线上已符合行业做法）。</li>
+    <li>不引入第三方登录 / 微信授权登录。</li>
+    <li>不做真实审核中台、短信通道与人工核验后台（本文档只定前端与流程口径）。</li>
+    <li>不做视觉改版；只改信息结构与出口。</li>
+  </ul>
+
+  <!-- ========== 11 ========== -->
+  <h2 id="s11">11 · 来源清单</h2>
+  <table>
+    <thead><tr><th>#</th><th>来源</th><th>用于支撑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>0</td>
+        <td><a href="https://xdean-designer.github.io/reports/%E5%89%91%E7%90%85%E8%81%94%E7%9B%9F%E5%BC%80%E5%BA%97%E5%88%86%E6%B5%81%E4%B8%8E%E6%89%BF%E6%8E%A5%E6%96%B9%E6%A1%88-%E7%B2%BE%E7%AE%80%E7%89%88.html" target="_blank" rel="noopener">剑琅联盟 · 开店分流与承接方案（精简版）§01 现状实拍</a></td>
+        <td><strong>事实基准</strong>：7 个线上状态、三条旁路、首页落点</td>
+      </tr>
+      <tr><td>1</td><td><a href="https://www.kancloud.cn/cy78/qqqq/3152458" target="_blank" rel="noopener">抖音来客 APP 产品功能用户使用手册 · 2.2 认领门店并入驻</a></td><td>搜索优先、信息可编辑、找不到可创建、材料前置、审核 1–3 工作日、驳回重提、品类默认带入</td></tr>
+      <tr><td>2</td><td><a href="https://kf.dianping.com/csCenter/app/questions/4148" target="_blank" rel="noopener">美团 / 大众点评 商家常见问题</a></td><td>已被认领的申诉通道（执照 + 身份证 + 店名地址）</td></tr>
+      <tr><td>3</td><td><a href="https://e.dianping.com/vg-pc-platform-zdc/create-poi/index.html" target="_blank" rel="noopener">美团开店宝 · 商家入驻</a></td><td>4 步进度：选择门店 / 提交材料 / 等待审核 / 完成认领</td></tr>
+      <tr><td>4</td><td><a href="https://123.meituan.com/serve/biz-detail/business/173" target="_blank" rel="noopener">美团酒店商家入驻 FAQ</a></td><td>「平台已收录」应去选已有门店而非新建；3 工作日审核与驳回改材料</td></tr>
+      <tr><td>5</td><td><a href="https://waimai.meituan.com/help/cooperate_faq" target="_blank" rel="noopener">美团外卖 · 合作常见问题</a></td><td>提交后不可改、驳回后可改</td></tr>
+      <tr><td>6</td><td><a href="https://help.youzan.com/displaylist/detail_13_13-2-45402" target="_blank" rel="noopener">有赞 · 店铺主体信息认证教程</a></td><td>6 步认证、模糊搜索带出、提交后不可撤回、审核期可操作不可提现</td></tr>
+      <tr><td>7</td><td><a href="https://help.youzan.com/displaylist/detail_53_53-2-276159" target="_blank" rel="noopener">有赞 · 店铺认证使用教程</a></td><td>材料随主体 / 类目变化、1 工作日审核</td></tr>
+      <tr><td>8</td><td><a href="https://account.weimob.com/register" target="_blank" rel="noopener">微盟 · 账号注册</a></td><td>手机号 + 验证码、「免费创建店铺」、协议就近</td></tr>
+      <tr><td>9</td><td><a href="https://www.taobao.com/go/chn/mall/zhaoshang_home.php" target="_blank" rel="noopener">天猫招商 · 入驻流程</a></td><td>7 工作日审核、15 工作日内修改、逾期重置</td></tr>
+      <tr><td>10</td><td><a href="https://diantuoyi.com/article/9630.html" target="_blank" rel="noopener">淘宝开店产品白皮书（二手）</a></td><td>支付宝实名前置、实人扫脸、店铺名 180 天可改 3 次</td></tr>
+      <tr><td>11</td><td><a href="https://open.work.weixin.qq.com/wwopen/manual/detail?t=register" target="_blank" rel="noopener">企业微信 · 创建并注册企业</a></td><td>注册字段、先建后用、认领企业解锁 1000 人</td></tr>
+      <tr><td>12</td><td><a href="https://www.qusiyi.com/wecom-user-guide/76.html" target="_blank" rel="noopener">企业微信 · 管理端认证说明</a></td><td>材料清单、多种主体验证方式、5–15 工作日</td></tr>
+      <tr><td>13</td><td><a href="https://web.developers.google.cn/articles/permissions-best-practices?hl=zh-cn" target="_blank" rel="noopener">web.dev · 权限最佳实践</a></td><td>预提示、替代方案、禁止加载即请求、允许率数据</td></tr>
+      <tr><td>14</td><td><a href="https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1809" target="_blank" rel="noopener">小米 · 位置权限申请标准</a></td><td>拒绝后给备选方案、48 小时索权上限</td></tr>
+      <tr><td>15</td><td><a href="https://developer.open-douyin.com/helpCenter/home/detail/883/921" target="_blank" rel="noopener">抖音开放平台 · 未获取地理位置处理</a></td><td>推荐提供手动选择地理位置</td></tr>
+      <tr><td>16</td><td><a href="https://www.saasui.design/blog/saas-form-design-ux-patterns" target="_blank" rel="noopener">SaaS Form Design UX Patterns</a></td><td>砍字段、分步、可见终点、防重复提交</td></tr>
+      <tr><td>17</td><td><a href="https://appmaster.io/blog/save-and-resume-multi-step-wizard" target="_blank" rel="noopener">Save-and-resume multi-step wizard</a></td><td>草稿、部分完成、进度与缺失提示</td></tr>
+    </tbody>
+  </table>
+
+  <div class="foot">
+    <p>剑琅联盟 · 线上入驻链路对标 · 工作目录 <code>RTA开店流程与数据导入</code> · v2.0 · 2026-10-22</p>
+    <p>事实基准：<a href="https://xdean-designer.github.io/reports/%E5%89%91%E7%90%85%E8%81%94%E7%9B%9F%E5%BC%80%E5%BA%97%E5%88%86%E6%B5%81%E4%B8%8E%E6%89%BF%E6%8E%A5%E6%96%B9%E6%A1%88-%E7%B2%BE%E7%AE%80%E7%89%88.html" target="_blank" rel="noopener">开店分流与承接方案 · 现状实拍</a> · 配套：<a href="方案-开店流程优化与数据导入.html">方案 v0.5</a> · <a href="index.html">交互原型</a></p>
+    <p>说明：本页为研究结论与改点建议，未在线上系统或原型中落地；P0 / P1 需逐条确认后再排期。</p>
+  </div>
+</main>
+</body>
+</html>
