@@ -1,0 +1,142 @@
+{
+  "version": "1.0.0",
+  "generatedFrom": [
+    "excel模板/RTB店铺会员资料导入文档模版.xlsx →「导入模版」首行（24 列）",
+    "excel模板/RTB店铺价目表导入文档模版-v1.xls →「Sheet1」首行（8 列）",
+    "excel模板/RTB店铺卡模板导入文档模版-v2.xls → 5 个 sheet 首行"
+  ],
+  "note": "std 为剥离括号提示后的标准列名；括号里的「（必填）」「（11位数字」等提示不进 std，只用于 required / type 判定。required 依据 PRD §4938；价目表与卡模板模板本身未标必填，按下表按业务最小必填标注，待产品确认。",
+  "neverMap": [
+    { "pattern": "支付方式|收款方式|结算方式|付款方式|支付渠道", "reason": "支付方式 ≠ 来源渠道，来源渠道是 1–9 的获客渠道枚举，禁止映射" },
+    { "pattern": "消费合计|充值合计|消费笔数|累计消费|累计充值|消费金额|实收", "reason": "经营统计值，标准表无对应字段" },
+    { "pattern": "距今天数|距上次|间隔天数", "reason": "派生指标，标准表无对应字段" },
+    { "pattern": "首字母|拼音|缩写", "reason": "系统派生字段，标准表无对应字段" },
+    { "pattern": "销量|库存|毛利|坪效", "reason": "经营统计值，标准表无对应字段" }
+  ],
+  "targets": {
+    "member": {
+      "label": "会员与持卡信息",
+      "rowMeaning": "一行一张卡（主键是会员卡号，不是人）",
+      "sheetHints": ["导入模版", "会员", "会员资料", "会员资料报表"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号", "no", "index", "serial"] },
+        { "std": "会员编号", "required": false, "type": "string", "syn": ["会员编号", "会员号", "客户编号", "顾客编号", "会员id", "memberid", "客户号"] },
+        { "std": "会员卡号", "required": true, "type": "string", "syn": ["会员卡号", "卡号", "卡编号", "实体卡号", "vip卡号", "会员卡编号"] },
+        { "std": "会员姓名", "required": true, "type": "string", "syn": ["会员姓名", "姓名", "客户姓名", "顾客姓名", "会员名", "名字", "name"] },
+        { "std": "手机号", "required": true, "type": "phone", "syn": ["手机号", "手机", "手机号码", "电话", "联系电话", "移动电话", "联系方式", "tel", "mobile"] },
+        { "std": "性别", "required": false, "type": "enum", "enum": ["男", "女"], "syn": ["性别", "sex", "gender"] },
+        { "std": "生日", "required": false, "type": "date", "syn": ["生日", "出生日期", "出生年月", "生辰"] },
+        { "std": "备注", "required": false, "type": "string", "syn": ["备注", "说明", "remark", "memo", "note"] },
+        { "std": "开卡店铺编码", "required": false, "type": "string", "syn": ["开卡店铺编码", "开卡门店", "开卡店", "店铺编码", "门店编码", "开卡门店编码"] },
+        { "std": "卡类型", "required": true, "type": "enum", "enum": ["储值卡", "计次卡", "折扣卡", "套餐卡", "周期卡"], "syn": ["卡类型", "卡类别", "卡片类型", "卡种类型"] },
+        { "std": "卡名称", "required": true, "type": "string", "syn": ["卡名称", "卡名", "卡种", "卡片名称", "会员卡名称"] },
+        { "std": "有效期限", "required": false, "type": "period", "syn": ["有效期限", "有效期", "到期时间", "到期日", "截止日期", "卡有效期", "有效期至"] },
+        { "std": "充值余额", "required": true, "type": "money", "syn": ["充值余额", "储值余额", "本金余额", "余额", "充值金额", "储值金额"] },
+        { "std": "赠送余额", "required": false, "type": "money", "syn": ["赠送余额", "赠送金", "赠金", "赠送金额"] },
+        { "std": "卡剩余价值", "required": true, "type": "money", "syn": ["卡剩余价值", "剩余价值", "卡片价值", "卡价值", "剩余金额"] },
+        { "std": "计次卡剩余次数", "required": false, "type": "int", "syn": ["计次卡剩余次数", "剩余次数", "余次"] },
+        { "std": "周期卡全场通用", "required": false, "type": "enum", "syn": ["周期卡全场通用", "周期卡全场"] },
+        { "std": "周期卡适用范围", "required": false, "type": "string", "syn": ["周期卡适用范围", "周期卡范围"] },
+        { "std": "套餐卡全场通用", "required": false, "type": "enum", "syn": ["套餐卡全场通用"] },
+        { "std": "套餐卡适用范围", "required": false, "type": "string", "syn": ["套餐卡适用范围"] },
+        { "std": "套餐卡的适用项目及余次", "required": false, "type": "string", "syn": ["套餐卡的适用项目及余次", "套餐项目及余次", "套餐适用项目"] },
+        { "std": "赠送项目及余次", "required": false, "type": "string", "syn": ["赠送项目及余次", "赠送项目", "赠品"] },
+        { "std": "特殊项目", "required": false, "type": "string", "syn": ["特殊项目"] },
+        { "std": "来源渠道", "required": true, "type": "enum", "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9"], "syn": ["来源渠道", "渠道", "来源", "获客渠道", "来源渠道id"] }
+      ]
+    },
+    "price": {
+      "label": "价目表",
+      "sheetHints": ["Sheet1", "价目表"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号", "no"] },
+        { "std": "项目名", "required": true, "type": "string", "syn": ["项目名", "项目名称", "服务项目", "项目", "品项", "商品名"] },
+        { "std": "项目组", "required": false, "type": "string", "syn": ["项目组", "所属项目组", "分类", "项目分类", "类别", "大类"] },
+        { "std": "价格", "required": true, "type": "money", "syn": ["价格", "单价", "售价", "原价", "价格元", "标准价"] },
+        { "std": "可开单与否", "required": false, "type": "bool", "syn": ["可开单与否", "可否开单", "是否可开单", "可开单", "允许开单"] },
+        { "std": "置顶与否", "required": false, "type": "bool", "syn": ["置顶与否", "是否置顶", "置顶", "推荐"] },
+        { "std": "服务时长", "required": false, "type": "int", "syn": ["服务时长", "时长", "服务时间", "耗时", "分钟"] },
+        { "std": "连锁店编码", "required": false, "type": "string", "syn": ["连锁店编码", "门店编码", "店铺编码", "适用门店"] }
+      ]
+    },
+    "card_savings": {
+      "label": "卡模板 · 储值卡",
+      "sheetHints": ["储值卡"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号"] },
+        { "std": "卡名", "required": true, "type": "string", "syn": ["卡名", "卡名称", "卡片名称", "名称"] },
+        { "std": "充值余额", "required": false, "type": "money", "syn": ["充值余额", "充值金额", "储值金额", "本金"] },
+        { "std": "充值金额享受折扣", "required": false, "type": "string", "syn": ["充值金额享受折扣", "充值折扣", "充值折扣率", "充值打折"] },
+        { "std": "赠送金额", "required": false, "type": "money", "syn": ["赠送金额", "赠送金", "赠金", "赠送"] },
+        { "std": "赠送金额享受折扣", "required": false, "type": "string", "syn": ["赠送金额享受折扣", "赠送折扣", "赠送打折"] },
+        { "std": "赠送项目", "required": false, "type": "string", "syn": ["赠送项目", "赠品", "赠项"] },
+        { "std": "会员价项目", "required": false, "type": "string", "syn": ["会员价项目", "会员价", "会员价格"] },
+        { "std": "有效期限", "required": false, "type": "period", "syn": ["有效期限", "有效期", "有效期月", "有效月数"] },
+        { "std": "卡项说明", "required": false, "type": "string", "syn": ["卡项说明", "说明", "描述", "备注"] },
+        { "std": "连锁店编码", "required": false, "type": "string", "syn": ["连锁店编码", "门店编码", "店铺编码"] }
+      ]
+    },
+    "card_count": {
+      "label": "卡模板 · 计次卡",
+      "sheetHints": ["计次卡"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号"] },
+        { "std": "卡名", "required": true, "type": "string", "syn": ["卡名", "卡名称", "卡片名称", "名称"] },
+        { "std": "购买价格", "required": false, "type": "money", "syn": ["购买价格", "售价", "价格", "卡价"] },
+        { "std": "次数", "required": false, "type": "int", "syn": ["次数", "总次数", "可次数", "服务次数"] },
+        { "std": "适用大类", "required": false, "type": "string", "syn": ["适用大类", "大类", "项目组"] },
+        { "std": "适用项目", "required": false, "type": "string", "syn": ["适用项目", "项目", "可用项目", "项目明细"] },
+        { "std": "赠送项目", "required": false, "type": "string", "syn": ["赠送项目", "赠品", "赠项"] },
+        { "std": "有效期限", "required": false, "type": "period", "syn": ["有效期限", "有效期", "有效月数"] },
+        { "std": "卡项说明", "required": false, "type": "string", "syn": ["卡项说明", "说明", "描述", "备注"] },
+        { "std": "连锁店编码", "required": false, "type": "string", "syn": ["连锁店编码", "门店编码", "店铺编码"] }
+      ]
+    },
+    "card_discount": {
+      "label": "卡模板 · 折扣卡",
+      "sheetHints": ["折扣卡"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号"] },
+        { "std": "卡名", "required": true, "type": "string", "syn": ["卡名", "卡名称", "卡片名称", "名称"] },
+        { "std": "购买价格", "required": false, "type": "money", "syn": ["购买价格", "售价", "价格", "卡价"] },
+        { "std": "享受折扣", "required": false, "type": "string", "syn": ["享受折扣", "折扣", "折扣率", "打折"] },
+        { "std": "赠送项目", "required": false, "type": "string", "syn": ["赠送项目", "赠品", "赠项"] },
+        { "std": "会员价项目", "required": false, "type": "string", "syn": ["会员价项目", "会员价", "会员价格"] },
+        { "std": "有效期限", "required": false, "type": "period", "syn": ["有效期限", "有效期", "有效月数"] },
+        { "std": "卡项说明", "required": false, "type": "string", "syn": ["卡项说明", "说明", "描述", "备注"] },
+        { "std": "连锁店编码", "required": false, "type": "string", "syn": ["连锁店编码", "门店编码", "店铺编码"] }
+      ]
+    },
+    "card_package": {
+      "label": "卡模板 · 套餐卡",
+      "sheetHints": ["套餐卡"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号"] },
+        { "std": "卡名", "required": true, "type": "string", "syn": ["卡名", "卡名称", "卡片名称", "名称"] },
+        { "std": "购买价格", "required": false, "type": "money", "syn": ["购买价格", "售价", "价格", "卡价"] },
+        { "std": "套餐卡项目模式", "required": false, "type": "string", "syn": ["套餐卡项目模式", "项目模式", "套餐模式"] },
+        { "std": "适用项目-项目明细清单", "required": false, "type": "string", "syn": ["适用项目-项目明细清单", "适用项目明细", "项目明细清单"] },
+        { "std": "适用项目范围-次数", "required": false, "type": "int", "syn": ["适用项目范围-次数", "适用项目次数", "范围次数"] },
+        { "std": "适用项目范围-项目清单", "required": false, "type": "string", "syn": ["适用项目范围-项目清单", "适用项目清单", "范围项目清单"] },
+        { "std": "项目通用-次数", "required": false, "type": "int", "syn": ["项目通用-次数", "通用次数", "全场通用次数"] },
+        { "std": "赠送项目", "required": false, "type": "string", "syn": ["赠送项目", "赠品", "赠项"] },
+        { "std": "有效期限", "required": false, "type": "period", "syn": ["有效期限", "有效期", "有效月数"] },
+        { "std": "卡项说明", "required": false, "type": "string", "syn": ["卡项说明", "说明", "描述", "备注"] },
+        { "std": "连锁店编码", "required": false, "type": "string", "syn": ["连锁店编码", "门店编码", "店铺编码"] }
+      ]
+    },
+    "card_period": {
+      "label": "卡模板 · 周期卡",
+      "sheetHints": ["周期卡"],
+      "fields": [
+        { "std": "序号", "required": false, "type": "int", "syn": ["序号", "编号", "行号"] },
+        { "std": "卡名", "required": true, "type": "string", "syn": ["卡名", "卡名称", "卡片名称", "名称"] },
+        { "std": "购买价格", "required": false, "type": "money", "syn": ["购买价格", "售价", "价格", "卡价"] },
+        { "std": "包含项目", "required": false, "type": "string", "syn": ["包含项目", "所含项目", "项目范围"] },
+        { "std": "有效期限", "required": false, "type": "period", "syn": ["有效期限", "有效期", "有效月数"] },
+        { "std": "卡项说明", "required": false, "type": "string", "syn": ["卡项说明", "说明", "描述", "备注"] },
+        { "std": "连锁店编码", "required": false, "type": "string", "syn": ["连锁店编码", "门店编码", "店铺编码"] }
+      ]
+    }
+  }
+}

@@ -324,3 +324,17 @@ html.figma-capture .page-title-bar {
   box-sizing: border-box !important;
 }
 html.figma-capture .page-title-bar .title { top: 22px !important; }
+
+/* ==== v2.3 · 侧栏「示意占位」角标 ==== */
+.site-nav .nav-ph {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 0 4px;
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(227, 115, 24, 0.18);
+  color: #F0B27A;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+}

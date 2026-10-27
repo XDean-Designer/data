@@ -8,3 +8,15 @@ _tmp_*
 Thumbs.db
 *.log
 node_modules/
+
+# 改造前旧版快照（本地备份，不进版本库）
+_backup_spec/
+
+# 未被任何页面 / 样式引用的孤儿图标
+assets/icons/ico-ai.svg
+
+# AI 本地桥的运行产物与密钥
+ai-server/.env.local
+ai-server/out/
+__pycache__/
+*.pyc
