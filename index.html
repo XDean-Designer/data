@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>剑琅联盟 · 开店入驻与数据迁移</title>
+<title>剑琅联盟 · 开店入驻与数据导入</title>
 <link rel="stylesheet" href="base.css">
 <link rel="stylesheet" href="shell.css">
 <link rel="stylesheet" href="workbench.css">
 <link rel="stylesheet" href="home.css">
 <link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="tier.css">
 <script src="mobile-preview.js"></script>
 </head>
 <body>
 <aside class="site-nav">
   <div class="nav-brand">
-    <div class="t">开店入驻 · 数据迁移</div>
+    <div class="t">开店入驻 · 数据导入</div>
     <div class="s">RTA 交互原型 v0.3</div>
   </div>
   <div class="nav-group">
@@ -30,12 +31,14 @@
     <button type="button" class="nav-item" data-flow="workbench"><span class="idx">W</span>工作台<span class="nav-ph">占位</span></button>
   </div>
   <div class="nav-group">
-    <div class="g-t">数据迁移</div>
+    <div class="g-t">数据导入</div>
     <button type="button" class="nav-item" data-flow="import-overview"><span class="idx">概</span>迁移中心</button>
-    <button type="button" class="nav-item" data-flow="import-select"><span class="idx">I</span>导入类型</button>
-    <button type="button" class="nav-item" data-flow="import-source"><span class="idx">II</span>上传表格</button>
-    <button type="button" class="nav-item" data-flow="import-camera"><span class="idx">拍</span>拍照演示</button>
-    <button type="button" class="nav-item" data-flow="import-queue"><span class="idx">III</span>本批清单</button>
+    <button type="button" class="nav-item" data-flow="import-select"><span class="idx">I</span>导入数据</button>
+    <button type="button" class="nav-item" data-flow="import-source"><span class="idx">II</span>上传 Excel</button>
+    <button type="button" class="nav-item" data-flow="import-camera"><span class="idx">拍</span>拍照</button>
+    <button type="button" class="nav-item" data-flow="import-analyze"><span class="idx">识</span>识别中</button>
+    <button type="button" class="nav-item" data-flow="import-cards"><span class="idx">III</span>分档结果</button>
+    <button type="button" class="nav-item" data-flow="import-confirm"><span class="idx">IV</span>确认有效项</button>
     <button type="button" class="nav-item" data-flow="import-convert"><span class="idx">转</span>标准表转换</button>
     <button type="button" class="nav-item" data-flow="import-check"><span class="idx">核</span>数据核对</button>
     <button type="button" class="nav-item" data-flow="import-result"><span class="idx">VI</span>导入结果</button>
@@ -45,6 +48,10 @@
     <button type="button" class="nav-item" data-flow="members"><span class="idx">M</span>会员列表<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="card-list"><span class="idx">卡</span>会员卡模板<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="price-list"><span class="idx">价</span>价目表<span class="nav-ph">占位</span></button>
+    <button type="button" class="nav-item" data-flow="stock-list"><span class="idx">库</span>库存管理<span class="nav-ph">占位</span></button>
+    <button type="button" class="nav-item" data-flow="archive-list"><span class="idx">档</span>原始存档</button>
+    <button type="button" class="nav-item" data-flow="digest-list"><span class="idx">摘</span>识别摘要</button>
+    <button type="button" class="nav-item" data-flow="digest-detail"><span class="idx">摘·</span>摘要详情</button>
   </div>
   <div class="nav-group">
     <div class="g-t">历史订单</div>
@@ -56,12 +63,19 @@
     <button type="button" class="nav-item" data-flow="history-import-fail"><span class="idx">历·····</span>失败明细</button>
   </div>
   <div class="nav-group">
+    <div class="g-t">空态</div>
+    <button type="button" class="nav-item" data-empty="history-true"><span class="idx">空</span>历史·真无</button>
+    <button type="button" class="nav-item" data-empty="history-filter"><span class="idx">空</span>历史·筛选无</button>
+    <button type="button" class="nav-item" data-empty="archive"><span class="idx">空</span>原始存档</button>
+    <button type="button" class="nav-item" data-empty="digest"><span class="idx">空</span>识别摘要</button>
+  </div>
+  <div class="nav-group">
     <div class="g-t">对标研究</div>
     <a class="nav-link" href="对标-登录入驻体验优化.html" target="_blank"><span class="idx">B</span>入驻链路对标</a>
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.13</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.26</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -386,6 +400,19 @@
             </div>
           </div>
           <div class="vh-body">
+            <div class="import-banner" id="importBanner" hidden>
+              <button type="button" class="import-banner__main" id="btnImportBanner">
+                <span class="import-banner__ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.2 12 3.4l8 3.8v9.2L12 20.6 4 16.4V7.2Z"/><path d="M12 12.2 4.4 8.6"/><path d="M12 12.2v8.4"/><path d="m12 12.2 7.6-3.6"/></svg>
+                </span>
+                <span class="import-banner__text">
+                  <b id="importBannerTitle">数据导入</b>
+                  <span id="importBannerSub">把老店数据导进来</span>
+                </span>
+                <span class="import-banner__go" id="importBannerGo">进入</span>
+              </button>
+              <button type="button" class="import-banner__close" id="btnImportBannerClose" aria-label="关闭">×</button>
+            </div>
             <section class="vh-kpi is-collapsed" aria-label="个人业绩">
               <div class="vh-kpi__hd">
                 <div class="vh-kpi__title">个人业绩<em>今日</em></div>
@@ -403,8 +430,43 @@
                 </div>
               </div>
             </section>
-            <section class="vh-actions vh-actions--shot" aria-label="快捷开单">
-              <img class="vh-actions__shot" src="assets/home/actions-card.png" alt="" draggable="false">
+            <section class="vh-actions vh-actions--live" aria-label="快捷开单">
+              <div class="vh-act-row">
+                <button type="button" class="vh-act-big" data-home-act="bill">
+                  <span class="vh-act-big__ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M14.2 3.6V8H19"/><path d="M8.5 12.5h7M8.5 16h5"/></svg>
+                  </span>
+                  <span class="vh-act-big__lab">开单</span>
+                </button>
+                <button type="button" class="vh-act-big" data-home-act="card">
+                  <span class="vh-act-big__ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.4"/><path d="M3 10.2h18"/><path d="M7 14.4h4"/></svg>
+                  </span>
+                  <span class="vh-act-big__lab">会员卡</span>
+                </button>
+              </div>
+              <div class="vh-act-grid">
+                <button type="button" class="vh-act-item" data-home-act="verify">
+                  <span class="vh-act-item__ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4.5h6l1.2 2.2H20a1 1 0 0 1 1 1V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V7.7a1 1 0 0 1 1-1h3.8L9 4.5Z"/><circle cx="12" cy="13" r="3.2"/></svg></span>
+                  <span class="vh-act-item__lab">核销</span>
+                </button>
+                <button type="button" class="vh-act-item" data-home-act="coupon">
+                  <span class="vh-act-item__ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 0 6.5 6h11A2.5 2.5 0 0 0 20 8.5v1.2a1.8 1.8 0 1 1 0 3.6V15.5A2.5 2.5 0 0 0 17.5 18h-11A2.5 2.5 0 0 0 4 15.5v-2.2a1.8 1.8 0 1 1 0-3.6V8.5Z"/><path d="M12 6.2v11.6"/></svg></span>
+                  <span class="vh-act-item__lab">优惠券</span>
+                </button>
+                <button type="button" class="vh-act-item" data-home-act="hold">
+                  <span class="vh-act-item__ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.5h10A1.5 1.5 0 0 1 18.5 6v14L12 16.2 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z"/></svg></span>
+                  <span class="vh-act-item__lab">挂单</span>
+                </button>
+                <button type="button" class="vh-act-item" data-home-act="member">
+                  <span class="vh-act-item__ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 19c0-3.4 3-5.2 7-5.2s7 1.8 7 5.2"/></svg></span>
+                  <span class="vh-act-item__lab">会员</span>
+                </button>
+                <button type="button" class="vh-act-item" id="btnHomeMore" data-home-act="more">
+                  <span class="vh-act-item__ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><path d="M14.5 14.5v5M17 14.5v5M19.5 14.5v5"/></svg></span>
+                  <span class="vh-act-item__lab">更多</span>
+                </button>
+              </div>
             </section>
             <section class="vh-biz" aria-label="经营数据">
               <div class="vh-biz__hd">经营数据</div>
@@ -474,7 +536,7 @@
               <button type="button" class="wb-tile" data-wb="device"><span class="wb-tile__icon"><img src="assets/workbench/device.png" alt="" width="42" height="42"></span><span class="wb-tile__label">设备管理</span></button>
               <button type="button" class="wb-tile" data-wb="popup"><span class="wb-tile__icon"><img src="assets/workbench/popup.png" alt="" width="42" height="42"></span><span class="wb-tile__label">小程序弹窗</span></button>
               <button type="button" class="wb-tile" data-wb="tuangou-set"><span class="wb-tile__icon"><img src="assets/workbench/tuangou-set.svg" alt="" width="42" height="42"></span><span class="wb-tile__label">团购设置</span></button>
-              <button type="button" class="wb-tile" data-wb="migrate"><span class="wb-tile__icon"><img src="assets/workbench/stock.png" alt="" width="42" height="42"></span><span class="wb-tile__label">数据迁移</span></button>
+              <button type="button" class="wb-tile" data-wb="migrate"><span class="wb-tile__icon"><img src="assets/workbench/stock.png" alt="" width="42" height="42"></span><span class="wb-tile__label">数据导入</span></button>
               <button type="button" class="wb-tile" data-wb="history"><span class="wb-tile__icon"><img src="assets/workbench/flow.png" alt="" width="42" height="42"></span><span class="wb-tile__label">历史订单</span></button>
             </div>
           </section>
@@ -517,41 +579,88 @@
         </nav>
       </div>
 
-      <!-- import-overview：已有数据后再进「数据迁移」 -->
+      <!-- import-overview：已有数据后再进「数据导入」 -->
       <div class="screen hidden" id="screen-import-overview" data-flow="import-overview">
         <header class="page-title-bar">
           <button type="button" class="back" data-go="workbench" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="title">数据迁移</span>
+          <span class="title">数据导入</span>
         </header>
         <div class="scroll-body import-body">
-        <ol class="v3-step" aria-label="导入进度：第 1 步，共 4 步">
-          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">选择</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">转换</span></li>
+        <ol class="v3-step" aria-label="导入进度：第 1 步，共 3 步">
+          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
+          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
           <div class="v3-sec-hd">
-            <h2>4 步把老店数据搬过来</h2>
-            <p>会员、卡模板、价目表同批搬；历史消费在「历史订单」单独导入。</p>
+            <h2>3 步把老店数据搬过来</h2>
+            <p>会员、卡模板、价目表、库存商品、店铺产品同批搬；历史消费在「历史订单」单独导入。</p>
           </div>
-          <ol class="v3-guide">
-            <li class="v3-guide__row">
-              <span class="v3-guide__n" aria-hidden="true">1</span>
-              <span class="v3-guide__body"><b>选要导入什么</b><span>勾选类别，选来源</span></span>
+          <ol class="v3-guide v3-guide--anim" aria-label="三步导入说明">
+            <li class="v3-guide__step">
+              <div class="v3-guide__hd">
+                <span class="v3-guide__n" aria-hidden="true">1</span>
+                <span class="v3-guide__body"><b>把手里的数据给它</b><span>Excel 或拍照，可以混着来</span></span>
+              </div>
+              <div class="v3-guide__anim v3-guide__anim--duo">
+                <figure class="guide-fig">
+                  <div class="wechat-demo wechat-demo--compact" aria-hidden="true">
+                    <div class="wechat-demo__pc"><span class="wechat-demo__screen"></span><i class="wechat-demo__doc">XLS</i></div>
+                    <div class="wechat-demo__flow"><i></i><i></i><i></i></div>
+                    <div class="wechat-demo__chat">
+                      <span class="wx-bubble">文件传输助手</span>
+                      <span class="wx-file">会员导入.xlsx</span>
+                    </div>
+                    <div class="wechat-demo__phone"><span></span></div>
+                  </div>
+                  <figcaption>微信传到手机</figcaption>
+                </figure>
+                <figure class="guide-fig">
+                  <div class="guide-photo" aria-hidden="true">
+                    <div class="guide-photo__phone"><i class="guide-photo__sheet"></i><span class="guide-photo__scan"></span></div>
+                    <div class="guide-photo__hand"></div>
+                  </div>
+                  <figcaption>拍表格</figcaption>
+                </figure>
+              </div>
             </li>
-            <li class="v3-guide__row">
-              <span class="v3-guide__n" aria-hidden="true">2</span>
-              <span class="v3-guide__body"><b>提供数据</b><span>Excel 或拍照</span></span>
+            <li class="v3-guide__step">
+              <div class="v3-guide__hd">
+                <span class="v3-guide__n" aria-hidden="true">2</span>
+                <span class="v3-guide__body"><b>AI 认类别、转标准表</b><span>字段自动对齐，整理成规则表单</span></span>
+              </div>
+              <div class="v3-guide__anim">
+                <div class="guide-ai" aria-hidden="true">
+                  <div class="guide-ai__stack">
+                    <span class="guide-ai__sheet is-a"></span>
+                    <span class="guide-ai__sheet is-b"></span>
+                    <span class="guide-ai__sheet is-c"></span>
+                  </div>
+                  <div class="guide-ai__flow"><i></i><i></i><i></i></div>
+                  <div class="guide-ai__grid">
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
             </li>
-            <li class="v3-guide__row">
-              <span class="v3-guide__n" aria-hidden="true">3</span>
-              <span class="v3-guide__body"><b>AI 转标准表</b><span>乱表头也能转</span></span>
-            </li>
-            <li class="v3-guide__row">
-              <span class="v3-guide__n" aria-hidden="true">4</span>
-              <span class="v3-guide__body"><b>概览核对后传输</b><span>改完再确认</span></span>
+            <li class="v3-guide__step">
+              <div class="v3-guide__hd">
+                <span class="v3-guide__n" aria-hidden="true">3</span>
+                <span class="v3-guide__body"><b>核对后导入</b><span>只改有问题的那几行，确认即入库</span></span>
+              </div>
+              <div class="v3-guide__anim">
+                <div class="guide-app" aria-hidden="true">
+                  <div class="guide-app__phone">
+                    <span class="guide-app__bar"></span>
+                    <span class="guide-app__row is-1"></span>
+                    <span class="guide-app__row is-2"></span>
+                    <span class="guide-app__row is-3"></span>
+                  </div>
+                  <div class="guide-app__fly"><i></i><i></i><i></i></div>
+                </div>
+              </div>
             </li>
           </ol>
 
@@ -577,6 +686,20 @@
                 <span class="v3-stock__label">价目表</span>
                 <span class="v3-stock__val"><em class="num-em" id="stockPrice">0</em> 项</span>
                 <span class="v3-stock__tag" id="stockPriceTag">未导入</span>
+                <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <button type="button" class="v3-stock__row" data-stock="stock" data-overview-view="stock">
+                <span class="v3-stock__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M3.4 7.2 12 3.2l8.6 4v9.6l-8.6 4-8.6-4V7.2Z" opacity=".55"/><path d="M12 12.4 3.6 8.4l1-2 7.4 3.5 7.4-3.5 1 2L12 12.4Z"/><path d="M11 12.9h2v7.4h-2z"/></svg></span>
+                <span class="v3-stock__label">库存商品</span>
+                <span class="v3-stock__val"><em class="num-em" id="stockInv">0</em> 件</span>
+                <span class="v3-stock__tag" id="stockInvTag">未导入</span>
+                <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <button type="button" class="v3-stock__row" data-stock="product" data-overview-view="product">
+                <span class="v3-stock__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M4.4 6.6h15.2c1 0 1.8.8 1.8 1.8v10c0 1-.8 1.8-1.8 1.8H4.4c-1 0-1.8-.8-1.8-1.8V8.4c0-1 .8-1.8 1.8-1.8Z" opacity=".55"/><path d="M4.4 4.4h15.2v2.2H4.4z"/><path d="M8.6 11.4h6.8v1.6H8.6z"/></svg></span>
+                <span class="v3-stock__label">店铺产品</span>
+                <span class="v3-stock__val"><em class="num-em" id="stockProd">0</em> 个</span>
+                <span class="v3-stock__tag" id="stockProdTag">未导入</span>
                 <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
               </button>
             </div>
@@ -605,75 +728,71 @@
           <span class="title">导入数据</span>
         </header>
         <div class="scroll-body import-body">
-        <ol class="v3-step" aria-label="导入进度：第 1 步，共 4 步">
-          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">选择</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">转换</span></li>
+        <ol class="v3-step" aria-label="导入进度：第 1 步，共 3 步">
+          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
+          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
           <div class="v3-sec-hd">
-            <h2>这次要导入什么</h2>
-            <p>先勾选类别，再为每类选一个来源。</p>
+            <h2>选择导入方式</h2>
+            <p>选一种开始，之后还能混着加</p>
           </div>
-          <div class="import-card on" data-import-card="member">
-            <button type="button" class="import-card__main" data-import-check="member">
-              <span class="import-card__check" aria-hidden="true"></span>
-              <span class="import-card__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M9.3 11.6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M2.4 18.4c0-3 3.1-4.8 6.9-4.8s6.9 1.8 6.9 4.8c0 .8-.6 1.4-1.4 1.4H3.8c-.8 0-1.4-.6-1.4-1.4Z"/><path d="M16.4 11.2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" opacity=".55"/><path d="M16.1 13.9c3.2.3 5.5 1.9 5.5 4.4 0 .8-.6 1.5-1.4 1.5h-3.2c.3-.5.4-1 .4-1.6 0-1.7-.5-3.1-1.3-4.3Z" opacity=".55"/></svg></span>
-              <span class="import-card__text">
-                <b>会员与持卡信息</b>
-                <span>会员编号 / 卡种 / 余额</span>
+          <div class="src-entry src-entry--stack">
+            <button type="button" class="src-hero is-excel" id="btnEnterExcel">
+              <span class="src-hero__art" aria-hidden="true">
+                <svg viewBox="0 0 96 72" width="96" height="72" fill="none" preserveAspectRatio="xMidYMid meet">
+                  <rect width="96" height="72" rx="10" fill="#E8F8F2"/>
+                  <rect x="28" y="14" width="40" height="44" rx="6" fill="#fff" stroke="#2BA471" stroke-width="1.8"/>
+                  <path d="M52 14v12a6 6 0 0 0 6 6h12" stroke="#2BA471" stroke-width="1.8"/>
+                  <path d="M52 14 70 32" stroke="#2BA471" stroke-width="1.8"/>
+                  <rect x="36" y="40" width="18" height="4" rx="1.5" fill="#2BA471" opacity=".35"/>
+                  <rect x="36" y="47" width="24" height="3.5" rx="1.5" fill="#2BA471" opacity=".22"/>
+                  <rect x="36" y="53.5" width="14" height="3.5" rx="1.5" fill="#2BA471" opacity=".18"/>
+                </svg>
               </span>
-              <span class="import-card__state is-pick" id="state-member">未选来源</span>
-            </button>
-            <div class="src-btns" role="group" aria-label="会员与持卡信息数据来源">
-              <button type="button" class="src-btn" aria-pressed="false" data-src-for="member" data-src="excel"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M6.4 2.6h6.3l4.9 4.9v13.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V4.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M12.9 2.8v4.2c0 .6.5 1.1 1.1 1.1h4.2" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7.4 11.6h6.2v1.5H7.4zM7.4 15h6.2v1.5H7.4z" fill="#fff" opacity=".9"/></svg><span>Excel 表格</span></button>
-              <button type="button" class="src-btn" aria-pressed="false" data-src-for="member" data-src="photo"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8.6 5.4 9.9 3.6h4.2l1.3 1.8h3.1c1.2 0 2.1.9 2.1 2.1v10c0 1.2-.9 2.1-2.1 2.1H5.5c-1.2 0-2.1-.9-2.1-2.1v-10c0-1.2.9-2.1 2.1-2.1h3.1Z"/><path d="M12 16.6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="#fff" opacity=".92"/></svg><span>拍照识别</span></button>
-            </div>
-            <div class="import-card__thumbs hidden" id="thumbs-member" data-thumbs-for="member"></div>
-          </div>
-          <div class="import-card on" data-import-card="card">
-            <button type="button" class="import-card__main" data-import-check="card">
-              <span class="import-card__check" aria-hidden="true"></span>
-              <span class="import-card__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M3 6.6C3 5.2 4.1 4 5.5 4h13C19.9 4 21 5.2 21 6.6V8H3V6.6Z"/><path d="M3 10h18v7.4c0 1.4-1.1 2.6-2.5 2.6h-13C4.1 20 3 18.8 3 17.4V10Z" opacity=".55"/></svg></span>
-              <span class="import-card__text">
-                <b>会员卡模板</b>
-                <span>卡名称 / 充值 / 权益 / 会员价</span>
+              <span class="src-hero__copy">
+                <b>Excel 导入</b>
+                <span>表格文件 · xls / xlsx / csv</span>
               </span>
-              <span class="import-card__state is-pick" id="state-card">未选来源</span>
             </button>
-            <div class="src-btns" role="group" aria-label="会员卡模板数据来源">
-              <button type="button" class="src-btn" aria-pressed="false" data-src-for="card" data-src="excel"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M6.4 2.6h6.3l4.9 4.9v13.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V4.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M12.9 2.8v4.2c0 .6.5 1.1 1.1 1.1h4.2" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7.4 11.6h6.2v1.5H7.4zM7.4 15h6.2v1.5H7.4z" fill="#fff" opacity=".9"/></svg><span>Excel 表格</span></button>
-              <button type="button" class="src-btn" aria-pressed="false" data-src-for="card" data-src="photo"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8.6 5.4 9.9 3.6h4.2l1.3 1.8h3.1c1.2 0 2.1.9 2.1 2.1v10c0 1.2-.9 2.1-2.1 2.1H5.5c-1.2 0-2.1-.9-2.1-2.1v-10c0-1.2.9-2.1 2.1-2.1h3.1Z"/><path d="M12 16.6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="#fff" opacity=".92"/></svg><span>拍照识别</span></button>
-            </div>
-            <div class="import-card__thumbs hidden" id="thumbs-card" data-thumbs-for="card"></div>
-            <p class="import-card__dep" id="depCard">需与价目表同批导入</p>
-          </div>
-          <div class="import-card on" data-import-card="price">
-            <button type="button" class="import-card__main" data-import-check="price">
-              <span class="import-card__check" aria-hidden="true"></span>
-              <span class="import-card__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M11.9 3.2c.5 0 1 .2 1.4.6l7 7c.8.8.8 2 0 2.8l-6.7 6.7c-.8.8-2 .8-2.8 0l-7-7c-.4-.4-.6-.9-.6-1.4V5.2c0-1.1.9-2 2-2h6.7ZM8.6 9.8a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2Z"/></svg></span>
-              <span class="import-card__text">
-                <b>价目表</b>
-                <span>项目·产品 / 价格 / 会员价</span>
+            <button type="button" class="src-hero is-photo" id="btnEnterPhoto">
+              <span class="src-hero__art" aria-hidden="true">
+                <svg viewBox="0 0 96 72" width="96" height="72" fill="none" preserveAspectRatio="xMidYMid meet">
+                  <rect width="96" height="72" rx="10" fill="#EEF5FC"/>
+                  <rect x="14" y="18" width="36" height="40" rx="4" fill="#fff" stroke="#3B82C4" stroke-width="1.6"/>
+                  <rect x="20" y="24" width="24" height="4" rx="1.2" fill="#3B82C4" opacity=".45"/>
+                  <rect x="20" y="32" width="24" height="3" rx="1" fill="#3B82C4" opacity=".18"/>
+                  <rect x="20" y="38" width="18" height="3" rx="1" fill="#3B82C4" opacity=".18"/>
+                  <rect x="20" y="44" width="22" height="3" rx="1" fill="#3B82C4" opacity=".18"/>
+                  <rect x="42" y="12" width="34" height="48" rx="6" fill="#fff" stroke="#3B82C4" stroke-width="1.8"/>
+                  <rect x="47" y="18" width="24" height="28" rx="3" fill="#EEF5FC" stroke="#3B82C4" stroke-width="1.2"/>
+                  <rect x="51" y="23" width="16" height="3" rx="1" fill="#3B82C4" opacity=".5"/>
+                  <rect x="51" y="29" width="16" height="2.5" rx="1" fill="#3B82C4" opacity=".2"/>
+                  <line x1="47" y1="36" x2="71" y2="36" stroke="#3B82C4" stroke-width="1.2" stroke-dasharray="2 2" opacity=".7"/>
+                  <circle cx="59" cy="52" r="3.2" stroke="#3B82C4" stroke-width="1.5"/>
+                </svg>
               </span>
-              <span class="import-card__state is-pick" id="state-price">未选来源</span>
+              <span class="src-hero__copy">
+                <b>拍照导入</b>
+                <span>纸质价目表、手写本，对准拍</span>
+              </span>
             </button>
-            <div class="src-btns" role="group" aria-label="价目表数据来源">
-              <button type="button" class="src-btn" aria-pressed="false" data-src-for="price" data-src="excel"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M6.4 2.6h6.3l4.9 4.9v13.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V4.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M12.9 2.8v4.2c0 .6.5 1.1 1.1 1.1h4.2" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7.4 11.6h6.2v1.5H7.4zM7.4 15h6.2v1.5H7.4z" fill="#fff" opacity=".9"/></svg><span>Excel 表格</span></button>
-              <button type="button" class="src-btn" aria-pressed="false" data-src-for="price" data-src="photo"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8.6 5.4 9.9 3.6h4.2l1.3 1.8h3.1c1.2 0 2.1.9 2.1 2.1v10c0 1.2-.9 2.1-2.1 2.1H5.5c-1.2 0-2.1-.9-2.1-2.1v-10c0-1.2.9-2.1 2.1-2.1h3.1Z"/><path d="M12 16.6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="#fff" opacity=".92"/></svg><span>拍照识别</span></button>
-            </div>
-            <div class="import-card__thumbs hidden" id="thumbs-price" data-thumbs-for="price"></div>
-            <p class="import-card__dep import-card__dep--link hidden" id="depPrice">已随「会员卡模板」连带导入</p>
           </div>
+          <div class="v3-sec-hd" id="pendingHead">
+            <h2>已经拿到 <em class="num-em" id="pendingCount">0</em> 份</h2>
+            <p>还能继续加，Excel 与照片可以混着来。</p>
+          </div>
+          <div class="pending-list" id="pendingList"></div>
+          <p class="pending-empty" id="pendingEmpty">还没有添加任何数据。点上面的入口开始。</p>
         </div>
         <div class="v3-foot">
           <div class="v3-foot__note">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.6A9.4 9.4 0 1 0 12 21.4 9.4 9.4 0 0 0 12 2.6Zm.05 4.9a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3ZM10.9 11.4h2.2v6.2h-2.2v-6.2Z"/></svg>
-            <span>卡模板与价目表需同批导入，会员价按价目表校验。</span>
+            <span>不用挑类别，也不用整理表头：AI 会判断这批数据是会员、卡模板、价目表、库存商品还是店铺产品。</span>
           </div>
 
           <div class="v3-foot__main">
-            <button type="button" class="btn-primary" id="btnImportSelectNext">下一步</button>
+            <button type="button" class="btn-primary" id="btnImportAnalyze" disabled>开始识别</button>
           </div>
         </div>
       </div>
@@ -684,37 +803,30 @@
           <button type="button" class="back" data-go="import-select" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="title">上传表格</span>
+          <span class="title">上传 Excel</span>
         </header>
         <div class="scroll-body import-body">
-        <ol class="v3-step" aria-label="导入进度：第 2 步，共 4 步">
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">选择</span></li>
+        <ol class="v3-step" aria-label="导入进度：第 1 步，共 3 步">
           <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">转换</span></li>
+          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
           <div class="v3-sec-hd">
-            <h2 id="uploadStepTitle">上传 Excel</h2>
-            <p id="importUploadFor">第 1 / 2 类</p>
+            <h2>选择 Excel 文件</h2>
+            <p>一次可以选多个。表头不标准、有合并单元格都没关系，AI 会读。</p>
           </div>
-          <div class="up-steps" id="uploadSteps"></div>
-          <div class="upload-list" id="importUploadList"></div>
-          <div class="upload-ai hidden" id="uploadAiRow">
-            <div class="upload-ai__main">
-              <span class="upload-ai__badge" id="uploadAiBadge" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M15.7757 5.77566L16.4308 3.81026H17.5692L18.2243 5.77566L20.1897 6.43079V7.56921L18.2243 8.22434L17.5692 10.1897H16.4308L15.7757 8.22434L13.8103 7.56921V6.43079L15.7757 5.77566Z"/><path d="M18 12V19H16V12H18Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7.33731 6H10.6627L14.033 19H11.9668L11.1891 16H6.81084L6.03306 19H3.96694L7.33731 6ZM7.32936 14H10.6706L9.11508 8H8.88491L7.32936 14Z"/></svg></span>
-              <span class="upload-ai__text" id="uploadAiText">非标准表，将用 AI 转成标准格式</span>
-            </div>
-            <label class="upload-ai__switch">
-              <input type="checkbox" id="uploadStdToggle">
-              <span>按标准模板填写</span>
-            </label>
-          </div>
-          <div class="upload-links">
-            <button type="button" class="upload-links__btn" id="btnTplDownload"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 3.4c.7 0 1.2.5 1.2 1.2v6.9l2-2 1.7 1.7-4.9 4.9-4.9-4.9 1.7-1.7 2 2V4.6c0-.7.5-1.2 1.2-1.2Z"/><rect x="4" y="17.4" width="16" height="2.4" rx="1.2"/></svg><span>下载标准模板</span></button>
-            <button type="button" class="upload-links__btn" id="btnWechatHow"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 2.4h8a2.6 2.6 0 0 1 2.6 2.6v14a2.6 2.6 0 0 1-2.6 2.6H8a2.6 2.6 0 0 1-2.6-2.6V5A2.6 2.6 0 0 1 8 2.4Zm.2 2.2a.9.9 0 0 0-.9.9v11.4c0 .5.4.9.9.9h7.6c.5 0 .9-.4.9-.9V5.5a.9.9 0 0 0-.9-.9H8.2Z"/><rect x="10.4" y="18.6" width="3.2" height="1.3" rx="0.65"/></svg><span>传到手机</span></button>
-          </div>
+          <button type="button" class="upload-drop" id="btnPickExcel">
+            <span class="upload-drop__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.8V4.6M7.4 9.2 12 4.6l4.6 4.6"/><path d="M4.6 15.4v2.6c0 1 .8 1.8 1.8 1.8h11.2c1 0 1.8-.8 1.8-1.8v-2.6"/></svg></span>
+            <b>选择文件</b>
+            <span>xls / xlsx / csv · 单个 ≤ 10MB</span>
+          </button>
+          <div class="pending-list" id="excelPickList"></div>
+          <p class="upload-multi-note">最多 5 个文件；传错了在列表里直接删。</p>
         </div>
         <div class="import-foot">
+          <div class="v3-foot__note">
+            <span>上传完点「完成」，可以回去继续加照片，也可以直接开始识别。</span>
+          </div>
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnImportUploadDone">完成</button>
           </div>
@@ -727,12 +839,12 @@
           <button type="button" class="back" id="btnCameraBack" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="title">拍照识别</span>
+          <span class="title">拍照</span>
           <span class="cam-count" id="importCameraCount">已拍 0 张</span>
         </header>
         <div class="import-camera">
           <p class="cam-top">
-            <span class="cam-top__cat" id="importCameraFor">价目表</span>
+            <span class="cam-top__cat">拍什么都行</span>
             <i class="cam-top__sep" aria-hidden="true"></i>
             <span class="cam-top__tip">对准表格四角，可连拍</span>
           </p>
@@ -747,6 +859,17 @@
               <i></i><i></i><i></i><i></i>
             </div>
             <span class="cam-scan" aria-hidden="true"></span>
+            <div class="cam-wm" id="camWatermark" aria-hidden="true">
+              <div class="cam-wm__general" id="camWmGeneral">
+                <span class="cam-wm__badge">取景提示</span>
+                <p>四角对齐 · 文字清晰 · 避免反光</p>
+              </div>
+              <div class="cam-wm__table hidden" id="camWmTable">
+                <span class="cam-wm__line" aria-hidden="true"></span>
+                <p>表头对准此线 · 完整收入取景框</p>
+              </div>
+            </div>
+            <button type="button" class="cam-wm__toggle" id="btnCamTableDemo" aria-pressed="false">演示：普通取景</button>
             <p class="import-camera__tip">保持表格完整入框</p>
           </div>
           <div class="cam-strip" id="importCameraStrip">
@@ -755,8 +878,7 @@
           <div class="cam-foot">
             <button type="button" class="cam-act" id="btnCameraAlbum">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.2" y="4.6" width="17.6" height="14.8" rx="2.4"/><circle cx="8.6" cy="9.4" r="1.5"/><path d="M4.4 17.2l4.6-5 3.2 3.4 2.6-2.8 4.8 4.4"/></svg>
-              <span class="cam-act__label">相册</span>
-              <span class="cam-act__ph">占位</span>
+              <span class="cam-act__label">照片</span>
             </button>
             <button type="button" class="import-camera__shutter" id="btnImportCameraShutter" aria-label="拍照"></button>
             <button type="button" class="cam-act cam-act--done" id="btnCameraDone">
@@ -767,45 +889,90 @@
         </div>
       </div>
 
-      <!-- import-queue：确认待识别内容 -->
-      <div class="screen hidden" id="screen-import-queue" data-flow="import-queue">
+      <!-- import-analyze：AI 正在判断这批数据属于哪些类别 -->
+      <div class="screen hidden" id="screen-import-analyze" data-flow="import-analyze">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-leave-import aria-label="返回首页">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">AI 识别中</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="conv-hero">
+            <div class="v3-eq" id="analyzeEq" role="img" aria-label="AI 正在识别">
+              <i></i><i></i><i></i><i></i><i></i>
+              <span class="v3-eq__done"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span>
+            </div>
+            <h2 id="analyzeTitle">正在看这批数据</h2>
+            <p id="analyzeLead">读取表头、比对字段，判断属于哪几类</p>
+            <div class="conv-steps" id="analyzeSteps">
+              <div class="conv-step" data-ana-step="0"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>读取文件</b><em>表头 / 列名</em></div>
+              <div class="conv-step" data-ana-step="1"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>判断类别</b><em>会员 / 卡模板 / 价目表 / 库存 / 产品</em></div>
+              <div class="conv-step" data-ana-step="2"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>对齐字段</b><em>自动映射，无需手动指定</em></div>
+            </div>
+          </div>
+        </div>
+        <div class="v3-foot">
+          <div class="v3-foot__note">
+            <span>识别完成后会直接告诉你读出了哪几类，不用你做任何选择。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- import-cards：三档识别总览 -->
+      <div class="screen hidden" id="screen-import-cards" data-flow="import-cards">
         <header class="page-title-bar">
           <button type="button" class="back" data-go="import-select" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="title">本批清单</span>
+          <span class="title">识别结果</span>
         </header>
         <div class="scroll-body import-body">
-        <ol class="v3-step" aria-label="导入进度：第 3 步，共 4 步">
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">选择</span></li>
+        <ol class="v3-step" aria-label="导入进度：第 2 步，共 4 步">
           <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">转换</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
+          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
+          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">确认</span></li>
+          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">入库</span></li>
         </ol>
           <div class="v3-sec-hd">
-            <h2>确认本批要转换的内容</h2>
-            <p>开始后 AI 会逐表读取列名、对齐标准字段，并标出需要确认的行。</p>
+            <h2 id="cardsHead">识别完成</h2>
+            <p class="tier-lead" id="cardsLead">先看能进店的；其余已帮你留底，可随时去查。</p>
           </div>
-          <div class="queue-summary" id="queueSummary"></div>
-          <div class="queue-sec">
-            <div class="queue-sec__head">
-              <span class="fmt-ico is-xls is-sm" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M6.4 2.6h6.3l4.9 4.9v13.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V4.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M12.9 2.8v4.2c0 .6.5 1.1 1.1 1.1h4.2" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7.4 11.6h6.2v1.5H7.4zM7.4 15h6.2v1.5H7.4z" fill="#fff" opacity=".9"/></svg></span><span class="queue-sec__title">Excel 表格</span>
-              <span class="queue-sec__count" id="queueExcelCount">0 Excel</span>
-            </div>
-            <div class="queue-list" id="queueExcelList"></div>
-          </div>
-          <div class="queue-sec">
-            <div class="queue-sec__head">
-              <span class="fmt-ico is-img is-sm" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4.4 4.6h15.2c1 0 1.8.8 1.8 1.8v11.2c0 1-.8 1.8-1.8 1.8H4.4c-1 0-1.8-.8-1.8-1.8V6.4c0-1 .8-1.8 1.8-1.8Zm12.1 3.3a1.7 1.7 0 1 0 0 3.4 1.7 1.7 0 0 0 0-3.4ZM4.6 17.2h14.8l-4.3-5.5-3.2 3.9-2.2-2.4-5.1 4Z"/></svg></span><span class="queue-sec__title">照片</span>
-              <span class="queue-sec__count" id="queuePhotoCount">0 照片</span>
-            </div>
-            <div id="queuePhotoGroups"></div>
-          </div>
-          <p class="queue-note" id="queueNote">换来源请返回上一步。</p>
+          <div id="cardsList"></div>
+          <p class="cards-empty hidden" id="cardsEmpty">没有读出可用数据。换一份文件或重新拍几张再试。</p>
         </div>
         <div class="v3-foot">
+          <div class="v3-foot__note">
+            <span>下一步选出仍在用的卡和价目，再核对后导入。</span>
+          </div>
           <div class="v3-foot__main">
-            <button type="button" class="btn-primary" id="btnQueueStart">开始转换</button>
+            <button type="button" class="btn-primary" id="btnCardsNext">下一步：确认有效项</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- import-confirm：勾选当前有效的卡模板 / 价目 -->
+      <div class="screen hidden" id="screen-import-confirm" data-flow="import-confirm">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="import-cards" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">确认有效项</span>
+        </header>
+        <div class="scroll-body import-body">
+          <ol class="v3-step" aria-label="导入进度：第 3 步，共 4 步">
+            <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
+            <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
+            <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">确认</span></li>
+            <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">入库</span></li>
+          </ol>
+          <p class="confirm-tip">只选现在还在用的。<br>不选的不会进店里，但会留底。</p>
+          <div id="confirmBody"></div>
+        </div>
+        <div class="v3-foot">
+          <div class="v3-foot__note"><span id="confirmFootNote">可以一项都不选。</span></div>
+          <div class="v3-foot__main">
+            <button type="button" class="btn-primary" id="btnConfirmNext">下一步：核对入库</button>
           </div>
         </div>
       </div>
@@ -819,11 +986,10 @@
           <span class="title">标准表转换</span>
         </header>
         <div class="scroll-body import-body">
-        <ol class="v3-step" aria-label="导入进度：第 3 步，共 4 步">
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">选择</span></li>
+        <ol class="v3-step" aria-label="导入进度：第 2 步，共 3 步">
           <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">转换</span></li>
-          <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
+          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
+          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
           <div class="conv-hero">
             <div class="v3-eq" id="convertEq" role="img" aria-label="AI 正在处理">
@@ -849,215 +1015,70 @@
         </div>
       </div>
 
-      <!-- import-check：数据概览 + 行内轻改 + 确认传输 -->
+      <!-- import-check：只读对账确认（v2.19） -->
       <div class="screen hidden" id="screen-import-check" data-flow="import-check">
         <header class="page-title-bar">
           <button type="button" class="back" id="btnCheckBack" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="title">数据核对</span>
-          <button type="button" class="nav-act" id="btnCheckHelp"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.6A9.4 9.4 0 1 0 12 21.4 9.4 9.4 0 0 0 12 2.6Zm.05 4.9a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3ZM10.9 11.4h2.2v6.2h-2.2v-6.2Z"/></svg><span>标记说明</span></button>
+          <span class="title">核对导入</span>
         </header>
         <div class="scroll-body import-body check-body" id="checkBody">
-        <ol class="v3-step" aria-label="导入进度：第 4 步，共 4 步">
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">选择</span></li>
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">转换</span></li>
-          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
-        </ol>
-          <div class="v3-batch">
-            <span class="v3-batch__id">RTA-20261027-03</span>
-            <span class="v3-batch__sep" aria-hidden="true"></span>
-            <span id="checkBatchText">3 类 · 206 行</span>
-          </div>
-          <div class="v3-check-hero">
-            <div class="check-donut v3-ring" id="checkDonut" role="img" aria-label="可传输占比">
-              <span class="check-donut__pct v3-ring__num" id="checkDonutPct">0%</span>
-              <em class="check-donut__cap v3-ring__cap">可传输</em>
-            </div>
-            <div class="v3-check-hero__side">
-              <div class="v3-check-hero__n"><b id="checkTotal">0</b> 行已识别</div>
-              <div class="v3-check-hero__c" id="checkCats">3 类</div>
-            </div>
-          </div>
-          <div class="check-stats v3-metrics">
-            <div class="check-stat v3-metric">
-              <div class="v3-metric__num"><b id="checkOk">0</b></div>
-              <span class="v3-metric__label">可直接导入</span>
-            </div>
-            <div class="check-stat v3-metric is-warn">
-              <div class="v3-metric__num"><b id="checkWarn">0</b></div>
-              <span class="v3-metric__label">建议确认</span>
-            </div>
-            <div class="check-stat v3-metric is-err">
-              <div class="v3-metric__num"><b id="checkErr">0</b></div>
-              <span class="v3-metric__label">需修正</span>
-            </div>
+          <ol class="v3-step" aria-label="导入进度：第 4 步，共 4 步">
+            <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
+            <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
+            <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">确认</span></li>
+            <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">入库</span></li>
+          </ol>
+          <div class="verify-hero">
+            <h2>即将导入本店</h2>
+            <p id="checkBatchText">和账本对一下下面这些数字即可。</p>
+            <div class="verify-metrics" id="checkVerifyMetrics"></div>
           </div>
           <div class="check-tabs" id="checkTabs" role="tablist" aria-label="按类别核对"></div>
-          <div class="check-tools">
-            <div class="check-chips" id="checkChips" role="group" aria-label="筛选数据"></div>
+          <div class="verify-tab-sum" id="checkTabSum"></div>
+          <div class="check-list verify-list" id="checkList"></div>
+          <p class="check-empty hidden" id="checkEmpty">本类没有可导入数据</p>
+          <!-- 兼容旧钩子（隐藏，避免脚本空引用） -->
+          <div class="hidden" aria-hidden="true">
+            <span id="checkTotal">0</span><span id="checkCats"></span><span id="checkOk">0</span><span id="checkWarn">0</span><span id="checkErr">0</span>
+            <span id="checkDonutPct">0%</span><div id="checkDonut"></div><div id="checkChips"></div>
+            <button type="button" id="btnCheckIgnoreAll"></button><button type="button" id="btnCheckMore"></button><button type="button" id="btnCheckAdd"></button><button type="button" id="btnCheckHelp"></button>
           </div>
-          <div class="check-card">
-            <div class="check-card__hd">
-              <button type="button" class="check-ignore-all" id="btnCheckIgnoreAll"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.6a9.4 9.4 0 1 0 0 18.8 9.4 9.4 0 0 0 0-18.8Zm4.6 13a1.3 1.3 0 0 1-1.8 1.8l-8.2-8.2a1.3 1.3 0 0 1 1.8-1.8l8.2 8.2Z"/></svg><span>全部忽略</span></button>
-            </div>
-            <div class="check-list" id="checkList"></div>
-          </div>
-          <button type="button" class="check-more hidden" id="btnCheckMore">加载更多</button>
-          <p class="check-empty hidden" id="checkEmpty">没有符合条件的数据</p>
         </div>
         <div class="v3-foot">
+          <div class="v3-foot__note"><span>只写入达入库门槛的行；未达门槛与整份存档的表不会写入。</span></div>
           <div class="v3-foot__main">
-            <button type="button" class="btn-primary" id="btnCheckSubmit">确认传输</button>
+            <button type="button" class="btn-primary" id="btnCheckSubmit">确认导入</button>
           </div>
-          <button type="button" class="v3-foot__link" id="btnCheckAdd"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M11 4.2h2v6.8h6.8v2H13v6.8h-2V13H4.2v-2H11V4.2Z"/></svg><span>新增一行</span></button>
-        </div>
-      </div>
-
-      <!-- import-map（已下线，仅保留在抓取清单兼容） -->
-      <div class="screen hidden" id="screen-import-map" data-flow="import-map">
-        <header class="page-title-bar">
-          <button type="button" class="back" id="btnImportMapBack" aria-label="返回">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span class="title">确认字段对应</span>
-          <span class="import-map-lock-badge hidden" id="importMapLockBadge">已锁定</span>
-        </header>
-        <div class="scroll-body import-body">
-          <div class="import-return-hint hidden" id="importMapReturnHint">已返回修改 · 映射已保留，改动仅影响本次导入</div>
-          <div class="import-head">
-            <p id="importMapLead">已识别为<strong>会员与持卡信息表</strong>，AI 已按列名猜好映射</p>
-          </div>
-          <div class="map-progress" id="mapProgress">
-            <div class="map-progress__top">
-              <b>映射确认</b>
-              <span id="mapProgressText">已确认 0/2</span>
-            </div>
-            <div class="map-progress__bar" aria-hidden="true"><i id="mapProgressBar"></i></div>
-            <p class="map-progress__hint" id="mapProgressHint">还有 2 项待确认</p>
-          </div>
-          <div class="map-tabs" id="importMapTabs" role="tablist" aria-label="按类别确认映射"></div>
-          <p class="map-multi-note hidden" id="mapMultiNote"></p>
-          <div id="importMapRows"></div>
-          <div class="map-photo-note hidden" id="importMapPhotoNote"></div>
-          <label class="import-map-ack" id="btnImportMapAck">
-            <input type="checkbox" class="import-map-ack__input" id="importMapAckInput">
-            <span class="import-map-ack__box" aria-hidden="true"></span>
-            <span id="importMapAckText">确认映射关系无误</span>
-          </label>
-          <p class="import-map-tip">自定义字段须与源表列名完全一致；未识别的字段会红字提示，并按跳过处理。</p>
-        </div>
-        <div class="import-foot">
-          <button type="button" class="btn-primary" id="btnImportMapPreview" disabled>下一步</button>
-          <button type="button" class="btn-ghost">让 AI 再解释一遍</button>
-        </div>
-      </div>
-
-      <!-- import-tpl-gen（据卡种自动生成卡模板，与用户确认后并入本批） -->
-      <div class="screen hidden" id="screen-import-tpl-gen" data-flow="import-tpl-gen">
-        <header class="page-title-bar">
-          <button type="button" class="back" data-go="import-map" aria-label="返回">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span class="title">确认卡模板</span>
-        </header>
-        <div class="scroll-body import-body">
-          <div class="import-head">
-            <h2>按卡种生成卡模板</h2>
-            <p id="tplGenLead">本批没有导入会员卡模板，已从持卡信息的「卡种」推得 <strong>10</strong> 张模板草案。<b>储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」</b>，可逐张改后确认。</p>
-          </div>
-          <div class="tpl-gen-note">
-            <b>只有储值与有效期能推断</b>
-            <span>储值金额取该卡种内单卡余额最高的一条，有效期默认「永久」，均可在这里改；赠送 / 权益 / 会员价无法从持卡信息推断，会以「待完善」状态入库，可在店铺管理里补齐。</span>
-          </div>
-          <div class="tpl-gen-bar">
-            <label class="tpl-gen-all">
-              <input type="checkbox" id="tplGenAll" checked>
-              <span>全选</span>
-            </label>
-            <span id="tplGenCount">已选 10 张</span>
-          </div>
-          <div class="tpl-gen-list" id="tplGenList"></div>
-          <p class="tpl-gen-foot" id="tplGenFoot">折扣值按卡种名推断（如「8折」→ 8 折）；卡名称、储值金额、有效期都可改，改完不影响已导入的持卡信息。</p>
-        </div>
-        <div class="import-foot">
-          <button type="button" class="btn-primary" id="btnTplGenNext">确认，生成 10 张模板</button>
-          <button type="button" class="btn-ghost" id="btnTplGenSkip">本次不生成，继续</button>
-        </div>
-      </div>
-
-      <!-- import-preview（分类概览，仅此页可确认导入） -->
-      <div class="screen hidden" id="screen-import-preview" data-flow="import-preview">
-        <header class="page-title-bar">
-          <button type="button" class="back" id="btnImportPreviewTopBack" aria-label="返回">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span class="title">核对数据</span>
-        </header>
-        <div class="scroll-body import-body import-preview-body">
-          <div class="import-head">
-            <h2>核对将导入的数据</h2>
-            <p class="import-preview-sub" id="importPreviewSub">会员 <em class="num-em">126</em> · 卡 <em class="num-em">98</em> · 价目 <em class="num-em">42</em>。点分类查看明细。</p>
-          </div>
-          <div id="importPreviewTypes"></div>
-        </div>
-        <div class="import-foot">
-          <button type="button" class="btn-primary" id="btnImportPreviewConfirm">确认无误，导入</button>
-          <button type="button" class="btn-ghost" id="btnImportPreviewBack">返回修改映射</button>
-        </div>
-      </div>
-
-      <!-- import-preview-detail（单类明细，不可确认导入） -->
-      <div class="screen hidden" id="screen-import-preview-detail" data-flow="import-preview-detail">
-        <header class="page-title-bar">
-          <button type="button" class="back" data-go="import-preview" aria-label="返回">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span class="title" id="importPreviewDetailTitle">会员明细</span>
-        </header>
-        <div class="scroll-body import-body import-preview-body">
-          <div class="import-head">
-            <p class="import-preview-sub" id="importPreviewDetailSub">抽样预览，点行可核对字段</p>
-          </div>
-          <div class="import-preview-cards" id="importPreviewCards"></div>
         </div>
       </div>
 
       <!-- import-result -->
       <div class="screen hidden" id="screen-import-result" data-flow="import-result">
-        <header class="page-title-bar"><span class="title">导入完成</span></header>
+        <header class="page-title-bar">
+          <button type="button" class="back" data-leave-import aria-label="返回首页">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">导入完成</span>
+        </header>
         <div class="scroll-body import-body import-result-body">
-          <div class="v3-done">
-            <span class="v3-done__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-            <h2 class="v3-done__title">导入成功</h2>
-            <p class="v3-done__lead">老店数据已写入本店。</p>
+          <div class="v3-done v3-done--illust">
+            <span class="v3-done__art" aria-hidden="true">
+              <svg viewBox="0 0 96 96" width="88" height="88" fill="none">
+                <rect x="22" y="18" width="44" height="56" rx="6" stroke="#2BA471" stroke-width="2.2"/>
+                <path d="M34 34h20M34 44h20M34 54h12" stroke="#2BA471" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="68" cy="68" r="16" fill="#E8F8F2" stroke="#2BA471" stroke-width="2.2"/>
+                <path d="M61 68.5 66.2 73.5 75.5 62.5" stroke="#2BA471" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <h2 class="v3-done__title">本批处理完成</h2>
+            <p class="v3-done__lead">可入库的已写入；其余已按档存档，可随时查阅。</p>
           </div>
           <p class="v3-batch" id="importResultSources">本批来源：Excel 3 个</p>
+          <div class="result-tiers" id="resultTierSummary"></div>
           <div class="v3-stock">
-            <div class="v3-stock__list">
-              <button type="button" class="v3-stock__row" data-result-view="member">
-                <span class="v3-stock__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M9.3 11.6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M2.4 18.4c0-3 3.1-4.8 6.9-4.8s6.9 1.8 6.9 4.8c0 .8-.6 1.4-1.4 1.4H3.8c-.8 0-1.4-.6-1.4-1.4Z"/><path d="M16.4 11.2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" opacity=".55"/><path d="M16.1 13.9c3.2.3 5.5 1.9 5.5 4.4 0 .8-.6 1.5-1.4 1.5h-3.2c.3-.5.4-1 .4-1.6 0-1.7-.5-3.1-1.3-4.3Z" opacity=".55"/></svg></span>
-                <span class="v3-stock__label">会员与持卡</span>
-                <span class="v3-stock__tag is-on" id="resultMemberOk">已入库</span>
-                <span class="v3-stock__val"><em id="resultMemberCount">126</em> 人</span>
-                <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-              <button type="button" class="v3-stock__row" data-result-view="card">
-                <span class="v3-stock__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M3 6.6C3 5.2 4.1 4 5.5 4h13C19.9 4 21 5.2 21 6.6V8H3V6.6Z"/><path d="M3 10h18v7.4c0 1.4-1.1 2.6-2.5 2.6h-13C4.1 20 3 18.8 3 17.4V10Z" opacity=".55"/></svg></span>
-                <span class="v3-stock__label">会员卡模板</span>
-                <span class="v3-stock__tag is-on" id="resultCardOk">已入库</span>
-                <span class="v3-stock__val"><em id="resultCardCount">4</em> 张</span>
-                <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-              <button type="button" class="v3-stock__row" data-result-view="price">
-                <span class="v3-stock__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6.4 2.6h6.3l4.9 4.9v13.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V4.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M7.4 11.6h6.2v1.5H7.4zM7.4 15h6.2v1.5H7.4z" fill="#fff" opacity=".9"/></svg></span>
-                <span class="v3-stock__label">价目表</span>
-                <span class="v3-stock__tag is-on" id="resultPriceOk">已入库</span>
-                <span class="v3-stock__val"><em id="resultPriceCount">42</em> 项</span>
-                <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-            </div>
+            <div class="v3-stock__list" id="resultStockList"></div>
           </div>
           <p class="v3-notice is-warn hidden" id="importResultMerge"></p>
           <button type="button" class="result-fail" id="btnImportFailRow">
@@ -1232,10 +1253,15 @@
       <div class="screen hidden" id="screen-card-list" data-flow="card-list">
         <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
         <header class="page-title-bar">
-          <button type="button" class="back" data-go="import-result" aria-label="返回">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span class="title">会员卡模板</span>
+          <button type="button" class="title-more" data-more-menu="card" aria-label="更多"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+          <div class="title-menu" data-more-panel="card" hidden>
+            <button type="button" data-arch-open="archive" data-arch-domain="card">原始存档</button>
+            <button type="button" data-arch-open="digest" data-arch-domain="card">识别摘要</button>
+          </div>
         </header>
         <div class="scroll-body import-body">
           <p class="proto-note">原型占位 · 会员卡模板列表以线上系统的真实页面为准</p>
@@ -1248,17 +1274,22 @@
         </div>
       </div>
 
-      <!-- price-list：原型占位 -->
+      <!-- price-list：原型占位（含店铺产品） -->
       <div class="screen hidden" id="screen-price-list" data-flow="price-list">
         <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
         <header class="page-title-bar">
-          <button type="button" class="back" data-go="import-result" aria-label="返回">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span class="title">价目表</span>
+          <button type="button" class="title-more" data-more-menu="price" aria-label="更多"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+          <div class="title-menu" data-more-panel="price" hidden>
+            <button type="button" data-arch-open="archive" data-arch-domain="price">原始存档</button>
+            <button type="button" data-arch-open="digest" data-arch-domain="price">识别摘要</button>
+          </div>
         </header>
         <div class="scroll-body import-body">
-          <p class="proto-note">原型占位 · 价目表以线上系统的真实页面为准</p>
+          <p class="proto-note">原型占位 · 价目表以线上系统的真实页面为准（店铺产品也在此模块）</p>
           <div class="proto-list">
             <div class="proto-list__item"><b>剪发</b><span>项目 · ¥68 / 次</span></div>
             <div class="proto-list__item"><b>烫发</b><span>项目 · ¥288 / 次</span></div>
@@ -1269,15 +1300,44 @@
         </div>
       </div>
 
+      <!-- stock-list：库存管理占位 -->
+      <div class="screen hidden" id="screen-stock-list" data-flow="stock-list">
+        <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">库存管理</span>
+          <button type="button" class="title-more" data-more-menu="stock" aria-label="更多"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+          <div class="title-menu" data-more-panel="stock" hidden>
+            <button type="button" data-arch-open="archive" data-arch-domain="stock">原始存档</button>
+            <button type="button" data-arch-open="digest" data-arch-domain="stock">识别摘要</button>
+          </div>
+        </header>
+        <div class="scroll-body import-body">
+          <p class="proto-note">原型占位 · 库存管理以线上系统的真实页面为准</p>
+          <div class="proto-list">
+            <div class="proto-list__item"><b>施华蔻染膏 6-0</b><span>规格 60ml · 采购价 ¥48 · 库存 26</span></div>
+            <div class="proto-list__item"><b>欧莱雅护色洗发水</b><span>规格 500ml · 采购价 ¥62 · 库存 18</span></div>
+            <div class="proto-list__item"><b>烫发纸（盒）</b><span>规格 100 张 · 采购价 ¥15 · 库存 40</span></div>
+          </div>
+        </div>
+      </div>
+
       <!-- members -->
       <div class="screen hidden members-screen" id="screen-members" data-flow="members">
         <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
         <header class="page-title-bar">
-          <button type="button" class="back" data-go="import-result" aria-label="返回">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span class="title">会员列表</span>
           <span class="members-count-badge" id="membersCountBadge">共 126 人</span>
+          <button type="button" class="title-more" data-more-menu="member" aria-label="更多" style="right:72px"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+          <div class="title-menu" data-more-panel="member" hidden>
+            <button type="button" data-arch-open="archive" data-arch-domain="member">原始存档</button>
+            <button type="button" data-arch-open="digest" data-arch-domain="member">识别摘要</button>
+          </div>
         </header>
         <div class="members-layout">
           <div class="pick-search members-pick-search">
@@ -1292,6 +1352,92 @@
             <div class="index-bar hidden" id="membersIndexBar" aria-hidden="true"></div>
           </div>
         </div>
+      </div>
+
+      <!-- 原始存档列表（按业务域过滤） -->
+      <div class="screen hidden" id="screen-archive-list" data-flow="archive-list">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnArchiveBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title" id="archiveListTitle">原始存档</span>
+        </header>
+        <div class="arch-tools">
+          <div class="v3-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.4"/><path d="M15.4 15.4 20 20"/></svg>
+            <input type="search" id="archiveSearch" placeholder="搜索文件名" autocomplete="off">
+          </div>
+        </div>
+        <div class="scroll-body arch-list" id="archiveList"></div>
+        <div class="empty-hero hidden" id="archiveEmpty">
+          <div class="empty-hero__art" aria-hidden="true">
+            <svg viewBox="0 0 140 140" width="140" height="140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="70" cy="70" r="54" fill="#F2F2F2"/>
+              <path d="M36 58h28l8 8h32v40H36V58Z" fill="#E6E6E6"/>
+              <path d="M36 66h68" stroke="#D8D8D8" stroke-width="4" stroke-linecap="round"/>
+              <rect x="48" y="78" width="36" height="6" rx="3" fill="#D4D4D4"/>
+              <rect x="48" y="90" width="22" height="6" rx="3" fill="#D4D4D4"/>
+              <path d="M78 42h20v12H70l8-12Z" fill="#DEDEDE"/>
+            </svg>
+          </div>
+          <p class="empty-hero__title">暂无原始存档</p>
+          <p class="empty-hero__hint">看不清或无法解析的原件会留在这里，导入后可在此查阅。</p>
+        </div>
+      </div>
+
+      <!-- 识别摘要列表 -->
+      <div class="screen hidden" id="screen-digest-list" data-flow="digest-list">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnDigestBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title" id="digestListTitle">识别摘要</span>
+        </header>
+        <div class="arch-tools">
+          <div class="v3-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.4"/><path d="M15.4 15.4 20 20"/></svg>
+            <input type="search" id="digestSearch" placeholder="搜索人物、项目或金额" autocomplete="off">
+          </div>
+        </div>
+        <div class="scroll-body arch-list" id="digestList"></div>
+        <div class="empty-hero hidden" id="digestEmpty">
+          <div class="empty-hero__art" aria-hidden="true">
+            <svg viewBox="0 0 140 140" width="140" height="140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="70" cy="70" r="54" fill="#F2F2F2"/>
+              <rect x="42" y="32" width="56" height="70" rx="8" fill="#E6E6E6"/>
+              <rect x="52" y="48" width="28" height="6" rx="3" fill="#D4D4D4"/>
+              <rect x="52" y="62" width="36" height="6" rx="3" fill="#D4D4D4"/>
+              <rect x="52" y="76" width="20" height="6" rx="3" fill="#D4D4D4"/>
+              <circle cx="96" cy="96" r="16" fill="#DEDEDE"/>
+              <rect x="93" y="88" width="6" height="16" rx="3" fill="#F7F7F7"/>
+              <rect x="88" y="93" width="16" height="6" rx="3" fill="#F7F7F7"/>
+            </svg>
+          </div>
+          <p class="empty-hero__title">暂无识别摘要</p>
+          <p class="empty-hero__hint">能看出一些信息但还对不上系统字段时，会收在这里。</p>
+        </div>
+      </div>
+
+      <!-- 识别摘要详情 -->
+      <div class="screen hidden" id="screen-digest-detail" data-flow="digest-detail">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="digest-list" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">摘要详情</span>
+        </header>
+        <div class="scroll-body" id="digestDetailBody"></div>
+      </div>
+
+      <!-- 出处预览 -->
+      <div class="screen hidden" id="screen-source-preview" data-flow="source-preview">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnSourceBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title" id="sourcePreviewTitle">数据出处</span>
+        </header>
+        <div class="scroll-body" id="sourcePreviewBody"></div>
       </div>
 
       <!-- ===== 历史订单（只读旁路） ===== -->
@@ -1316,11 +1462,24 @@
         <p class="v3-batch hist-summary" id="historySummary">共 0 条 · 合计 ¥0</p>
         <div class="scroll-body history-body">
           <div class="history-list" id="historyList"></div>
-          <div class="v3-empty hidden" id="historyEmpty">
-            <div class="v3-empty__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 3.6h6.3l4.9 4.9v11.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V5.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M12.7 3.8v4.2c0 .6.5 1.1 1.1 1.1h4.2M9 13.4h6M9 16.6h4"/></svg></div>
-            <p class="v3-empty__title">没有符合条件的历史订单</p>
-            <p class="v3-empty__hint">换个时间或金额范围试试；也可以导入新的历史消费。</p>
-            <button type="button" class="btn-outline hist-empty-btn" id="btnHistoryEmptyImport">导入历史消费</button>
+          <div class="empty-hero hidden" id="historyEmpty">
+            <div class="empty-hero__art" aria-hidden="true">
+              <svg viewBox="0 0 140 140" width="140" height="140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="70" cy="70" r="54" fill="#F2F2F2"/>
+                <rect x="42" y="34" width="56" height="68" rx="8" fill="#E6E6E6"/>
+                <rect x="50" y="48" width="32" height="6" rx="3" fill="#D4D4D4"/>
+                <rect x="50" y="60" width="40" height="6" rx="3" fill="#D4D4D4"/>
+                <rect x="50" y="72" width="24" height="6" rx="3" fill="#D4D4D4"/>
+                <circle cx="88" cy="92" r="18" fill="#DEDEDE"/>
+                <path d="M81 92.5l4.2 4.2L96 86" stroke="#F7F7F7" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="empty-hero__title" id="historyEmptyTitle">还没有历史订单</p>
+            <p class="empty-hero__hint" id="historyEmptyHint">把老店账单导进来，只用于查看核对，不进订单流水。</p>
+            <div class="empty-hero__acts">
+              <button type="button" class="btn-primary empty-hero__btn hidden" id="btnHistoryEmptyClear">清除筛选</button>
+              <button type="button" class="btn-primary empty-hero__btn" id="btnHistoryEmptyImport">导入</button>
+            </div>
           </div>
         </div>
         <p class="history-foot-note">仅用于查看核对，不进订单流水</p>
@@ -1350,7 +1509,7 @@
             <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 3.2H7.4a2 2 0 0 0-2 2v13.6a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8.6z"/><path d="M13.2 3.2v5.4h5.4"/><path d="M12 11.6v5.2M9.4 14.2h5.2"/></svg></span>
             <div class="hs-sec__txt">
               <h2>选择文件</h2>
-              <p>只接受 Excel；列名不必固定，下一步再指定哪列是日期、金额、顾客姓名。</p>
+              <p>只接受 Excel；列名不必固定，系统会自己找日期、金额、顾客姓名，认错再手动指定。</p>
             </div>
           </div>
           <button type="button" class="upload-drop" id="btnHistoryPickFile">
@@ -1369,12 +1528,31 @@
             </button>
           </div>
 
-          <div id="histMapArea">
+          <!-- 识别结果：先给样例核对，觉得不对再展开指定字段 -->
+          <div id="histSampleArea" class="hidden">
+            <div class="hs-sec hs-sec--mt">
+              <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="hs-sec__txt">
+                <h2>AI 已经读出来了</h2>
+                <p>日期、金额、顾客姓名、支付方式都认到了。先看样例对不对。</p>
+              </div>
+            </div>
+            <div class="hist-recog hist-recog--4">
+              <div class="hist-recog__item"><span>日期</span><b id="histRecogDate">消费日期</b></div>
+              <div class="hist-recog__item"><span>金额</span><b id="histRecogAmount">实收金额</b></div>
+              <div class="hist-recog__item"><span>顾客姓名</span><b id="histRecogName">顾客姓名</b></div>
+              <div class="hist-recog__item"><span>支付方式</span><b id="histRecogPay">支付方式</b></div>
+            </div>
+            <div class="history-sample history-sample--4" id="histSampleList"></div>
+            <button type="button" class="hist-adjust" id="btnHistAdjust">数值不对？手动指定字段</button>
+          </div>
+
+          <div id="histMapArea" class="hidden">
             <div class="hs-sec hs-sec--mt">
               <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.4h14M5 12h14M5 16.6h9"/><circle cx="17.4" cy="16.6" r="2.2"/></svg></span>
               <div class="hs-sec__txt">
                 <h2>指定字段</h2>
-                <p>系统已按列名猜好，点右侧可换；只认日期、金额、顾客姓名三项。</p>
+                <p>系统已按列名猜好，点右侧可换；识别日期、金额、顾客姓名、支付方式。</p>
               </div>
             </div>
             <div class="hs-rows">
@@ -1402,14 +1580,16 @@
                   <svg class="hs-row__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5.5l6.5 6.5L9 18.5"/></svg>
                 </span>
               </label>
+              <label class="hs-row">
+                <span class="hs-row__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6.5" width="17" height="11" rx="2"/><path d="M3.5 10.5h17"/><path d="M7 14.2h4"/></svg></span>
+                <span class="hs-row__label">支付方式<em class="hs-row__opt">可空</em></span>
+                <span class="hs-row__val">
+                  <select class="hs-row__select" id="historyMapPay" aria-label="支付方式取自哪一列"></select>
+                  <svg class="hs-row__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5.5l6.5 6.5L9 18.5"/></svg>
+                </span>
+              </label>
             </div>
             <p class="map-hint">其余列会原样保留，可在「历史订单」详情里查看。</p>
-            <div class="history-sample">
-              <div class="history-sample__title">样例行</div>
-              <div class="history-sample__row"><span>消费日期</span><span>实收金额</span><span>顾客姓名</span></div>
-              <div class="history-sample__row"><span>2025-12-28</span><span>¥1,280</span><span>李女士</span></div>
-              <div class="history-sample__row"><span>2025-11-09</span><span>¥680</span><span>王先生</span></div>
-            </div>
             <div class="hdr-card v3-mt-24">
               <div class="hdr-card__head">
                 <span class="hdr-card__title">标准表头</span>
@@ -1418,14 +1598,14 @@
               <p class="hdr-card__lead">建议首行用下面的列名；没用这些列名也能导入，指定字段时手工选一次即可。</p>
               <div class="hdr-card__body">
                 <div class="hdr-group">
-                  <div class="hdr-group__head"><b>历史消费</b><span>7 列 · 后 4 列原样保留</span></div>
+                  <div class="hdr-group__head"><b>历史消费</b><span>7 列 · 识别前 4 列</span></div>
                   <div class="hdr-group__chips">
-                    <span>消费日期</span><span>实收金额</span><span>顾客姓名</span><span>项目</span><span>支付方式</span><span>门店</span><span>备注</span>
+                    <span>消费日期</span><span>实收金额</span><span>顾客姓名</span><span>支付方式</span><span>项目</span><span>门店</span><span>备注</span>
                   </div>
-                  <div class="hdr-group__eg"><i>示例</i>2025-12-28 · 1280 · 李女士 · 染发 + 护理 · 微信 · 悦己美发沙龙 · 办卡前消费</div>
+                  <div class="hdr-group__eg"><i>示例</i>2025-12-28 · 1280 · 李女士 · 微信 · 染发 + 护理 · 悦己美发沙龙 · 办卡前消费</div>
                 </div>
               </div>
-              <p class="hdr-card__hint">前 3 列会被识别用于筛选与搜索，其余列整行原样保留。</p>
+              <p class="hdr-card__hint">日期、金额、姓名、支付方式用于核对与筛选；其余列整行原样保留。</p>
             </div>
           </div>
         </div>
@@ -1451,8 +1631,8 @@
           <div class="hs-sec">
             <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 6.4h9.2M4.6 12h9.2M4.6 17.6h9.2"/><path d="M17 8.6l2.2 2.2 3-3.4" stroke-width="1.9"/></svg></span>
             <div class="hs-sec__txt">
-              <h2>核对将导入的数据</h2>
-              <p>只识别日期、金额、顾客姓名；其余列整行原样保留。</p>
+              <h2>按月对一下账本</h2>
+              <p>差不太多就可以导。点某月可看几条样例。</p>
             </div>
           </div>
           <div class="hs-sum">
@@ -1468,7 +1648,7 @@
             </div>
             <div class="hs-sum__range"><span>日期范围</span><b id="historyPreviewRange">—</b></div>
           </div>
-          <div class="check-list" id="historyPreviewList"></div>
+          <div class="hist-month-list" id="historyPreviewList"></div>
           <div class="v3-notice is-err hidden" id="historyPreviewWarn">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.6v5.2M12 16.2v.1"/></svg>
             <span><b><em class="v3-num" id="historyPreviewFailCount">0</em> 条无法识别</b>，导入后可在失败明细下载</span>
@@ -1477,31 +1657,36 @@
         <div class="import-foot">
           <div class="v3-foot__note">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.4 4.4 5.6v6.1c0 4.7 3.2 8.7 7.6 9.9 4.4-1.2 7.6-5.2 7.6-9.9V5.6L12 2.4Zm0 5.2a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Zm.9 8.6h-1.8v-5h1.8v5Z"/></svg>
-            <span>仅展示最近 5 条，导入后可在「历史订单」查看全部</span>
+            <span>导入后可在「历史订单」查看全部</span>
           </div>
           <div class="v3-foot__main">
-            <button type="button" class="btn-primary" id="btnHistoryPreviewConfirm">确认无误，导入</button>
+            <button type="button" class="btn-primary" id="btnHistoryPreviewConfirm">确认导入</button>
           </div>
         </div>
       </div>
 
       <div class="screen hidden" id="screen-history-import-result" data-flow="history-import-result">
         <header class="page-title-bar"><span class="title">导入完成</span></header>
-        <div class="scroll-body import-body import-result-body import-body--note">
-          <div class="v3-done">
-            <span class="v3-done__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div class="scroll-body import-body import-result-body">
+          <div class="v3-done v3-done--illust">
+            <span class="v3-done__art" aria-hidden="true">
+              <svg viewBox="0 0 96 96" width="88" height="88" fill="none">
+                <rect x="22" y="18" width="44" height="56" rx="6" stroke="#2BA471" stroke-width="2.2"/>
+                <path d="M34 34h20M34 44h20M34 54h12" stroke="#2BA471" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="68" cy="68" r="16" fill="#E8F8F2" stroke="#2BA471" stroke-width="2.2"/>
+                <path d="M61 68.5 66.2 73.5 75.5 62.5" stroke="#2BA471" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
             <h2 class="v3-done__title">导入成功</h2>
             <p class="v3-done__lead" id="historyResultLead">历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。</p>
           </div>
-          <div class="v3-stock">
-            <div class="v3-stock__list">
-              <button type="button" class="v3-stock__row" data-go="history-orders">
-                <span class="v3-stock__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 3.6h6.3l4.9 4.9v11.9c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V5.2c0-.9.7-1.6 1.6-1.6Z"/><path d="M12.7 3.8v4.2c0 .6.5 1.1 1.1 1.1h4.2M9 13.4h6M9 16.6h4"/></svg></span>
-                <span class="v3-stock__label">历史消费</span>
-                <span class="v3-stock__tag is-on">已入库</span>
-                <span class="v3-stock__val"><em id="historyResultCount">128</em> 条</span>
-                <svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
+          <div class="result-tiers">
+            <div class="result-tier-card">
+              <div class="result-tier-row">
+                <span class="result-tier-row__lab"><b>历史消费</b><em>已写入本店，只读核对</em></span>
+                <span class="result-tier-row__num" id="historyResultCount">128</span>
+                <button type="button" class="result-tier-row__go" data-go="history-orders">去看</button>
+              </div>
             </div>
           </div>
           <button type="button" class="result-fail" id="btnHistoryFailRow">
@@ -1536,7 +1721,7 @@
             <span class="hs-sec__ico is-err" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.8M12 16.2v.1"/></svg></span>
             <div class="hs-sec__txt">
               <h2>这几行没能入库</h2>
-              <p>历史消费只识别日期、金额、顾客姓名；其余列不参与校验。</p>
+              <p>只校验日期、金额、顾客姓名、支付方式；其余列原样保留。</p>
             </div>
           </div>
           <div class="check-list history-fail-list" id="historyFailList"></div>
@@ -1545,11 +1730,26 @@
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnHistoryFailDownload">下载失败行</button>
           </div>
-          <button type="button" class="v3-foot__link" data-go="history-import-result">返回导入结果</button>
+          <div class="result-acts result-acts--foot">
+            <button type="button" class="v3-foot__link" data-go="history-import-result">返回导入结果</button>
+          </div>
         </div>
       </div>
 
       <!-- overlays -->
+      <!-- 聚光灯：关 banner 后引导「更多 → 数据导入」 -->
+      <div class="coach-layer" id="coachLayer" hidden>
+        <div class="coach-pane coach-pane--t" id="coachPaneT"></div>
+        <div class="coach-pane coach-pane--l" id="coachPaneL"></div>
+        <div class="coach-pane coach-pane--r" id="coachPaneR"></div>
+        <div class="coach-pane coach-pane--b" id="coachPaneB"></div>
+        <div class="coach-ring" id="coachHole" aria-hidden="true"></div>
+        <div class="coach-tip" id="coachTip">
+          <b id="coachTipTitle">数据导入在工作台</b>
+          <span id="coachTipText">点「更多」进入工作台，再找「数据导入」。</span>
+        </div>
+      </div>
+
       <div class="overlay-mask" id="inviteMask" aria-hidden="true"></div>
       <div class="invite-sheet" id="inviteSheet" role="dialog" aria-labelledby="inviteTitle">
         <div class="invite-sheet__handle"></div>
@@ -1558,22 +1758,6 @@
         <div class="invite-sheet__actions">
           <button type="button" class="btn-primary" id="btnInviteStart">开始导入</button>
           <button type="button" class="btn-ghost" id="btnInviteLater">稍后再说</button>
-        </div>
-      </div>
-
-      <button type="button" class="migrate-fab" id="migrateFab" aria-label="数据迁移">
-        <span class="migrate-fab__close" id="migrateFabClose" aria-label="关闭">×</span>
-        数据<br>迁移
-      </button>
-
-      <div class="dialog-mask" id="fabCloseDialog" aria-hidden="true">
-        <div class="dialog-card">
-          <h4>导入已完成</h4>
-          <p>是否关闭右下角「数据迁移」浮球？关闭后仍可从工作台进入。</p>
-          <div class="dialog-card__row">
-            <button type="button" class="btn-outline" id="btnFabCloseNo">保留</button>
-            <button type="button" class="btn-primary" id="btnFabCloseYes">关闭浮球</button>
-          </div>
         </div>
       </div>
 
@@ -1656,7 +1840,7 @@
       <div class="overlay-mask" id="delBatchMask" aria-hidden="true"></div>
       <div class="del-batch-dialog" id="delBatchDialog" role="dialog" aria-labelledby="delBatchTitle" aria-hidden="true">
         <h3 id="delBatchTitle">删除本批数据？</h3>
-        <p id="delBatchBody">将删除本次导入的 <em class="num-em" id="delBatchMemberCount">126</em> 条会员与持卡信息、<em class="num-em" id="delBatchCardCount">4</em> 张卡模板与 <em class="num-em" id="delBatchPriceCount">42</em> 项价目，已手动补录的条目也会一并删除。删除后需重新导入。</p>
+        <p id="delBatchBody">将删除本次导入的会员与持卡信息、卡模板、价目表，已手动补录的条目也会一并删除。删除后需重新导入。</p>
         <div class="del-batch-dialog__row">
           <button type="button" class="btn-outline" id="btnDelBatchCancel">先不删</button>
           <button type="button" class="btn-primary" id="btnDelBatchConfirm">确认删除</button>
@@ -1668,11 +1852,11 @@
       <div class="invite-sheet reimport-sheet" id="reimportModeSheet" role="dialog" aria-labelledby="reimportModeTitle">
         <div class="invite-sheet__handle"></div>
         <h3 id="reimportModeTitle">本店已有同类数据</h3>
-        <p>下列类别已有入库数据。请为每一类选择处理方式，不可跳过。</p>
+        <p class="reimport-sheet__lead">同类数据怎么处理？</p>
         <div class="reimport-mode-list" id="reimportModeList"></div>
         <div class="invite-sheet__actions">
           <button type="button" class="btn-primary" id="btnReimportModeOk" disabled>确认并继续</button>
-          <button type="button" class="btn-ghost" id="btnReimportModeCancel">返回修改类别</button>
+          <button type="button" class="btn-ghost" id="btnReimportModeCancel">返回</button>
         </div>
       </div>
 
@@ -1756,30 +1940,6 @@
         </div>
       </div>
 
-      <!-- 微信「文件传输助手」引导（首次进入数据迁移弹一次 + 上传页常驻入口） -->
-      <div class="overlay-mask wechat-mask" id="wechatTipMask" aria-hidden="true"></div>
-      <div class="wechat-tip" id="wechatTip" role="dialog" aria-modal="true" aria-labelledby="wechatTipTitle" aria-hidden="true">
-        <button type="button" class="wechat-tip__close" id="btnWechatTipClose" aria-label="关闭">×</button>
-        <p class="wechat-tip__eyebrow">手机端导入前</p>
-        <h3 id="wechatTipTitle">先在电脑上把 Excel 发到手机</h3>
-        <div class="wechat-demo" aria-hidden="true">
-          <div class="wechat-demo__pc"><span class="wechat-demo__screen"></span><i class="wechat-demo__doc">XLS</i></div>
-          <div class="wechat-demo__flow"><i></i><i></i><i></i></div>
-          <div class="wechat-demo__chat">
-            <span class="wx-bubble">文件传输助手</span>
-            <span class="wx-file">会员导入.xlsx</span>
-          </div>
-          <div class="wechat-demo__phone"><span></span></div>
-        </div>
-        <ol class="wechat-steps">
-          <li><b>电脑微信</b>打开「文件传输助手」，拖入 Excel 发送</li>
-          <li><b>手机微信</b>同一对话里下载文件</li>
-          <li>回到这里点「选择文件」选中它</li>
-        </ol>
-        <label class="wechat-tip__mute"><input type="checkbox" id="wechatTipMute"> 不再提示</label>
-        <button type="button" class="btn-primary" id="btnWechatTipOk">去上传</button>
-      </div>
-
       <!-- 标准模板下载（兜底：AI 转不了就按模板重填） -->
       <div class="overlay-mask" id="tplMask" aria-hidden="true"></div>
       <div class="invite-sheet tpl-sheet" id="tplSheet" role="dialog" aria-labelledby="tplSheetTitle" aria-hidden="true">
@@ -1847,7 +2007,6 @@
     </div>
   </div>
 </div>
-<script src="ai-bridge.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

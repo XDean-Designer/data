@@ -338,3 +338,5 @@ html.figma-capture .page-title-bar .title { top: 22px !important; }
   line-height: 14px;
   font-weight: 600;
 }
+
+/* v2.15：真实模式已下线，侧栏「演示 / 真实」分段控件及其样式一并删除 */

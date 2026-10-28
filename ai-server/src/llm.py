@@ -14,7 +14,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROMPT_VERSION = "t2-1.0.0"
 
 DEFAULT_BASE = "https://api.deepseek.com"
-DEFAULT_MODEL = "deepseek-chat"
+# 用 /models 实际返回的模型 id。原先写的 deepseek-chat 不在该账号的模型列表里
+# （能调通，属遗留别名），换新模型后端侧不再依赖未列出的别名。
+DEFAULT_MODEL = "deepseek-flash"
+VISION_MODEL = "deepseek-flash"      # 唯一 input_modalities 含 image 的模型
 TIMEOUT = 60
 
 # 成本估算用；单价按 DeepSeek 官网当期价核对后改，不入业务逻辑

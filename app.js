@@ -4,36 +4,37 @@
   var HOME_FLOW = 'login';
   var state = {
     pendingInvite: false,
-    fabVisible: false,
-    importSelection: { member: true, card: false, price: true },
-    importSources: { member: null, card: null, price: null },
-    importFiles: { member: [], card: [], price: [] },
-    importPhotos: { member: [], card: [], price: [] },
-    uploadStep: 0,
-    tplGen: null,
-    tplGenIncluded: [],
-    importCameraCat: null,
-    importCameraReturn: 'import-select',
+    /* 首页数据导入 banner / 断点续进（本批演示态，刷新可丢） */
+    importTask: {
+      started: false,
+      stage: 'idle', /* idle | analyzing | check | importing | done */
+      resumeFlow: null,
+      entry: 'home' /* home | workbench */
+    },
+    /* 三档识别结果（L1 原件 / L2 摘要 / L3 可入库） */
+    tierResult: { l1: [], l2: [], l3Cats: [] },
+    confirmItems: { cards: [], prices: [], acknowledged: false },
+    archiveDomain: 'member',
+    archiveReturn: 'members',
+    digestId: null,
+    sourceReturn: 'digest-detail',
+    sourcePayload: null,
+    coachPhase: null, /* null | home-more | wb-migrate */
+    coachTimer: null,
+    camTableGuide: false,
+    /* ===== 新流程：先收来源，再让 AI 判断类别 ===== */
+    pending: { excel: [], photo: [] },   /* 已拿到、尚未识别的内容 */
+    analyzing: false,
+    analyzeTimers: [],
+    analysisCats: [],                    /* AI 认出的类别，按展示顺序 */
+    /* 识别完成后由 AI 填充；下游（转换 / 核对 / 结果）沿用这套结构 */
+    importSelection: { member: false, card: false, price: false, stock: false, product: false },
+    importSources: { member: null, card: null, price: null, stock: null, product: null },
+    importFiles: { member: [], card: [], price: [], stock: [], product: [] },
+    importPhotos: { member: [], card: [], price: [], stock: [], product: [] },
     importCameraStream: null,
     importCameraDemo: false,
-    uploadFocus: null,
-    uploadHi: null,
-    hdrOpen: false,
-    hdrCats: [],
-    srcDialog: null,
-    queueBusy: false,
-    importMapTab: 'member',
-    historyImporting: false,
-    historyFilePicked: false,
-    importMapValues: {},
-    importMapAck: {},
     importPlan: { excel: [], photo: [] },
-    importLastDataStep: 'import-source',
-    importMapConfirmed: false,
-    importFromPhoto: false,
-    importMapSkipResetAck: false,
-    importPreviewType: null,
-    importMapReturned: false,
     importing: false,
     batchDeleted: false,
     claimEmpty: false,
@@ -46,16 +47,20 @@
     historyQuery: { from: '', to: '', min: '', max: '', name: '' },
     historySelectedId: null,
     historyDeleted: false,
+    /* 左侧「空态」导航强制预览：null | history-true | history-filter | archive | digest */
+    emptyPreview: null,
     historyImported: false,
-    historyMap: { date: '消费日期', amount: '实收金额', name: '顾客姓名' },
+    historyMap: { date: '消费日期', amount: '实收金额', name: '顾客姓名', pay: '支付方式' },
+    historyMapOpen: false,
+    histMonthOpen: null,
     /* 本店已入库存量（再导入承接） */
-    storeStock: { member: 0, card: 0, price: 0, history: 0 },
+    storeStock: { member: 0, card: 0, price: 0, stock: 0, product: 0, history: 0 },
     /* 再导模式：merge | replace；首次导入为 null */
-    reimportMode: { member: null, card: null, price: null },
+    reimportMode: { member: null, card: null, price: null, stock: null, product: null },
     historyReimportIntent: null, /* append | replace */
     viewReturn: null,
     pendingStockApply: false,
-    /* v2.0 标准表转换 + 数据概览 */
+    /* 标准表转换 + 数据核对 */
     checkData: null,
     checkTab: 'member',
     checkFilter: 'all',
@@ -64,14 +69,30 @@
     convertDone: false,
     convertRunning: false,
     convertTimers: [],
-    wechatTipShown: false,
-    checkIgnoreArm: false,
+    /* 兼容：映射 / 预览 / 真实模式等旧内核仍会读到这些字段（入口已下线，仅防未定义） */
+    mode: 'demo',
+    aiBridge: null,
+    aiModel: '',
+    aiVisionModel: '',
     uploadStd: {},
-    /* ===== 实测 AI（走本地桥 ai-server/server.py） ===== */
-    aiBridge: null,        /* null=未探测 · true=可用 · false=不可用 */
-    realSheets: null,      /* 后端返回的每张 sheet 的映射明细，用于页面上的「AI 明细」 */
-    realErrors: [],        /* 本批实测过程中的失败信息 */
-    realUsage: null,       /* token / 延迟汇总，仅展示 */
+    uploadFocus: null,
+    uploadHi: null,
+    uploadStep: 0,
+    srcDialog: null,
+    importMapAck: {},
+    importMapTab: 'member',
+    importMapSkipResetAck: false,
+    importCameraReturn: 'import-select',
+    queueBusy: false,
+    tplGen: null,
+    importPreviewType: 'member',
+    previewIdx: null,
+    realSheets: null,
+    realErrors: [],
+    realUsage: null,
+    historyFilePicked: false,
+    historyImporting: false,
+    checkIgnoreArm: false,
     transferRunning: false,
     legacy: {
       failId: null,
@@ -131,13 +152,15 @@
   };
 
   /* 本批导入造数；再导合并时的「新增 / 更新」演示拆分 */
-  var BATCH_DEMO = { member: 126, card: 4, price: 42 };
+  var BATCH_DEMO = { member: 126, card: 4, price: 42, stock: 38, product: 16 };
   var MERGE_DEMO = {
     member: { add: 18, upd: 12 },
     card: { add: 1, upd: 2 },
-    price: { add: 5, upd: 8 }
+    price: { add: 5, upd: 8 },
+    stock: { add: 9, upd: 6 },
+    product: { add: 3, upd: 2 }
   };
-  var STOCK_UNIT = { member: '人', card: '张', price: '项' };
+  var STOCK_UNIT = { member: '人', card: '张', price: '项', stock: '件', product: '个' };
 
   var INVITE_LANDING = {
     home: 1,
@@ -307,15 +330,34 @@
   var CARD_NAMES = ['黄金卡', '8折卡', '7.5折卡', '6折卡'];
   var PROJECTS = ['洗剪吹', '烫染护', '头皮护理', '造型', '美甲'];
 
-  var IMPORT_CAT = { member: '会员与持卡信息', card: '会员卡模板', price: '价目表' };
+  /* 五类数据：顺序即展示顺序（会员 → 卡模板 → 价目表 → 库存商品 → 店铺产品） */
+  var ALL_CATS = ['member', 'card', 'price', 'stock', 'product'];
+  var IMPORT_CAT = {
+    member: '会员资料',
+    card: '卡模板',
+    price: '价目表',
+    stock: '库存商品',
+    product: '店铺产品'
+  };
   // 窄容器（tab / chip / 分类行）用短名，避免挤压换行
-  var IMPORT_CAT_SHORT = { member: '会员与持卡', card: '卡模板', price: '价目表' };
+  var IMPORT_CAT_SHORT = { member: '会员', card: '卡模板', price: '价目表', stock: '库存', product: '店铺产品' };
   // 类别图标：与类型页保持同一套符号（36px 浅品牌底 + 20px 品牌色线描）
   var CAT_ICO = {
     member: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c0-3.7 3.2-5.6 7.2-5.6s7.2 1.9 7.2 5.6"/></svg>',
     card: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="2.6"/><path d="M2.8 10.2h18.4"/><path d="M6.6 14.6h4.2"/></svg>',
-    price: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.3 13.4l-6.9 6.9a2.1 2.1 0 0 1-2.9 0l-7.1-7.1a2 2 0 0 1-.6-1.4V5.4a2 2 0 0 1 2-2h6.4a2 2 0 0 1 1.4.6l7.7 7.7a2.1 2.1 0 0 1 0 1.7z"/><circle cx="8.1" cy="8.1" r="1.5"/></svg>'
+    price: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.3 13.4l-6.9 6.9a2.1 2.1 0 0 1-2.9 0l-7.1-7.1a2 2 0 0 1-.6-1.4V5.4a2 2 0 0 1 2-2h6.4a2 2 0 0 1 1.4.6l7.7 7.7a2.1 2.1 0 0 1 0 1.7z"/><circle cx="8.1" cy="8.1" r="1.5"/></svg>',
+    stock: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 20.4 7.6v8.8L12 20.8 3.6 16.4V7.6L12 3.2Z"/><path d="M3.6 7.6 12 12l8.4-4.4"/><path d="M12 12v8.8"/></svg>',
+    product: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 7.6h13.2l1.2 12a1.4 1.4 0 0 1-1.4 1.5H5.6a1.4 1.4 0 0 1-1.4-1.5l1.2-12Z"/><path d="M8.8 9.6V6.4a3.2 3.2 0 0 1 6.4 0v3.2"/></svg>'
   };
+  // 卡片副说明：识别结果页每类一行字段摘要
+  var CAT_DESC = {
+    member: '会员编号 / 卡号 / 姓名 / 手机号 / 余额',
+    card: '卡名称 / 类型 / 充值 / 折扣 / 权益',
+    price: '项目 / 价格 / 项目组 / 可开单',
+    stock: '商品名 / 规格 / 采购价 / 单位 / 数量',
+    product: '产品名 / 分类 / 售价 / 是否上架'
+  };
+  var CAT_UNIT = { member: '人', card: '张', price: '项', stock: '件', product: '个' };
 
   // members.xlsx 的 12 列，即「会员与持卡信息」标准表头
   var MEMBER_STD_COLS = ['会员编号', '姓名', '首字母', '手机号', '卡种', '卡有效期', '储值余额', '充值合计', '消费合计', '消费笔数', '距今天数', '支付方式'];
@@ -401,8 +443,13 @@
   }
 
   function syncNav(flow) {
+    var emptyOn = !!state.emptyPreview;
     $all('.site-nav [data-flow]').forEach(function (btn) {
-      btn.classList.toggle('on', btn.getAttribute('data-flow') === flow);
+      var match = !emptyOn && btn.getAttribute('data-flow') === flow;
+      btn.classList.toggle('on', match);
+    });
+    $all('.site-nav [data-empty]').forEach(function (btn) {
+      btn.classList.toggle('on', btn.getAttribute('data-empty') === state.emptyPreview);
     });
   }
 
@@ -499,27 +546,119 @@
   }
 
   function hasP0Stock() {
-    return state.storeStock.member > 0 || state.storeStock.card > 0 || state.storeStock.price > 0;
+    return ALL_CATS.some(function (k) { return (state.storeStock[k] || 0) > 0; });
   }
 
   function hasHistoryStock() {
     return state.storeStock.history > 0 && !state.historyDeleted;
   }
 
-  function enterMigrate() {
-    maybeShowWechatTip();
+  var BANNER_MUTE_KEY = 'rtb_import_banner_muted';
+  var WB_IMPORT_HIT_KEY = 'rtb_import_wb_hit';
+  var POST_AI_FLOWS = [
+    'import-analyze', 'import-cards', 'import-confirm', 'import-convert',
+    'import-check', 'import-result', 'import-fail'
+  ];
+  var DOMAIN_FLOWS = {
+    member: 'members',
+    card: 'card-list',
+    price: 'price-list',
+    stock: 'stock-list'
+  };
+  var DOMAIN_LABEL = { member: '会员', card: '会员卡', price: '价目表', stock: '库存', product: '店铺产品' };
+  var DOMAIN_MATCH = {
+    member: ['member'],
+    card: ['card'],
+    price: ['price', 'product'],
+    stock: ['stock']
+  };
+  var STAGE_COPY = {
+    idle: { title: '数据导入', sub: '把老店数据导进来', go: '进入', cls: '' },
+    analyzing: { title: '数据导入', sub: 'AI 识别中', go: '继续', cls: 'is-progress' },
+    check: { title: '数据导入', sub: '待核对', go: '继续', cls: 'is-progress' },
+    importing: { title: '数据导入', sub: '导入中', go: '继续', cls: 'is-progress' },
+    done: { title: '数据导入', sub: '已完成', go: '查看', cls: 'is-done' }
+  };
+
+  function bannerMuted() {
+    try { return localStorage.getItem(BANNER_MUTE_KEY) === '1'; } catch (e) { return false; }
+  }
+  function muteImportBanner() {
+    try { localStorage.setItem(BANNER_MUTE_KEY, '1'); } catch (e) {}
+  }
+  function clearBannerMute() {
+    try { localStorage.removeItem(BANNER_MUTE_KEY); } catch (e) {}
+  }
+  function hasHitWorkbenchImport() {
+    try { return localStorage.getItem(WB_IMPORT_HIT_KEY) === '1'; } catch (e) { return false; }
+  }
+  function markWorkbenchImportHit() {
+    try { localStorage.setItem(WB_IMPORT_HIT_KEY, '1'); } catch (e) {}
+  }
+
+  function setImportStage(stage, resumeFlow) {
+    state.importTask.stage = stage || 'idle';
+    if (resumeFlow) state.importTask.resumeFlow = resumeFlow;
+    if (stage && stage !== 'idle') state.importTask.started = true;
+    renderImportBanner();
+  }
+
+  function leaveImportShell() {
+    var entry = state.importTask.entry === 'workbench' ? 'workbench' : 'home';
+    go(entry);
+    renderImportBanner();
+  }
+
+  function resumeImportTask() {
+    var flow = state.importTask.resumeFlow;
+    if (state.importTask.started && flow && POST_AI_FLOWS.indexOf(flow) >= 0) {
+      go(flow);
+      return;
+    }
+    enterMigrate(state.importTask.entry || 'home');
+  }
+
+  function renderImportBanner() {
+    var el = $('#importBanner');
+    if (!el) return;
+    if (bannerMuted()) {
+      el.hidden = true;
+      return;
+    }
+    var stage = state.importTask.stage || 'idle';
+    var copy = STAGE_COPY[stage] || STAGE_COPY.idle;
+    el.hidden = false;
+    el.classList.toggle('is-progress', copy.cls === 'is-progress');
+    el.classList.toggle('is-done', copy.cls === 'is-done');
+    var title = $('#importBannerTitle');
+    var sub = $('#importBannerSub');
+    var goLab = $('#importBannerGo');
+    if (title) title.textContent = copy.title;
+    if (sub) sub.textContent = copy.sub;
+    if (goLab) goLab.textContent = copy.go;
+  }
+
+  function enterMigrate(from) {
+    state.importTask.entry = from === 'workbench' ? 'workbench' : 'home';
+    if (state.importTask.started && state.importTask.resumeFlow &&
+        POST_AI_FLOWS.indexOf(state.importTask.resumeFlow) >= 0) {
+      go(state.importTask.resumeFlow);
+      return;
+    }
     if (hasP0Stock()) go('import-overview');
-    else go('import-guide');
+    else go('import-overview');
   }
 
   function enterHistoryImport() {
+    state.emptyPreview = null;
     if (hasHistoryStock()) openHistoryReimportSheet();
     else goHistoryImportStart();
   }
 
-  /* 历史消费导入：说明页已并入半屏，直接进「选择文件 + 指定字段」同页 */
+  /* 历史消费导入：说明页已并入半屏；进页先给「AI 已识别 + 样例行」，需要时才展开指定字段 */
   function goHistoryImportStart() {
     state.historyFilePicked = false;
+    state.historyMapOpen = false;
     go('history-import-upload');
   }
 
@@ -543,16 +682,15 @@
     sheet.setAttribute('aria-hidden', 'true');
   }
 
-  function showFab() {
-    state.fabVisible = true;
-    var fab = $('#migrateFab');
-    if (fab) fab.classList.add('show');
+  function showImportBanner() {
+    clearBannerMute();
+    if (!state.importTask.started) setImportStage('idle', null);
+    else renderImportBanner();
   }
 
-  function hideFab() {
-    state.fabVisible = false;
-    var fab = $('#migrateFab');
-    if (fab) fab.classList.remove('show');
+  function hideImportBanner() {
+    muteImportBanner();
+    renderImportBanner();
   }
 
   function syncImportMapLockUI() {
@@ -800,12 +938,16 @@
   }
 
   function showDelBatchDialog() {
-    var mEl = $('#delBatchMemberCount');
-    var cEl = $('#delBatchCardCount');
-    var pEl = $('#delBatchPriceCount');
-    if (mEl) mEl.textContent = state.storeStock.member || BATCH_DEMO.member;
-    if (cEl) cEl.textContent = state.storeStock.card || BATCH_DEMO.card;
-    if (pEl) pEl.textContent = state.storeStock.price || BATCH_DEMO.price;
+    var body = $('#delBatchBody');
+    if (body) {
+      var bits = ALL_CATS.map(function (k) {
+        var n = state.storeStock[k] || BATCH_DEMO[k];
+        if (!n) return '';
+        return IMPORT_CAT_SHORT[k] + ' <em class="num-em">' + n + '</em> ' + STOCK_UNIT[k];
+      }).filter(Boolean);
+      body.innerHTML = '将删除本次导入的 ' + bits.join('、') +
+        '，已手动补录的条目也会一并删除。删除后需重新导入。';
+    }
     var mask = $('#delBatchMask');
     var dlg = $('#delBatchDialog');
     if (mask) {
@@ -1543,18 +1685,56 @@
     if (flow !== 'import-camera') stopCamera();
     if (flow !== 'history-import-upload') closeHistoryIntro();
     if (flow !== 'import-source') state.uploadHi = null;
+    if (flow === 'home') {
+      // 评审入口：?banner=1 强制恢复显示（清永久静音）
+      try {
+        if (new URLSearchParams(location.search).get('banner') === '1') clearBannerMute();
+      } catch (err) { /* ignore */ }
+      renderImportBanner();
+    }
+    if (state.importTask.started && POST_AI_FLOWS.indexOf(flow) >= 0) {
+      state.importTask.resumeFlow = flow;
+      if (flow === 'import-check' || flow === 'import-fail') state.importTask.stage = 'check';
+      else if (flow === 'import-result') state.importTask.stage = 'done';
+      else if (flow === 'import-analyze' || flow === 'import-cards' || flow === 'import-convert' || flow === 'import-confirm') {
+        state.importTask.stage = flow === 'import-confirm' ? 'check' : 'analyzing';
+      }
+      renderImportBanner();
+    }
     if (flow === 'import-overview') {
       renderImportOverview();
     }
     if (flow === 'import-select') {
       renderImportSelect();
+      renderExcelPick();
     }
     if (flow === 'import-source') {
-      renderUploadList();
+      renderExcelPick();
     }
     if (flow === 'import-camera') {
       renderCamera();
       startCamera();
+    }
+    if (flow === 'import-analyze') {
+      resetAnalysisProgress();
+    }
+    if (flow === 'import-cards') {
+      renderCards();
+    }
+    if (flow === 'import-confirm') {
+      renderConfirmPage();
+    }
+    if (flow === 'archive-list') {
+      renderArchiveList();
+    }
+    if (flow === 'digest-list') {
+      renderDigestList();
+    }
+    if (flow === 'digest-detail') {
+      renderDigestDetail();
+    }
+    if (flow === 'source-preview') {
+      renderSourcePreview();
     }
     if (flow === 'import-queue') {
       state.queueBusy = false;
@@ -1609,8 +1789,20 @@
     document.addEventListener('click', function (e) {
       var el = e.target.closest('[data-go]');
       if (!el) return;
+      // AI 开始后，导入链路标题栏返回统一回首页 / 工作台
+      if (state.importTask.started && el.classList.contains('back')) {
+        var sc = el.closest('.screen');
+        var flow = sc && sc.getAttribute('data-flow');
+        if (flow && POST_AI_FLOWS.indexOf(flow) >= 0) {
+          e.preventDefault();
+          state.emptyPreview = null;
+          leaveImportShell();
+          return;
+        }
+      }
       var target = el.getAttribute('data-go');
       if (!target) return;
+      state.emptyPreview = null;
       // 从概况「查看」进入列表时，返回应回到概况而非结果页
       if (target === 'import-result' && state.viewReturn === 'import-overview') {
         state.viewReturn = null;
@@ -1750,49 +1942,62 @@
     if (start) {
       start.addEventListener('click', function () {
         hideInviteSheet();
-        enterMigrate();
+        enterMigrate('home');
       });
     }
     if (later) {
       later.addEventListener('click', function () {
         hideInviteSheet();
-        showFab();
+        state.importTask.entry = 'home';
+        showImportBanner();
+        go('home');
       });
     }
     var mask = $('#inviteMask');
     if (mask) {
       mask.addEventListener('click', function () {
         hideInviteSheet();
-        showFab();
+        state.importTask.entry = 'home';
+        showImportBanner();
+        go('home');
       });
     }
   }
 
-  function bindFab() {
-    var fab = $('#migrateFab');
-    var close = $('#migrateFabClose');
-    if (fab) {
-      fab.addEventListener('click', function (e) {
-        if (e.target.closest('#migrateFabClose')) return;
-        enterMigrate();
+  function bindImportBanner() {
+    var main = $('#btnImportBanner');
+    var close = $('#btnImportBannerClose');
+    if (main) {
+      main.addEventListener('click', function () {
+        resumeImportTask();
       });
     }
     if (close) {
       close.addEventListener('click', function (e) {
         e.stopPropagation();
-        hideFab();
+        hideImportBanner();
+        if (!hasHitWorkbenchImport()) {
+          startCoachHomeMore();
+        } else {
+          showToast('已关闭。可从工作台进入数据导入');
+        }
       });
     }
+    document.addEventListener('click', function (e) {
+      var leave = e.target.closest('[data-leave-import]');
+      if (!leave) return;
+      e.preventDefault();
+      leaveImportShell();
+    });
+    renderImportBanner();
   }
 
-  /* ===== 数据迁移：来源选择 / 拍照 / 待识别清单 ===== */
+  /* ===== 数据导入：来源选择 / 拍照 / 待识别清单 ===== */
 
   function collectPlan() {
     var excel = [];
     var photo = [];
-    // 单向依赖：会员卡模板必须有价目表；价目表可单独导入
-    if (state.importSelection.card) state.importSelection.price = true;
-    ['member', 'card', 'price'].forEach(function (key) {
+    ALL_CATS.forEach(function (key) {
       if (!state.importSelection[key]) return;
       var src = state.importSources[key];
       if (src === 'photo') photo.push(key);
@@ -1802,19 +2007,170 @@
     return state.importPlan;
   }
 
-  function syncSelectDeps() {
-    var cardOn = !!state.importSelection.card;
-    var priceCard = document.querySelector('.import-card[data-import-card="price"]');
-    if (priceCard) priceCard.classList.toggle('is-dep-locked', cardOn);
-    var dep = document.getElementById('depPrice');
-    if (dep) dep.classList.toggle('hidden', !cardOn);
-    var depCard = document.getElementById('depCard');
-    if (depCard) depCard.classList.toggle('is-on', cardOn);
+  function selectedCats() {
+    return ALL_CATS.filter(function (k) { return !!state.importSelection[k]; });
   }
 
-  function selectedCats() {
-    return ['member', 'card', 'price'].filter(function (k) { return !!state.importSelection[k]; });
+  /* ===== 新流程：收来源 → AI 判断类别 → 分类卡片 ===== */
+
+  function pendingTotal() {
+    return state.pending.excel.length + state.pending.photo.length;
   }
+
+  // 再导模式（合并 / 清空）必须五类都显式选过，这里给出全空模板
+  function blankReimportMode() {
+    var out = {};
+    ALL_CATS.forEach(function (k) { out[k] = null; });
+    return out;
+  }
+
+  function resetAnalysis() {
+    var blankSel = {};
+    var blankSrc = {};
+    var blankFiles = {};
+    var blankPhotos = {};
+    ALL_CATS.forEach(function (k) {
+      blankSel[k] = false;
+      blankSrc[k] = null;
+      blankFiles[k] = [];
+      blankPhotos[k] = [];
+    });
+    state.importSelection = blankSel;
+    state.importSources = blankSrc;
+    state.importFiles = blankFiles;
+    state.importPhotos = blankPhotos;
+    state.analysisCats = [];
+    state.checkData = null;
+    state.convertDone = false;
+    state.checkOpen = null;
+    state.checkFilter = 'all';
+    var blankMode = {};
+    ALL_CATS.forEach(function (k) { blankMode[k] = null; });
+    state.reimportMode = blankMode;
+  }
+
+  function fmtSize(bytes) {
+    var n = Number(bytes) || 0;
+    if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + ' MB';
+    if (n >= 1024) return Math.round(n / 1024) + ' KB';
+    return Math.max(n, 1) + ' B';
+  }
+
+  function pickLocalFiles(accept, multiple, onPick) {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = accept;
+    input.multiple = !!multiple;
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    input.setAttribute('aria-hidden', 'true');
+    input.addEventListener('change', function () {
+      var files = Array.prototype.slice.call(input.files || []);
+      if (files.length) onPick(files);
+      if (input.parentNode) input.parentNode.removeChild(input);
+    });
+    document.body.appendChild(input);
+    input.click();
+  }
+
+  function pendingKey() {
+    return 'p' + Date.now().toString(36) + Math.random().toString(16).slice(2, 6);
+  }
+
+  /* 原型纯演示：点一下落预设文件，不调系统选择器。
+     线上须改为 pickLocalFiles 调真实选择器上传（见 PRD）。
+     readablePct = 可识别的已填内容占比；< EXCEL_ARCHIVE_PCT 则整份进原始存档。 */
+  var EXCEL_ARCHIVE_PCT = 30;
+  var DEMO_EXCEL_FILES = [
+    { name: '老店会员与价目.xlsx', size: '1.2 MB', readablePct: 88 },
+    { name: '会员卡模板.xlsx', size: '0.4 MB', readablePct: 91 },
+    { name: '价目表导入表.xlsx', size: '0.6 MB', readablePct: 85 },
+    { name: '库存盘点表.xlsx', size: '0.8 MB', readablePct: 18 },
+    { name: '店铺产品清单.xlsx', size: '0.5 MB', readablePct: 79 }
+  ];
+
+  function excelReadablePct(f) {
+    if (!f) return 90;
+    var n = Number(f.readablePct);
+    return isFinite(n) ? n : 90;
+  }
+
+  function excelIsArchive(f) {
+    return excelReadablePct(f) < EXCEL_ARCHIVE_PCT;
+  }
+
+  function nextDemoExcel() {
+    var used = {};
+    state.pending.excel.forEach(function (f) { used[f.name] = true; });
+    var i;
+    for (i = 0; i < DEMO_EXCEL_FILES.length; i++) {
+      if (!used[DEMO_EXCEL_FILES[i].name]) return DEMO_EXCEL_FILES[i];
+    }
+    return DEMO_EXCEL_FILES[state.pending.excel.length % DEMO_EXCEL_FILES.length];
+  }
+
+  function addPendingExcel() {
+    if (state.pending.excel.length >= 5) {
+      showToast('最多 5 个文件');
+      return;
+    }
+    var demo = nextDemoExcel();
+    state.pending.excel.push({
+      id: pendingKey(),
+      name: demo.name,
+      size: demo.size,
+      readablePct: demo.readablePct,
+      demo: true
+    });
+    renderImportSelect();
+    renderExcelPick();
+    showToast('已添加演示文件');
+  }
+
+  function addPendingPhotos(srcList) {
+    (srcList || []).forEach(function (src) {
+      state.pending.photo.push({ id: pendingKey(), src: src });
+    });
+    state.importCameraDemo = false;
+    renderImportSelect();
+    renderCamera();
+  }
+
+  function removePendingExcel(id) {
+    state.pending.excel = state.pending.excel.filter(function (f) { return f.id !== id; });
+    renderImportSelect();
+    renderExcelPick();
+  }
+
+  function removePendingPhoto(id) {
+    state.pending.photo = state.pending.photo.filter(function (p) { return p.id !== id; });
+    renderImportSelect();
+    renderCamera();
+  }
+
+  function renderExcelPick() {
+    var host = $('#excelPickList');
+    if (!host) return;
+    host.innerHTML = state.pending.excel.map(function (f, i) {
+      return '<div class="pending-row">' +
+        fmtIcon('xls') +
+        '<span class="pending-row__body"><b>' + escHtml(f.name) + '</b><span>' + escHtml(f.size) + ' · 待识别</span></span>' +
+        '<button type="button" class="pending-row__del" data-pending-del="' + f.id + '" aria-label="移除第 ' + (i + 1) + ' 个文件">' +
+          ACT_ICO.trash + '<span>移除</span></button>' +
+      '</div>';
+    }).join('');
+    host.classList.toggle('hidden', state.pending.excel.length === 0);
+  }
+
+  function pendingRoleText() {
+    var e = state.pending.excel.length;
+    var p = state.pending.photo.length;
+    var bits = [];
+    if (e) bits.push('Excel ' + e + ' 个');
+    if (p) bits.push('照片 ' + p + ' 张');
+    return bits.join(' · ');
+  }
+
 
   // 每个类别最多可加 3 个 Excel；同类多表共用一套字段映射
   var MAX_FILES_PER_CAT = 3;
@@ -1828,7 +2184,7 @@
   }
 
   function totalFiles(cats) {
-    return (cats || ['member', 'card', 'price']).reduce(function (s, k) {
+    return (cats || ALL_CATS).reduce(function (s, k) {
       return s + catFiles(k).length;
     }, 0);
   }
@@ -1843,8 +2199,6 @@
       arr.splice(i, 1);
     }
     state.importFiles[key] = arr;
-    delete state.importMapAck[key];
-    if (!arr.length) delete state.uploadStd[key];
   }
 
   function isCatReady(key) {
@@ -1870,92 +2224,456 @@
   }
 
   function renderImportSelect() {
-    ['member', 'card', 'price'].forEach(function (key) {
-      var card = document.querySelector('.import-card[data-import-card="' + key + '"]');
-      if (!card) return;
-      card.classList.toggle('on', !!state.importSelection[key]);
-      $all('[data-src-for="' + key + '"]').forEach(function (btn) {
-        var on = btn.getAttribute('data-src') === state.importSources[key];
-        btn.classList.toggle('is-on', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var total = pendingTotal();
+    var cnt = $('#pendingCount');
+    if (cnt) cnt.textContent = total;
+    var empty = $('#pendingEmpty');
+    if (empty) empty.classList.toggle('hidden', total > 0);
+    var head = $('#pendingHead');
+    if (head) head.classList.toggle('hidden', total === 0);
+
+    var list = $('#pendingList');
+    if (list) {
+      var rows = [];
+      state.pending.excel.forEach(function (f, i) {
+        rows.push('<div class="pending-row">' +
+          fmtIcon('xls') +
+          '<span class="pending-row__body"><b>' + escHtml(f.name) + '</b><span>' + escHtml(f.size) + ' · Excel</span></span>' +
+          '<button type="button" class="pending-row__del" data-pending-del="' + f.id + '" aria-label="移除第 ' + (i + 1) + ' 个文件">' +
+            ACT_ICO.trash + '<span>移除</span></button>' +
+        '</div>');
       });
+      state.pending.photo.forEach(function (p, i) {
+        rows.push('<div class="pending-row is-photo">' +
+          '<span class="pending-row__thumb">' + (p.src ? '<img src="' + p.src + '" alt="第 ' + (i + 1) + ' 张照片">' : '') + '</span>' +
+          '<span class="pending-row__body"><b>照片 ' + (i + 1) + '</b><span>拍照 · 待识别</span></span>' +
+          '<button type="button" class="pending-row__del" data-pending-del="' + p.id + '" aria-label="移除第 ' + (i + 1) + ' 张照片">' +
+            ACT_ICO.trash + '<span>移除</span></button>' +
+        '</div>');
+      });
+      list.innerHTML = rows.join('');
+      list.classList.toggle('hidden', rows.length === 0);
+    }
 
-      var files = catFiles(key);
-      var shots = state.importPhotos[key];
-      var src = state.importSources[key];
-      var ready = isCatReady(key);
-      var badge = $('#state-' + key);
-      if (badge) {
-        if (!src) badge.textContent = '请选择来源';
-        else if (src === 'photo') badge.textContent = ready ? '已拍 ' + shots.length + ' 张' : '待拍摄';
-        else badge.textContent = ready ? ('已上传 ' + files.length + ' 个') : '待上传';
-        badge.classList.toggle('is-ready', ready);
-        badge.classList.toggle('is-pick', !src);
-      }
-      var titleB = card.querySelector('.import-card__text > b');
-      if (titleB) {
-        var stockTag = titleB.querySelector('.import-card__stock');
-        var stockN = state.storeStock[key] || 0;
-        if (stockN > 0) {
-          if (!stockTag) {
-            stockTag = document.createElement('span');
-            stockTag.className = 'import-card__stock';
-            titleB.appendChild(stockTag);
-          }
-          var mode = state.reimportMode[key];
-          stockTag.textContent = mode === 'merge'
-            ? '已有 · 合并'
-            : (mode === 'replace' ? '已有 · 清空后导' : '已有数据');
-        } else if (stockTag) {
-          stockTag.remove();
-        }
-      }
+    var btn = $('#btnImportAnalyze');
+    if (btn) {
+      btn.disabled = total === 0;
+      btn.textContent = total === 0 ? '先添加数据' : '开始识别（' + total + ' 份）';
+    }
+  }
 
-      var box = $('#thumbs-' + key);
-      if (!box) return;
-      var html = '';
-      if (src === 'photo' && shots.length) {
-        html = shots.slice(0, 4).map(function (p, i) { return shotThumbHtml(p, i, true, key); }).join('') +
-          (shots.length > 4 ? '<span class="import-card__more">+' + (shots.length - 4) + '</span>' : '') +
-          '<button type="button" class="import-card__again" data-src-for="' + key + '" data-src="photo">继续拍</button>';
-      } else if (src === 'excel' && files.length) {
-        html = files.map(function (f, i) {
-          return '<div class="import-card__file">' +
-            fmtIconSmall('xls') +
-            '<span class="import-card__file-name">' + f.name + '</span>' +
-            '<button type="button" class="import-card__file-del" data-clear-file="' + key + '" data-file-idx="' + i + '">' + ACT_ICO.trash + '<span>移除</span></button>' +
-          '</div>';
-        }).join('');
-      }
-      box.innerHTML = html;
-      box.classList.toggle('is-files', src === 'excel' && files.length > 0);
-      box.classList.toggle('hidden', !html);
+  /* ---- 识别中 ---- */
+
+  var analyzeTimerA = null;
+  var analyzeTimerB = null;
+
+  function resetAnalysisProgress() {
+    if (state.analyzing) return;
+    $all('[data-ana-step]').forEach(function (el) { el.classList.remove('is-on', 'is-done'); });
+    var eq = $('#analyzeEq');
+    if (eq) eq.classList.remove('is-run', 'is-done');
+    var btn = $('#btnAnalyzeSkip');
+    if (btn) { btn.disabled = false; btn.textContent = '跳过等待'; }
+  }
+
+  function startAnalysis() {
+    if (state.analyzing) return;
+    if (!pendingTotal()) {
+      showToast('先添加 Excel 或拍照');
+      return;
+    }
+    resetAnalysis();
+    state.analyzing = true;
+    setImportStage('analyzing', 'import-analyze');
+    go('import-analyze');
+    var steps = $all('[data-ana-step]');
+    steps.forEach(function (el) { el.classList.remove('is-on', 'is-done'); });
+    var eq = $('#analyzeEq');
+    if (eq) {
+      eq.classList.remove('is-done');
+      eq.classList.add('is-run');
+    }
+    var btn = $('#btnAnalyzeSkip');
+    if (btn) { btn.disabled = true; btn.textContent = '识别中…'; }
+
+    clearTimeout(analyzeTimerA);
+    clearTimeout(analyzeTimerB);
+    analyzeTimerA = setTimeout(function () {
+      if (steps[0]) steps[0].classList.add('is-on');
+    }, 60);
+    analyzeTimerB = setTimeout(function () {
+      if (steps[0]) { steps[0].classList.remove('is-on'); steps[0].classList.add('is-done'); }
+      if (steps[1]) steps[1].classList.add('is-on');
+    }, 520);
+    state.analyzeTimers = [analyzeTimerA, analyzeTimerB];
+    state.analyzeTimers.push(setTimeout(function () {
+      if (steps[1]) { steps[1].classList.remove('is-on'); steps[1].classList.add('is-done'); }
+      if (steps[2]) steps[2].classList.add('is-on');
+    }, 1080));
+    state.analyzeTimers.push(setTimeout(function () {
+      if (steps[2]) { steps[2].classList.remove('is-on'); steps[2].classList.add('is-done'); }
+      if (eq) { eq.classList.remove('is-run'); eq.classList.add('is-done'); }
+      commitAnalysis();
+    }, 1650));
+  }
+
+  function skipAnalysis() {
+    if (!state.analyzing) {
+      if (!state.analysisCats.length) startAnalysis();
+      return;
+    }
+    (state.analyzeTimers || []).forEach(function (t) { clearTimeout(t); });
+    state.analyzeTimers = [];
+    $all('[data-ana-step]').forEach(function (el) {
+      el.classList.remove('is-on');
+      el.classList.add('is-done');
     });
-    syncSelectDeps();
-    syncSelectNextLabel();
+    var eq = $('#analyzeEq');
+    if (eq) { eq.classList.remove('is-run'); eq.classList.add('is-done'); }
+    commitAnalysis();
   }
 
-  function syncSelectNextLabel() {
-    var btn = $('#btnImportSelectNext');
-    if (!btn) return;
-    var cats = selectedCats();
-    var noSrc = cats.filter(function (k) { return !state.importSources[k]; });
-    var noData = cats.filter(function (k) { return state.importSources[k] && !isCatReady(k); });
-    if (!cats.length) btn.textContent = '下一步';
-    else if (noSrc.length) btn.textContent = '还有 ' + noSrc.length + ' 类未选来源';
-    else if (noData.length) btn.textContent = '还有 ' + noData.length + ' 类未采集';
-    else btn.textContent = '下一步';
+  /* 演示剧本：有 Excel → 会员 / 卡模板 / 价目表；只有照片 → 价目表 / 库存商品；
+     两者都有 → 五类全出。固定可复现，便于演示与验收。 */
+  function analysisScript() {
+    var hasExcel = state.pending.excel.length > 0;
+    var hasPhoto = state.pending.photo.length > 0;
+    if (hasExcel && hasPhoto) return ALL_CATS.slice();
+    if (hasPhoto) return ['price', 'stock'];
+    return ['member', 'card', 'price'];
   }
 
-  function focusImportCard(key, msg) {
-    if (msg) showToast(msg);
-    var card = document.querySelector('.import-card[data-import-card="' + key + '"]');
-    if (!card) return;
-    card.classList.remove('is-flash');
-    void card.offsetWidth;
-    card.classList.add('is-flash');
-    if (card.scrollIntoView) card.scrollIntoView({ block: 'center' });
+  function commitAnalysis() {
+    var cats = analysisScript();
+    var excelCats = [];
+    var photoCats = [];
+    var i;
+    for (i = 0; i < cats.length; i += 1) {
+      var hasE = state.pending.excel.length > 0;
+      var hasP = state.pending.photo.length > 0;
+      // 交替分配：Excel 与照片都有的批次，按 2:1 分给两类来源
+      var usePhoto = hasP && (!hasE || i % 3 === 1);
+      if (usePhoto) photoCats.push(cats[i]);
+      else excelCats.push(cats[i]);
+      state.importSelection[cats[i]] = true;
+      state.importSources[cats[i]] = usePhoto ? 'photo' : 'excel';
+    }
+    // 真实文件名落到 Excel 类；带上 readablePct（<30% 整份仅存档）
+    state.pending.excel.forEach(function (f, idx) {
+      var cat = excelCats[idx % Math.max(excelCats.length, 1)];
+      if (cat) {
+        state.importFiles[cat].push({
+          name: f.name,
+          size: f.size,
+          readablePct: excelReadablePct(f),
+          id: f.id
+        });
+      }
+    });
+    state.pending.photo.forEach(function (p, idx) {
+      var cat = photoCats[idx % Math.max(photoCats.length, 1)];
+      if (cat) state.importPhotos[cat].push({ id: p.id, src: p.src });
+    });
+    // 没有对应文件形态的类别：给一个演示文件名（默认可识别率充足）
+    excelCats.forEach(function (k) {
+      if (!state.importFiles[k].length) {
+        state.importFiles[k].push({ name: IMPORT_CAT[k] + '.xlsx', size: '0.6 MB', readablePct: 90 });
+      }
+    });
+    photoCats.forEach(function (k) {
+      if (!state.importPhotos[k].length) {
+        state.importPhotos[k].push({ id: 'demo-' + k, src: '' });
+      }
+    });
+    state.analysisCats = cats;
+    state.analyzing = false;
+    state.checkData = null;
+    state.tierResult = { l1: [], l2: [], l3Cats: [] };
+    collectPlan();
+    seedTierDemo();
+    renderCards();
+    setImportStage('analyzing', 'import-cards');
+    go('import-cards');
   }
+
+  /* ---- 三档识别总览 ---- */
+
+  function ensureTierDemo() {
+    if (state.tierResult && (state.tierResult.l1.length || state.tierResult.l2.length || state.tierResult.l3Cats.length)) {
+      return;
+    }
+    seedTierDemo();
+  }
+
+  function catFilesAllArchived(k) {
+    var files = (state.importFiles && state.importFiles[k]) || [];
+    if (!files.length) return false;
+    if (state.importSources[k] === 'photo') return false;
+    return files.every(excelIsArchive);
+  }
+
+  function guessDomainFromFileName(name) {
+    var s = String(name || '');
+    if (/会员|持卡/.test(s)) return 'member';
+    if (/卡模板|卡种|会员卡/.test(s)) return 'card';
+    if (/价目|项目/.test(s)) return 'price';
+    if (/库存|盘点/.test(s)) return 'stock';
+    if (/产品|卖品/.test(s)) return 'product';
+    return 'member';
+  }
+
+  function digestFromErrorRow(cat, row) {
+    var f = row.f || {};
+    var title = (typeof checkRowTitle === 'function' ? checkRowTitle(cat, row) : '') ||
+      ((IMPORT_CAT_SHORT[cat] || cat) + ' · 未达门槛');
+    var fails = (row.problems || []).filter(function (p) { return p.level === 'error'; }).map(function (p) {
+      return { k: p.field || '字段', v: p.msg || '无法入库', edit: '' };
+    });
+    if (!fails.length) fails = [{ k: '入库', v: '未达必填或含无法识别内容', edit: '' }];
+    var fields = [];
+    Object.keys(f).forEach(function (key) {
+      if (fields.length >= 4) return;
+      if (fieldEmpty(f[key]) || isUnreadableText(f[key])) return;
+      if (moneyUnreadable(f[key]) || (typeof f[key] === 'string' && intUnreadable(f[key]) && /qty|times|count|duration|stock/i.test(key))) return;
+      fields.push({ k: key, v: String(f[key]) });
+    });
+    var srcFile = ((state.importFiles[cat] || [])[0] || {}).name || '本批表格';
+    return {
+      id: 'd-' + cat + '-' + row.id,
+      domain: cat,
+      title: title,
+      looseText: fails.map(function (x) { return x.v; }).join('；'),
+      fields: fields,
+      fails: fails,
+      source: { kind: 'excel', name: srcFile, label: '系统存放的 Excel' }
+    };
+  }
+
+  function seedTierDemo() {
+    ensureCheckData();
+
+    /* 整份 Excel 可识别已填 <30% → 仅存档；该类若只有这类文件则不进可入库 */
+    ALL_CATS.forEach(function (k) {
+      if (!state.importSelection[k]) return;
+      if (!catFilesAllArchived(k)) return;
+      state.importSelection[k] = false;
+      if (state.checkData) delete state.checkData[k];
+    });
+
+    var l1 = [];
+    var seenArch = {};
+    function pushArch(item) {
+      if (!item || !item.name || seenArch[item.name]) return;
+      seenArch[item.name] = true;
+      l1.push(item);
+    }
+
+    state.pending.excel.forEach(function (f) {
+      if (!excelIsArchive(f)) return;
+      pushArch({
+        id: f.id || ('a-xls-' + f.name),
+        domain: guessDomainFromFileName(f.name),
+        name: f.name,
+        kind: 'excel',
+        size: f.size || '',
+        note: '可识别已填内容约 ' + excelReadablePct(f) + '%（不足 ' + EXCEL_ARCHIVE_PCT + '%），整份仅存档'
+      });
+    });
+    ALL_CATS.forEach(function (k) {
+      (state.importFiles[k] || []).forEach(function (f) {
+        if (!excelIsArchive(f)) return;
+        pushArch({
+          id: f.id || ('a-xls-' + f.name),
+          domain: k,
+          name: f.name,
+          kind: 'excel',
+          size: f.size || '',
+          note: '可识别已填内容约 ' + excelReadablePct(f) + '%（不足 ' + EXCEL_ARCHIVE_PCT + '%），整份仅存档'
+        });
+      });
+    });
+
+    /* 演示：原始存档区至少有样例，避免常年空态 */
+    pushArch({
+      id: 'a-demo-blur',
+      domain: 'member',
+      name: '会员登记本（反光）.jpg',
+      kind: 'photo',
+      size: '0.8 MB',
+      note: '反光严重，关键列不可读'
+    });
+    pushArch({
+      id: 'a-demo-mess',
+      domain: 'price',
+      name: '2019价目表扫描件.pdf',
+      kind: 'excel',
+      size: '0.4 MB',
+      note: '版式杂乱，可识别已填不足 30%，整份仅存档'
+    });
+    if (state.pending.photo.length) {
+      pushArch({ id: 'a-ph-1', domain: 'price', name: '墙贴价目（半张裁切）.jpg', kind: 'photo', size: '0.6 MB', note: '画面不全，无法结构化' });
+    }
+
+    var l2 = [];
+    var perCat = {};
+    ALL_CATS.forEach(function (k) {
+      if (!state.importSelection[k]) return;
+      recomputeCheck(k);
+      checkRows(k).forEach(function (r) {
+        if (r.ignored || !rowHasLevel(r, 'error')) return;
+        perCat[k] = (perCat[k] || 0) + 1;
+        if (perCat[k] > 4) return;
+        l2.push(digestFromErrorRow(k, r));
+      });
+    });
+
+    var l3Cats = ALL_CATS.filter(function (k) {
+      return state.importSelection[k] && checkStats(k).importable > 0;
+    });
+
+    state.tierResult = { l1: l1, l2: l2, l3Cats: l3Cats };
+
+    var hasCardFile = !!state.importSelection.card;
+    var hasPriceFile = !!state.importSelection.price;
+    var deriveCards = !hasCardFile && !!state.importSelection.member;
+    var derivePrices = !hasPriceFile && !!state.importSelection.member;
+
+    state.confirmItems = {
+      acknowledged: false,
+      cards: [
+        { id: 'c1', name: '黄金卡', desc: '充 2000 送 200 · 全场 8 折', fromMember: deriveCards, selected: false },
+        { id: 'c2', name: '8 折卡', desc: '充 1000 送 100 · 全场 8 折', fromMember: deriveCards, selected: false },
+        { id: 'c3', name: '银卡（疑似已停）', desc: '充 500 送 50 · 老客续充', fromMember: deriveCards || hasCardFile, selected: false },
+        { id: 'c4', name: '2018 体验卡', desc: '限时开卡礼 · 多店已停用', fromMember: false, selected: false }
+      ],
+      prices: [
+        { id: 'p1', name: '剪发', desc: '项目 · ¥68 / 次', fromMember: derivePrices, selected: false },
+        { id: 'p2', name: '烫发', desc: '项目 · ¥288 / 次', fromMember: derivePrices, selected: false },
+        { id: 'p3', name: '染发', desc: '项目 · ¥368 / 次', fromMember: derivePrices, selected: false },
+        { id: 'p4', name: '头皮护理（旧价）', desc: '项目 · ¥128 / 次 · 价签年份较早', fromMember: derivePrices, selected: false }
+      ]
+    };
+    if (!hasCardFile && !deriveCards) state.confirmItems.cards = [];
+    if (!hasPriceFile && !derivePrices) state.confirmItems.prices = [];
+    if (hasCardFile && !deriveCards) {
+      state.confirmItems.cards.forEach(function (c) { c.fromMember = false; });
+    }
+    if (hasPriceFile && !derivePrices) {
+      state.confirmItems.prices.forEach(function (p) { p.fromMember = false; });
+    }
+  }
+
+  function tierOverviewHtml() {
+    var t = state.tierResult;
+    var l1 = t.l1 || [];
+    var l2 = t.l2 || [];
+    var l3 = t.l3Cats || [];
+    var okBody = l3.length
+      ? l3.map(function (k) {
+          var st = checkStats(k);
+          return '<div class="tier-card tier-card--ok">' +
+            '<span class="cat-card__ico" aria-hidden="true">' + (CAT_ICO[k] || '') + '</span>' +
+            '<span class="tier-card__body">' +
+            '<div class="tier-card__title">' + IMPORT_CAT[k] + '</div>' +
+            '<div class="tier-card__meta">可入库 ' + st.importable + ' ' + CAT_UNIT[k] +
+              (st.error ? ' · ' + st.error + ' 条未达门槛' : '') + '</div>' +
+            '</span>' +
+            '<span class="tier-card__okmark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>' +
+            '</div>';
+        }).join('')
+      : '<div class="tier-empty">本批没有可直接导入的数据</div>';
+    var digBody = l2.length
+      ? '<ul class="tier-mute-list">' + l2.map(function (d) {
+          var reason = (d.fails && d.fails[0] && d.fails[0].v) || '未达入库门槛';
+          return '<li><b>' + esc(d.title) + '</b><span>' + esc(DOMAIN_LABEL[d.domain] || IMPORT_CAT_SHORT[d.domain] || '') + ' · ' + esc(reason) + '</span></li>';
+        }).join('') + '</ul>'
+      : '<p class="tier-mute-empty">暂无</p>';
+    var rawBody = l1.length
+      ? '<ul class="tier-mute-list">' + l1.map(function (f) {
+          return '<li><b>' + esc(f.name) + '</b><span>' + esc(f.note || '看不清') + '</span></li>';
+        }).join('') + '</ul>'
+      : '<p class="tier-mute-empty">暂无</p>';
+    return '<section class="tier-sec tier-sec--ok">' +
+        '<div class="tier-sec__hd"><h3>这些可放心导入</h3><em>' + l3.length + ' 类</em></div>' +
+        okBody +
+      '</section>' +
+      '<section class="tier-sec tier-sec--mute">' +
+        '<div class="tier-mute-card">' +
+          '<div class="tier-sec__hd"><h3>识别摘要</h3><em>' + l2.length + ' 条</em></div>' +
+          '<p class="tier-mute-tip">缺必填，或已填字段无法识别 / 数字解析失败。不会入库；可在业务页 ··· →「识别摘要」查看或补全。</p>' +
+          digBody +
+        '</div>' +
+      '</section>' +
+      '<section class="tier-sec tier-sec--mute">' +
+        '<div class="tier-mute-card">' +
+          '<div class="tier-sec__hd"><h3>原始存档</h3><em>' + l1.length + ' 份</em></div>' +
+          '<p class="tier-mute-tip">整份 Excel 可识别已填内容不足 ' + EXCEL_ARCHIVE_PCT + '%，或照片/表格无法解析。已留原件，可在 ··· →「原始存档」查看。</p>' +
+          rawBody +
+        '</div>' +
+      '</section>';
+  }
+
+  function renderCards() {
+    ensureCheckData();
+    ensureTierDemo();
+    var host = $('#cardsList');
+    var empty = $('#cardsEmpty');
+    var next = $('#btnCardsNext');
+    var hasAny = state.tierResult.l1.length || state.tierResult.l2.length || state.tierResult.l3Cats.length;
+    if (host) host.innerHTML = hasAny ? tierOverviewHtml() : '';
+    if (empty) empty.classList.toggle('hidden', !!hasAny);
+    if (next) {
+      next.disabled = !hasAny;
+      next.textContent = hasAny ? '下一步：确认有效项' : '返回重新选择';
+    }
+  }
+
+  function renderConfirmPage() {
+    ensureTierDemo();
+    var host = $('#confirmBody');
+    if (!host) return;
+    var cards = state.confirmItems.cards || [];
+    var prices = state.confirmItems.prices || [];
+    function itemHtml(it, kind) {
+      return '<button type="button" class="confirm-item' + (it.selected ? ' is-on' : '') +
+        '" data-confirm-kind="' + kind + '" data-confirm-id="' + it.id + '">' +
+        '<span class="confirm-item__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>' +
+        '<span class="confirm-item__body"><span class="confirm-item__title">' + esc(it.name) +
+        (it.fromMember ? '<span class="confirm-tag">从会员资料识别</span>' : '') +
+        '</span><span class="confirm-item__desc">' + esc(it.desc) + '</span></span></button>';
+    }
+    var html = '';
+    if (cards.length) {
+      var nOn = cards.filter(function (c) { return c.selected; }).length;
+      html += '<div class="confirm-group"><div class="confirm-group__hd"><h3>会员卡模板</h3><span>已选 ' + nOn + ' / ' + cards.length + '</span></div>' +
+        cards.map(function (c) { return itemHtml(c, 'cards'); }).join('') + '</div>';
+    }
+    if (prices.length) {
+      var pOn = prices.filter(function (c) { return c.selected; }).length;
+      html += '<div class="confirm-group"><div class="confirm-group__hd"><h3>价目表</h3><span>已选 ' + pOn + ' / ' + prices.length + '</span></div>' +
+        prices.map(function (c) { return itemHtml(c, 'prices'); }).join('') + '</div>';
+    }
+    if (!cards.length && !prices.length) {
+      html = '<div class="tier-empty">本批未识别到卡模板或价目，可直接进入核对。</div>';
+    }
+    host.innerHTML = html;
+    var note = $('#confirmFootNote');
+    if (note) {
+      note.textContent = (cards.length || prices.length)
+        ? '不选的不会进店，识别摘要里仍能看到。'
+        : '没有需要确认的卡 / 价目，可继续核对。';
+    }
+  }
+
+  function toggleConfirmItem(kind, id) {
+    var list = state.confirmItems[kind] || [];
+    list.forEach(function (it) {
+      if (it.id === id) it.selected = !it.selected;
+    });
+    state.confirmItems.acknowledged = true;
+    renderConfirmPage();
+  }
+
 
   var SRC_ICO = {
     excel: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
@@ -2061,46 +2779,47 @@
     });
   }
 
-  function proceedSelectNext() {
-    var cats = selectedCats();
-    var missingPhoto = cats.filter(function (k) {
-      return state.importSources[k] === 'photo' && !state.importPhotos[k].length;
-    });
-    if (missingPhoto.length) {
-      focusImportCard(missingPhoto[0], '「' + IMPORT_CAT[missingPhoto[0]] + '」还没有拍照');
-      openCamera(missingPhoto[0], 'import-select');
+  function goCardsNext() {
+    ensureTierDemo();
+    var hasAny = state.tierResult.l1.length || state.tierResult.l2.length || state.tierResult.l3Cats.length;
+    if (!hasAny && !selectedCats().length) {
+      showToast('没有识别到数据，回去重新添加');
+      go('import-select');
       return;
     }
-    var missingFile = cats.filter(function (k) {
-      return state.importSources[k] === 'excel' && !hasFiles(k);
-    });
-    if (missingFile.length) {
-      state.uploadFocus = null;
-      state.uploadHi = missingFile[0];
-      showToast('「' + IMPORT_CAT[missingFile[0]] + '」还没上传表格');
-      go('import-source');
-      return;
-    }
-    go('import-queue');
+    setImportStage('analyzing', 'import-confirm');
+    go('import-confirm');
   }
 
-  function handleSelectNext() {
-    var cats = selectedCats();
-    if (!cats.length) {
-      showToast('请至少选择一项');
+  function goConfirmNext() {
+    var cards = state.confirmItems.cards || [];
+    var prices = state.confirmItems.prices || [];
+    if ((cards.length || prices.length) && !state.confirmItems.acknowledged) {
+      state.confirmItems.acknowledged = true;
+      showToast('已记录：未选的卡 / 价目不会入库');
+    }
+    // 未选的卡 / 价目：不进入 L3 入库
+    var selCard = cards.some(function (c) { return c.selected; });
+    var selPrice = prices.some(function (p) { return p.selected; });
+    if (cards.length && !selCard) state.importSelection.card = false;
+    if (prices.length && !selPrice) state.importSelection.price = false;
+    if (selCard) state.importSelection.card = true;
+    if (selPrice) state.importSelection.price = true;
+    collectPlan();
+    if (!selectedCats().length) {
+      state.pendingStockApply = false;
+      setImportStage('done', 'import-result');
+      go('import-result');
       return;
     }
-    var noSrc = cats.filter(function (k) { return !state.importSources[k]; });
-    if (noSrc.length) {
-      focusImportCard(noSrc[0], '「' + IMPORT_CAT[noSrc[0]] + '」还没选来源');
-      return;
-    }
-    // 已有存量的类别：强制二选一（合并 / 清空本类），无静默默认
+    ensureCheckData();
     if (catsNeedingReimportMode().length) {
       openReimportModeSheet();
       return;
     }
-    proceedSelectNext();
+    // 跳过转换动画，直接进 L3 核对（2A）
+    setImportStage('check', 'import-check');
+    go('import-check');
   }
 
   function openReimportModeSheet() {
@@ -2110,22 +2829,15 @@
     list.innerHTML = need.map(function (k) {
       var n = state.storeStock[k];
       var mode = state.reimportMode[k];
-      return '<div class="reimport-mode-card" data-reimport-cat="' + k + '">' +
-        '<p class="reimport-mode-card__title">' + IMPORT_CAT[k] + '</p>' +
-        '<p class="reimport-mode-card__sub">本店已有 ' + n + ' ' + STOCK_UNIT[k] + '</p>' +
-        '<div class="reimport-mode-opts" role="radiogroup" aria-label="' + IMPORT_CAT[k] + '导入方式">' +
-          '<button type="button" class="reimport-mode-opt' + (mode === 'merge' ? ' is-on' : '') +
+      return '<div class="reimport-row" data-reimport-cat="' + k + '">' +
+        '<div class="reimport-row__lab"><b>' + IMPORT_CAT_SHORT[k] + '</b><span>已有 ' + n + ' ' + STOCK_UNIT[k] + '</span></div>' +
+        '<div class="reimport-row__opts" role="radiogroup" aria-label="' + IMPORT_CAT[k] + '">' +
+          '<button type="button" class="reimport-chip' + (mode === 'merge' ? ' is-on' : '') +
             '" data-reimport-mode="merge" data-reimport-for="' + k + '" role="radio" aria-checked="' +
-            (mode === 'merge' ? 'true' : 'false') + '">' +
-            '<span class="reimport-mode-opt__radio" aria-hidden="true"></span>' +
-            '<span class="reimport-mode-opt__text"><b>合并到现有</b><span>新记录追加；同键（手机号 / 卡名 / 项目名）更新</span></span>' +
-          '</button>' +
-          '<button type="button" class="reimport-mode-opt is-danger' + (mode === 'replace' ? ' is-on' : '') +
+            (mode === 'merge' ? 'true' : 'false') + '">合并</button>' +
+          '<button type="button" class="reimport-chip is-danger' + (mode === 'replace' ? ' is-on' : '') +
             '" data-reimport-mode="replace" data-reimport-for="' + k + '" role="radio" aria-checked="' +
-            (mode === 'replace' ? 'true' : 'false') + '">' +
-            '<span class="reimport-mode-opt__radio" aria-hidden="true"></span>' +
-            '<span class="reimport-mode-opt__text"><b>清空本类后导入</b><span>先删除本类已有 ' + n + ' ' + STOCK_UNIT[k] + '，再写入本批</span></span>' +
-          '</button>' +
+            (mode === 'replace' ? 'true' : 'false') + '">清空再导</button>' +
         '</div></div>';
     }).join('');
     syncReimportModeOk();
@@ -2151,9 +2863,11 @@
 
   function renderImportOverview() {
     var map = {
-      member: { n: '#stockMember', t: '#stockMemberTag', unit: '人' },
-      card: { n: '#stockCard', t: '#stockCardTag', unit: '张' },
-      price: { n: '#stockPrice', t: '#stockPriceTag', unit: '项' }
+      member: { n: '#stockMember', t: '#stockMemberTag' },
+      card: { n: '#stockCard', t: '#stockCardTag' },
+      price: { n: '#stockPrice', t: '#stockPriceTag' },
+      stock: { n: '#stockInv', t: '#stockInvTag' },
+      product: { n: '#stockProd', t: '#stockProdTag' }
     };
     Object.keys(map).forEach(function (k) {
       var n = state.storeStock[k] || 0;
@@ -2192,7 +2906,7 @@
   }
 
   function applyBatchToStock() {
-    ['member', 'card', 'price'].forEach(function (k) {
+    ALL_CATS.forEach(function (k) {
       if (!state.importSelection[k]) return;
       var mode = state.reimportMode[k];
       var batch = batchCount(k);
@@ -2207,44 +2921,47 @@
   }
 
   function renderResultStockLines() {
-    var anyMerge = false;
     var bits = [];
-    ['member', 'card', 'price'].forEach(function (k) {
+    var host = $('#resultStockList');
+    var rows = [];
+    ALL_CATS.forEach(function (k) {
       if (!state.importSelection[k]) return;
       var mode = state.reimportMode[k];
-      var totalEl = k === 'member' ? $('#resultMemberCount') : (k === 'card' ? $('#resultCardCount') : $('#resultPriceCount'));
-      var okEl = k === 'member' ? $('#resultMemberOk') : (k === 'card' ? $('#resultCardOk') : $('#resultPriceOk'));
-      if (totalEl) totalEl.textContent = state.storeStock[k] || BATCH_DEMO[k];
+      var total = state.storeStock[k] || BATCH_DEMO[k];
+      var tag = '已入库';
+      var tagCls = 'is-on';
       if (mode === 'merge') {
-        anyMerge = true;
         var d = MERGE_DEMO[k];
-        if (okEl) okEl.textContent = '新增 ' + d.add + ' · 更新 ' + d.upd;
+        tag = '新增 ' + d.add + ' · 更新 ' + d.upd;
         bits.push(IMPORT_CAT_SHORT[k] + ' 合并');
       } else if (mode === 'replace') {
-        if (okEl) okEl.textContent = '已清空后写入';
+        tag = '已清空后写入';
         bits.push(IMPORT_CAT_SHORT[k] + ' 覆盖');
-      } else if (okEl) {
-        okEl.textContent = '已入库';
       }
+      rows.push('<button type="button" class="v3-stock__row" data-result-view="' + k + '">' +
+        '<span class="v3-stock__ico" aria-hidden="true">' + (CAT_ICO[k] || '') + '</span>' +
+        '<span class="v3-stock__label">' + IMPORT_CAT_SHORT[k] + '</span>' +
+        '<span class="v3-stock__tag ' + tagCls + '">' + tag + '</span>' +
+        '<span class="v3-stock__val"><em>' + total + '</em> ' + STOCK_UNIT[k] + '</span>' +
+        '<svg class="v3-stock__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' +
+      '</button>');
     });
+    if (host) host.innerHTML = rows.join('');
     var mergeEl = $('#importResultMerge');
     if (mergeEl) {
       if (bits.length) {
-        mergeEl.textContent = '本批处理：' + bits.join('；') + '。同键规则：手机号 / 卡名称 / 项目名。';
+        mergeEl.textContent = '本批处理：' + bits.join('；') + '。同键规则：手机号 / 卡名称 / 项目名 / 商品名 / 产品名。';
         mergeEl.classList.remove('hidden');
       } else {
         mergeEl.classList.add('hidden');
         mergeEl.textContent = '';
       }
     }
-    void anyMerge;
   }
 
   /* ---- 拍照 ---- */
 
-  function openCamera(key, returnFlow) {
-    state.importCameraCat = key;
-    state.importCameraReturn = returnFlow || 'import-select';
+  function openCamera() {
     go('import-camera');
   }
 
@@ -2266,6 +2983,8 @@
     var note = $('#importCameraDemo');
     if (note) note.classList.toggle('hidden', !on);
     if (video && on) video.classList.add('hidden');
+    var txt = note && note.querySelector('.cam-demo__text');
+    if (txt) txt.textContent = '这里拿不到相机取景，可用左下角「照片」从相册选，或点重试';
   }
 
   function startCamera() {
@@ -2291,7 +3010,7 @@
       });
   }
 
-  function makeDemoShot(cat, idx) {
+  function makeDemoShot(idx) {
     var W = 520;
     var H = 680;
     var c = document.createElement('canvas');
@@ -2304,7 +3023,7 @@
     g.fillRect(22, 22, W - 44, H - 44);
     g.fillStyle = '#1b1b1b';
     g.font = 'bold 22px "Microsoft YaHei",sans-serif';
-    g.fillText(IMPORT_CAT[cat] + ' 拍照样张 ' + idx, 46, 76);
+    g.fillText('拍照样张 ' + idx, 46, 76);
     g.fillStyle = '#9b9b9b';
     g.font = '14px "Microsoft YaHei",sans-serif';
     g.fillText('演示照片 · 仅用于展示识别流程', 46, 102);
@@ -2350,22 +3069,32 @@
     vf.classList.add('is-flash');
   }
 
+  function syncCamWatermark() {
+    var general = $('#camWmGeneral');
+    var table = $('#camWmTable');
+    var btn = $('#btnCamTableDemo');
+    var on = !!state.camTableGuide;
+    if (general) general.classList.toggle('hidden', on);
+    if (table) table.classList.toggle('hidden', !on);
+    if (btn) {
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.textContent = on ? '演示：表格取景' : '演示：普通取景';
+    }
+  }
+
   function renderCamera() {
-    var cat = state.importCameraCat || 'price';
-    var list = state.importPhotos[cat];
-    var catEl = $('#importCameraFor');
-    if (catEl) catEl.textContent = IMPORT_CAT[cat];
+    var list = state.pending.photo;
     var count = $('#importCameraCount');
     if (count) count.textContent = '已拍 ' + list.length + ' 张';
     var strip = $('#importCameraStrip');
     if (!strip) return;
     strip.innerHTML = list.length
-      ? list.map(function (p, i) { return shotThumbHtml(p, i, true, cat); }).join('')
+      ? list.map(function (p, i) { return shotThumbHtml(p, i, true, ''); }).join('')
       : '<p class="cam-strip__empty">拍摄后在这里预览</p>';
+    syncCamWatermark();
   }
 
   function captureShot() {
-    var cat = state.importCameraCat || 'price';
     var src = null;
     var video = $('#importCameraVideo');
     if (!state.importCameraDemo && video && video.videoWidth) {
@@ -2375,28 +3104,23 @@
       c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
       src = c.toDataURL('image/jpeg', 0.85);
     }
-    if (!src) src = makeDemoShot(cat, state.importPhotos[cat].length + 1);
-    state.importPhotos[cat].push({
+    if (!src) src = makeDemoShot(state.pending.photo.length + 1);
+    state.pending.photo.push({
       id: 'p' + Date.now().toString(36) + Math.random().toString(16).slice(2, 6),
       src: src
     });
     flashShutter();
     renderCamera();
-    renderImportSelect();
-    showToast('已拍第 ' + state.importPhotos[cat].length + ' 张');
+    showToast('已拍第 ' + state.pending.photo.length + ' 张');
   }
 
-  function deleteShot(id, cat) {
-    var key = cat || state.importCameraCat;
-    if (!key) return;
-    var list = state.importPhotos[key];
+  function deleteShot(id) {
+    var list = state.pending.photo;
     var idx = -1;
     list.forEach(function (p, i) { if (p.id === id) idx = i; });
     if (idx === -1) return;
     list.splice(idx, 1);
     renderCamera();
-    renderImportSelect();
-    renderQueue();
   }
 
   /* ---- 上传表格 ---- */
@@ -2574,6 +3298,102 @@
 
   var RtaBridge = window.RtaBridge || null;
 
+  /* 真实模式已下线：原型全部用演示数据。下面这些 real* / bridge* 函数保留作历史实现，
+     已无任何调用入口（ai-server/ 目录也保留，但页面不再引用）。 */
+  function isRealMode() {
+    return false;
+  }
+
+  function loadMode() {
+    var m = null;
+    try { m = localStorage.getItem(MODE_KEY); } catch (e) { m = null; }
+    var q = /[?&]mode=(demo|real)\b/.exec(location.search);
+    if (q) m = q[1];            // URL 优先：手机抽屉里不好点的时候用 ?mode=real
+    if (m !== 'demo' && m !== 'real') m = 'demo';
+    return m;
+  }
+
+  function setMode(mode, opts) {
+    if (mode !== 'demo' && mode !== 'real') return;
+    var changed = state.mode !== mode;
+    state.mode = mode;
+    try { localStorage.setItem(MODE_KEY, mode); } catch (e) {}
+    // 一批数据只属于一种来源：切模式就把本批清掉，否则演示造数和真数据会混在同一个概览里
+    if (changed && (hasRealFiles() || hasRealPhotos() || state.convertDone || state.checkData)) {
+      resetBatch();
+    }
+    renderModeSwitch();
+    if (isRealMode()) probeBridge();
+    if (!(opts && opts.quiet)) {
+      showToast(mode === 'real'
+        ? '已切到真实模式：选真实 Excel / 照片，真调模型'
+        : '已切到演示模式：用内置造数，不联网');
+    }
+  }
+
+  function resetBatch() {
+    state.importFiles = { member: [], card: [], price: [] };
+    state.importPhotos = { member: [], card: [], price: [] };
+    state.uploadStd = {};
+    state.convertDone = false;
+    state.convertRunning = false;
+    state.realSheets = null;
+    state.realErrors = [];
+    state.realUsage = null;
+    state.checkData = null;
+    if (state.convertTimers) {
+      state.convertTimers.forEach(function (t) { clearTimeout(t); });
+      state.convertTimers = [];
+    }
+    resetConvertUI(false);
+    setConvertIdle(isRealMode()
+      ? '已切到真实模式，本批已清空。请回上一步选真实 Excel 或拍照。'
+      : '已切到演示模式，本批已清空。可重新开始一轮导入。');
+    renderUploadList();
+    renderImportSelect();
+    renderQueue();
+    renderCamera();
+  }
+
+  function renderModeSwitch() {
+    var host = $('#navMode');
+    if (!host) return;
+    $all('[data-mode-btn]').forEach(function (b) {
+      var on = b.getAttribute('data-mode-btn') === state.mode;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    var hint = $('#navModeHint');
+    if (!hint) return;
+    if (!isRealMode()) {
+      hint.textContent = '内置造数 · 不联网';
+      hint.className = 'nav-mode__hint';
+      return;
+    }
+    if (state.aiBridge === false) {
+      hint.textContent = 'AI 桥未启动 · 会退回演示';
+      hint.className = 'nav-mode__hint is-warn';
+    } else if (state.aiBridge === true) {
+      hint.textContent = '已连 ' + (state.aiModel || 'deepseek');
+      hint.className = 'nav-mode__hint is-ok';
+    } else {
+      hint.textContent = '正在连接 AI 桥…';
+      hint.className = 'nav-mode__hint';
+    }
+  }
+
+  function probeBridge() {
+    if (!RtaBridge) { state.aiBridge = false; renderModeSwitch(); return; }
+    RtaBridge.health(function (ok, info) {
+      state.aiBridge = !!ok;
+      if (ok && info) {
+        state.aiModel = info.model || 'deepseek-chat';
+        state.aiVisionModel = info.visionModel || info.model || '';
+      }
+      renderModeSwitch();
+    });
+  }
+
   // 本批真正选了文件的记录（演示造出来的假文件没有 .file）
   function realFileEntries() {
     var out = [];
@@ -2589,12 +3409,32 @@
     return realFileEntries().length > 0;
   }
 
+  // 本批要送去识别的照片（只取来源是「拍照」且真的拍到了的类别）
+  function realPhotoEntries() {
+    var out = [];
+    ['member', 'card', 'price'].forEach(function (k) {
+      if (state.importSources[k] !== 'photo') return;
+      var list = state.importPhotos[k] || [];
+      if (!list.length) return;
+      out.push({ cat: k, photos: list });
+    });
+    return out;
+  }
+
+  function hasRealPhotos() {
+    return realPhotoEntries().length > 0;
+  }
+
   function bridgeReady(cb) {
     if (!RtaBridge) { cb(false); return; }
     if (state.aiBridge !== null) { cb(state.aiBridge); return; }
     RtaBridge.health(function (ok, info) {
       state.aiBridge = !!ok;
-      if (ok && info) state.aiModel = info.model || 'deepseek-chat';
+      if (ok && info) {
+        state.aiModel = info.model || 'deepseek-chat';
+        state.aiVisionModel = info.visionModel || info.model || '';
+      }
+      renderModeSwitch();
       cb(state.aiBridge);
     });
   }
@@ -2625,21 +3465,73 @@
       showToast('最多 ' + MAX_FILES_PER_CAT + ' 个表，先移除一个');
       return;
     }
+    if (!isRealMode()) {
+      // 演示模式：不碰真实文件系统，直接造一个假文件，行为与改造前一致
+      var n = arr.length + 1;
+      state.importFiles[cat] = arr.concat([{
+        name: IMPORT_CAT[cat] + '导入表' + (n > 1 ? ' ' + n : '') + '.xlsx',
+        size: '1.2 MB'
+      }]);
+      state.convertDone = false;
+      state.realSheets = null;
+      showToast('已添加演示文件（演示模式不读真实文件）');
+      renderUploadList();
+      renderImportSelect();
+      return;
+    }
     bridgeReady(function (ok) {
       if (!ok) {
-        // 没有本地桥 → 保持原来的演示行为，但要说清楚这是演示数据
-        var n = arr.length + 1;
+        // 真实模式但桥没起 → 说清楚为什么退回演示，而不是静默造数
+        var n2 = arr.length + 1;
         state.importFiles[cat] = arr.concat([{
-          name: IMPORT_CAT[cat] + '导入表' + (n > 1 ? ' ' + n : '') + '.xlsx',
+          name: IMPORT_CAT[cat] + '导入表' + (n2 > 1 ? ' ' + n2 : '') + '.xlsx',
           size: '1.2 MB'
         }]);
-        showToast('已添加演示文件（AI 桥未启动：用 ai-server/server.py 打开才能实测）');
+        state.convertDone = false;
+        state.realSheets = null;
+        showToast('AI 桥未启动，已退回演示数据（先在 ai-server 目录跑 python server.py）');
         renderUploadList();
         renderImportSelect();
         return;
       }
       RtaBridge.pickFile(false, function (files) {
         if (files && files.length) addPickedFile(cat, files[0]);
+      });
+    });
+  }
+
+  /* 相册 / 系统相机：手机通过 http 访问时 getUserMedia 不可用（非安全上下文），
+     这条入口用 input[type=file][capture] 调系统相机，是手机上唯一能拿到真照片的路。 */
+  function pickPhotoFor() {
+    pickLocalFiles('image/*', true, function (files) {
+      var added = 0;
+      var pending = [];
+      files.forEach(function (f) {
+        if (!/^image\//.test(f.type || '')) return;
+        added += 1;
+        pending.push(f);
+      });
+      if (!added) { showToast('没有可用的图片'); return; }
+      var srcs = [];
+      var left = added;
+      pending.forEach(function (f) {
+        var fr = new FileReader();
+        fr.onload = function () {
+          srcs.push(String(fr.result || ''));
+          left -= 1;
+          if (left === 0) {
+            addPendingPhotos(srcs);
+            showToast('已加入 ' + srcs.length + ' 张照片');
+          }
+        };
+        fr.onerror = function () {
+          left -= 1;
+          if (left === 0 && srcs.length) {
+            addPendingPhotos(srcs);
+            showToast('已加入 ' + srcs.length + ' 张照片');
+          }
+        };
+        fr.readAsDataURL(f);
       });
     });
   }
@@ -3189,38 +4081,42 @@
     { v: '8', label: '8 活动推广' },
     { v: '9', label: '9 优惠券转赠' }
   ];
-  var CHECK_UNIT = { member: '行', card: '行', price: '项' };
+  var CHECK_UNIT = { member: '行', card: '行', price: '项', stock: '件', product: '个' };
   var CHECK_LV_LABEL = { error: '需修正', warn: '建议确认', ignored: '已忽略', ok: '可导入' };
+
+  /* v2.25 可入库门槛：必填齐全即可导；任一字段（含选填）文字无法识别或金额/数字解析失败 → 不可导。
+     列名对齐 excel模板/ 官方表头（见 PRD §15.7）。 */
+  var CARD_BENEFIT_KEYS = ['discount', 'times', 'scope', 'gift', 'memberPrice'];
 
   // 字段定义：more=true 的收进「更多字段」，不占默认编辑区高度
   var CHECK_FIELDS = {
     member: [
-      { key: 'memberNo', label: '会员编号', ph: '如 0001', req: true },
-      { key: 'cardNo', label: '会员卡号', ph: '必填，每张卡唯一', req: true },
+      { key: 'memberNo', label: '会员编号', ph: '如 0001' },
+      { key: 'cardNo', label: '会员卡号', ph: '每张卡唯一' },
       { key: 'name', label: '会员姓名', ph: '必填', req: true },
-      { key: 'phone', label: '手机号', ph: '11 位数字', req: true },
+      { key: 'phone', label: '手机号', ph: '11 位数字' },
       { key: 'gender', label: '性别', type: 'select', opts: [{ v: '男', label: '男' }, { v: '女', label: '女' }] },
       { key: 'birthday', label: '生日', ph: '1990/2/11' },
-      { key: 'cardType', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }), req: true },
-      { key: 'cardName', label: '卡名称', type: 'select', dynamic: 'cards', req: true },
+      { key: 'cardType', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }) },
+      { key: 'cardName', label: '卡名称', type: 'select', dynamic: 'cards' },
       { key: 'expiry', label: '有效期限', ph: '永久 / 2027/01/17' },
       { key: 'recharge', label: '充值余额', type: 'money' },
       { key: 'bonus', label: '赠送余额', type: 'money' },
       { key: 'remain', label: '卡剩余价值', type: 'money' },
       { key: 'countLeft', label: '计次剩余次数', type: 'number' },
-      { key: 'channel', label: '来源渠道', type: 'select', opts: CHECK_CHANNELS, req: true },
+      { key: 'channel', label: '来源渠道', type: 'select', opts: CHECK_CHANNELS },
       { key: 'gift', label: '赠送项目', ph: '小气泡:1;基础护理:2', more: true, wide: true },
       { key: 'special', label: '特殊项目', ph: '理发:打折,9.9;洗吹:固定金额,50', more: true, wide: true },
       { key: 'shopCode', label: '开卡店铺编码', ph: '单店可不填', more: true },
       { key: 'note', label: '备注', more: true, wide: true }
     ],
     card: [
-      { key: 'type', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }), req: true },
+      { key: 'type', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }) },
       { key: 'name', label: '卡名', ph: '必填，店内唯一', req: true },
-      { key: 'price', label: '购买价格 / 充值', type: 'money' },
+      { key: 'price', label: '充值余额 / 购买价格', type: 'money', req: true },
       { key: 'discount', label: '享受折扣', ph: '如 8.5，留空不打折' },
       { key: 'times', label: '次数', type: 'number' },
-      { key: 'scope', label: '适用大类 / 范围', ph: '留空为全部' },
+      { key: 'scope', label: '适用大类 / 范围', ph: '权益：大类、项目或包含项目' },
       { key: 'validity', label: '有效期限（月）', ph: '留空为永久' },
       { key: 'gift', label: '赠送项目', ph: '小气泡:1;基础护理:2', more: true, wide: true },
       { key: 'memberPrice', label: '会员价项目', ph: '理发:打折,9.9', more: true, wide: true },
@@ -3234,6 +4130,26 @@
       { key: 'top', label: '置顶', type: 'select', opts: [{ v: '否', label: '否' }, { v: '是', label: '是' }] },
       { key: 'duration', label: '服务时长（分钟）', type: 'number' },
       { key: 'shopCode', label: '连锁店编码', more: true }
+    ],
+    stock: [
+      { key: 'name', label: '商品名', ph: '必填，导入后唯一', req: true },
+      { key: 'spec', label: '商品规格', ph: '如 500ml / 30 片', req: true },
+      { key: 'unit', label: '单位', ph: '瓶 / 盒 / 支', req: true },
+      { key: 'cost', label: '采购价', type: 'money' },
+      { key: 'qty', label: '数量', type: 'number', req: true },
+      { key: 'warnQty', label: '预警数量', type: 'number', more: true },
+      { key: 'barcode', label: '规格条码', ph: '可留空', more: true },
+      { key: 'note', label: '备注', more: true, wide: true }
+    ],
+    product: [
+      { key: 'name', label: '产品名称', ph: '必填，导入后唯一', req: true },
+      { key: 'category', label: '产品分类', ph: '如 洗护 / 造型' },
+      { key: 'price', label: '产品售价', type: 'money', req: true },
+      { key: 'memberPrice', label: '会员价', type: 'money' },
+      { key: 'onShelf', label: '是否上架', type: 'select', opts: [{ v: '上架', label: '上架' }, { v: '下架', label: '下架' }] },
+      { key: 'stockQty', label: '可售数量', type: 'number' },
+      { key: 'shopCode', label: '适用门店', more: true },
+      { key: 'note', label: '备注', more: true, wide: true }
     ]
   };
 
@@ -3287,6 +4203,38 @@
     return Number(s);
   }
 
+  function fieldEmpty(v) {
+    return v === null || v === undefined || String(v).trim() === '';
+  }
+
+  /* 乱码 / OCR 失败占位（有值才判；空不算） */
+  function isUnreadableText(v) {
+    if (fieldEmpty(v)) return false;
+    var s = String(v).trim();
+    if (/[?？]{2,}/.test(s)) return true;
+    if (/[□■�░▒▓]/.test(s)) return true;
+    if (/无法识别|未识别|看不清|识别失败/.test(s)) return true;
+    if (/^¥?\s*[—\-–_]+$/.test(s)) return true;
+    return false;
+  }
+
+  /* 金额列：有值但解析失败 → 按无法识别拦导入 */
+  function moneyUnreadable(v) {
+    if (fieldEmpty(v)) return false;
+    if (isUnreadableText(v)) return true;
+    return parseMoney(v) === null;
+  }
+
+  function intUnreadable(v) {
+    if (fieldEmpty(v)) return false;
+    if (isUnreadableText(v)) return true;
+    return !/^\d+$/.test(String(v).trim());
+  }
+
+  function markUnreadable(add, field, label) {
+    add(field, 'error', (label || '字段') + '无法识别，不能导入');
+  }
+
   function isPastDate(str) {
     var m = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/.exec(String(str || '').trim());
     if (!m) return false;
@@ -3300,7 +4248,7 @@
   }
 
   function checkCats() {
-    return ['member', 'card', 'price'].filter(function (k) {
+    return ALL_CATS.filter(function (k) {
       return checkRows(k).length > 0;
     });
   }
@@ -3365,13 +4313,13 @@
       });
     }
 
-    // 预置问题行：让概览一进来就能看到「能发现、能就地改」
+    // 预置问题行（v2.25：仅姓名必填；有值无法识别 / 解析失败 → 需修正）
     list[12].f.phone = '1380013abc';
     list[27].f.name = '';
     list[48].f.cardNo = list[7].f.cardNo;
     list[63].f.cardName = 'VIP金卡';
     list[77].f.recharge = '¥—';
-    list[91].f.channel = '';
+    list[91].f.note = '???无法识别';
     list[104].f.gender = '';
     list[118].f.expiry = '2019/01/17';
     list[133].f.birthday = '1990-2-30';
@@ -3385,7 +4333,7 @@
   function buildCardRows() {
     var seed = [
       { type: '储值卡', name: '八折银卡', price: '500.00', discount: '8.5', gift: '小气泡:1;基础护理:2', memberPrice: '理发:打折,9.9;洗吹:固定金额,50', validity: '', desc: '老顾客主推' },
-      { type: '储值卡', name: '黄金卡', price: '1000.00', discount: '', gift: '', memberPrice: '', validity: '12', desc: '' },
+      { type: '储值卡', name: '黄金卡', price: '1000.00', discount: '9', gift: '', memberPrice: '', validity: '12', desc: '' },
       { type: '计次卡', name: '剪发5次卡', price: '500.00', times: '5', scope: '剪发', validity: '', desc: '' },
       { type: '计次卡', name: '头皮护理次卡', price: '680.00', times: '6', scope: '头皮护理', validity: '12', desc: '' },
       { type: '折扣卡', name: '尊享折扣卡', price: '300.00', discount: '5.5', validity: '6', desc: '' },
@@ -3393,8 +4341,8 @@
       { type: '套餐卡', name: '护理套餐卡', price: '310.00', scope: '全场通用:4', validity: '3', desc: '' },
       { type: '套餐卡', name: '烫染护套餐', price: '688.00', scope: '小气泡:1;基础护理:2', validity: '6', desc: '' },
       { type: '周期卡', name: '季卡', price: '510.00', scope: '小气泡;基础护理', validity: '3', desc: '' },
-      { type: '周期卡', name: '年卡', price: '1980.00', scope: '', validity: '12', desc: '' },
-      { type: '储值卡', name: '体验卡', price: '100.00', discount: '', validity: '', desc: '新客体验' },
+      { type: '周期卡', name: '年卡', price: '1980.00', scope: '全场通用', validity: '12', desc: '' },
+      { type: '储值卡', name: '体验卡', price: '100.00', gift: '剪发:1', validity: '', desc: '新客体验' },
       { type: '计次卡', name: '洗吹次卡', price: '200.00', times: '10', scope: '洗吹', validity: '', desc: '' }
     ];
     var list = seed.map(function (s, i) {
@@ -3405,10 +4353,14 @@
       };
       return { id: 'c' + i, f: f, problems: [], ignored: false, aiFields: [] };
     });
-    // 预置问题：折扣越界 / 有效期非数字 / 赠送项目格式 / 卡名重复 / 金额不可解析
+    // 预置问题：折扣越界 / 有效期无法识别 / 无权益 / 卡名重复 / 金额无法识别
     list[5].f.discount = '12';
     list[7].f.validity = '半年';
-    list[9].f.gift = '小气泡';
+    list[9].f.scope = '';
+    list[9].f.gift = '';
+    list[9].f.discount = '';
+    list[9].f.times = '';
+    list[9].f.memberPrice = '';
     list[10].f.name = '八折银卡';
     list[11].f.price = '两百';
     return list;
@@ -3446,15 +4398,93 @@
     return list;
   }
 
+  function buildStockRows() {
+    var names = ['氨基酸洗发水', '护发精油', '头皮清洁啫喱', '染发膏', '双氧奶', '一次性手套', '毛巾', '造型发蜡', '护理面膜', '消毒喷雾'];
+    var specs = ['500ml', '100ml', '250ml', '80g', '1L', '100 只', '30×70cm', '120g', '30 片', '500ml'];
+    var units = ['瓶', '瓶', '瓶', '支', '瓶', '包', '条', '盒', '盒', '瓶'];
+    var list = [];
+    var i;
+    for (i = 0; i < 38; i += 1) {
+      var k = i % names.length;
+      var round = Math.floor(i / names.length);
+      list.push({
+        id: 'k' + i,
+        f: {
+          name: names[k] + (round ? ' · ' + (round + 1) : ''),
+          category: ['洗护', '染烫', '耗材', '工具'][k % 4],
+          spec: specs[k],
+          unit: units[k],
+          cost: String(18 + k * 7) + '.00',
+          qty: String(6 + (i * 3) % 40),
+          warnQty: String(5 + (k % 4) * 5),
+          barcode: '69' + padNum(1000000 + i * 37, 8),
+          note: ''
+        },
+        problems: [],
+        ignored: false,
+        aiFields: []
+      });
+    }
+    list[3].f.qty = '十';
+    list[9].f.cost = '¥—';
+    list[15].f.name = '';
+    list[22].f.qty = '-3';
+    list[30].f.unit = '';
+    list[33].f.spec = '';
+    return list;
+  }
+
+  function buildProductRows() {
+    var seed = [
+      { name: '氨基酸洗发水', category: '洗护', price: '128.00', memberPrice: '108.00', onShelf: '上架', stockQty: '24' },
+      { name: '护发精油', category: '洗护', price: '168.00', memberPrice: '148.00', onShelf: '上架', stockQty: '16' },
+      { name: '造型发蜡', category: '造型', price: '98.00', memberPrice: '', onShelf: '上架', stockQty: '8' },
+      { name: '头皮护理套装', category: '护理', price: '398.00', memberPrice: '358.00', onShelf: '上架', stockQty: '5' },
+      { name: '家用护理面膜', category: '护理', price: '59.00', memberPrice: '49.00', onShelf: '下架', stockQty: '0' },
+      { name: '旅行装洗护套装', category: '洗护', price: '39.00', memberPrice: '', onShelf: '上架', stockQty: '40' },
+      { name: '宽齿梳', category: '工具', price: '25.00', memberPrice: '', onShelf: '上架', stockQty: '30' },
+      { name: '真丝发圈', category: '饰物', price: '19.00', memberPrice: '15.00', onShelf: '上架', stockQty: '60' },
+      { name: '吹风机（家用）', category: '工具', price: '299.00', memberPrice: '269.00', onShelf: '下架', stockQty: '2' },
+      { name: '护色洗发水', category: '洗护', price: '138.00', memberPrice: '118.00', onShelf: '上架', stockQty: '12' },
+      { name: '发膜', category: '护理', price: '88.00', memberPrice: '', onShelf: '上架', stockQty: '9' },
+      { name: '免洗喷雾', category: '造型', price: '78.00', memberPrice: '68.00', onShelf: '上架', stockQty: '0' },
+      { name: '头皮按摩梳', category: '工具', price: '45.00', memberPrice: '', onShelf: '上架', stockQty: '18' },
+      { name: '精油皂', category: '洗护', price: '35.00', memberPrice: '', onShelf: '上架', stockQty: '22' },
+      { name: '发饰礼盒', category: '饰物', price: '129.00', memberPrice: '109.00', onShelf: '上架', stockQty: '6' },
+      { name: '定型喷雾', category: '造型', price: '108.00', memberPrice: '', onShelf: '上架', stockQty: '7' }
+    ];
+    var list = seed.map(function (s, i) {
+      return {
+        id: 'd' + i,
+        f: {
+          name: s.name, category: s.category, price: s.price,
+          memberPrice: s.memberPrice, onShelf: s.onShelf,
+          stockQty: s.stockQty, shopCode: '', note: ''
+        },
+        problems: [],
+        ignored: false,
+        aiFields: []
+      };
+    });
+    list[2].f.price = '-99.00';
+    list[6].f.onShelf = '已停售';
+    list[9].f.name = '氨基酸洗发水';
+    list[11].f.price = '面议';
+    list[13].f.memberPrice = '¥—';
+    return list;
+  }
+
   function ensureCheckData() {
     if (state.checkData) return state.checkData;
     var data = {};
     if (state.importSelection.member) data.member = buildMemberRows();
     if (state.importSelection.card) data.card = buildCardRows();
     if (state.importSelection.price) data.price = buildPriceRows();
-    if (!data.member && !data.card && !data.price) data.member = buildMemberRows();
+    if (state.importSelection.stock) data.stock = buildStockRows();
+    if (state.importSelection.product) data.product = buildProductRows();
+    if (!data.member && !data.card && !data.price && !data.stock && !data.product) data.member = buildMemberRows();
     state.checkData = data;
-    ['member', 'card', 'price'].forEach(function (k) { if (data[k]) recomputeCheck(k); });
+    ALL_CATS.forEach(function (k) { if (data[k]) recomputeCheck(k); });
     return data;
   }
 
@@ -3473,7 +4503,7 @@
         }
       }
       if (cat === 'card' && f.name) ctx.names[f.name] = (ctx.names[f.name] || 0) + 1;
-      if (cat === 'price' && f.name) ctx.names[f.name] = (ctx.names[f.name] || 0) + 1;
+      if ((cat === 'price' || cat === 'product' || cat === 'stock') && f.name) ctx.names[f.name] = (ctx.names[f.name] || 0) + 1;
     });
     return ctx;
   }
@@ -3486,71 +4516,180 @@
     var priceDsl = /^[^:;]+:(打折|固定金额),\d+(\.\d+)?(;\s*[^:;]+:(打折|固定金额),\d+(\.\d+)?)*$/;
 
     if (cat === 'member') {
-      if (!f.memberNo) add('memberNo', 'error', '会员编号为空');
-      if (!f.cardNo) add('cardNo', 'error', '会员卡号为空');
-      else if (ctx.cardNos[f.cardNo] > 1) add('cardNo', 'error', '会员卡号与其他行重复');
-      if (!f.name) add('name', 'error', '会员姓名为空');
-      if (!f.phone) add('phone', 'error', '手机号为空');
-      else if (!/^1\d{10}$/.test(f.phone)) add('phone', 'error', '手机号应为 11 位数字');
-      else if (ctx.phones[f.phone] && ctx.phones[f.phone].length > 1) add('phone', 'warn', '同一手机号对应多个会员编号');
-      if (!f.gender) add('gender', 'warn', '性别为空，按「女」导入');
-      if (f.birthday && !/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(f.birthday)) add('birthday', 'warn', '生日格式建议 1990/2/11');
-      if (!f.cardType) add('cardType', 'error', '卡类型为空');
-      else if (CHECK_CARD_TYPES.indexOf(f.cardType) === -1) add('cardType', 'error', '卡类型须为储值 / 计次 / 折扣 / 套餐 / 周期卡');
-      if (!f.cardName) add('cardName', 'error', '卡名称为空');
-      else if (!ctx.cardNames[f.cardName]) add('cardName', 'error', '店内无此卡，改成已有卡名或忽略此行');
-      var rc = parseMoney(f.recharge);
-      if (f.cardType === '储值卡' && (f.recharge === '' || f.recharge === null || f.recharge === undefined)) add('recharge', 'error', '储值卡充值余额必填');
-      else if (rc === null) add('recharge', 'error', '金额无法解析');
-      else if (rc === 0) add('recharge', 'warn', '充值余额为 0');
-      if (parseMoney(f.bonus) === null) add('bonus', 'error', '赠送余额无法解析');
-      if (parseMoney(f.remain) === null) add('remain', 'error', '卡剩余价值无法解析');
-      if (f.countLeft && !/^\d+$/.test(f.countLeft)) add('countLeft', 'error', '计次剩余次数应为整数');
-      if (!f.channel) add('channel', 'error', '来源渠道必填');
-      else if (!/^[1-9]$/.test(f.channel)) add('channel', 'warn', '来源渠道须为 1–9');
-      if (f.expiry && f.expiry !== '永久' && isPastDate(f.expiry)) add('expiry', 'warn', '卡已过期');
-      if (f.gift && !dsl.test(f.gift)) add('gift', 'warn', '赠送项目格式应为「项目:次数」');
-      if (f.special && !priceDsl.test(f.special)) add('special', 'warn', '特殊项目格式应为「项目:打折,9.9」');
+      /* 入库必填：仅会员姓名；其余可空。有值则须可识别。 */
+      if (fieldEmpty(f.name)) add('name', 'error', '会员姓名为空');
+      else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '会员姓名');
+
+      if (!fieldEmpty(f.memberNo) && isUnreadableText(f.memberNo)) markUnreadable(add, 'memberNo', '会员编号');
+      if (!fieldEmpty(f.cardNo)) {
+        if (isUnreadableText(f.cardNo)) markUnreadable(add, 'cardNo', '会员卡号');
+        else if (ctx.cardNos[f.cardNo] > 1) add('cardNo', 'error', '会员卡号与其他行重复');
+      }
+      if (!fieldEmpty(f.phone)) {
+        if (isUnreadableText(f.phone) || !/^1\d{10}$/.test(String(f.phone).trim())) markUnreadable(add, 'phone', '手机号');
+        else if (ctx.phones[f.phone] && ctx.phones[f.phone].length > 1) add('phone', 'warn', '同一手机号对应多个会员编号');
+      }
+      if (!fieldEmpty(f.gender) && isUnreadableText(f.gender)) markUnreadable(add, 'gender', '性别');
+      else if (fieldEmpty(f.gender)) add('gender', 'warn', '性别为空，按「女」导入');
+      if (!fieldEmpty(f.birthday)) {
+        if (isUnreadableText(f.birthday)) markUnreadable(add, 'birthday', '生日');
+        else if (!/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(f.birthday)) add('birthday', 'warn', '生日格式建议 1990/2/11');
+      }
+      if (!fieldEmpty(f.cardType)) {
+        if (isUnreadableText(f.cardType)) markUnreadable(add, 'cardType', '卡类型');
+        else if (CHECK_CARD_TYPES.indexOf(f.cardType) === -1) markUnreadable(add, 'cardType', '卡类型');
+      }
+      if (!fieldEmpty(f.cardName)) {
+        if (isUnreadableText(f.cardName)) markUnreadable(add, 'cardName', '卡名称');
+        else if (!ctx.cardNames[f.cardName]) add('cardName', 'warn', '店内无此卡，导入后可再关联');
+      }
+      if (moneyUnreadable(f.recharge)) markUnreadable(add, 'recharge', '充值余额');
+      else if (!fieldEmpty(f.recharge) && parseMoney(f.recharge) === 0) add('recharge', 'warn', '充值余额为 0');
+      if (moneyUnreadable(f.bonus)) markUnreadable(add, 'bonus', '赠送余额');
+      if (moneyUnreadable(f.remain)) markUnreadable(add, 'remain', '卡剩余价值');
+      if (intUnreadable(f.countLeft)) markUnreadable(add, 'countLeft', '计次剩余次数');
+      if (!fieldEmpty(f.channel)) {
+        if (isUnreadableText(f.channel)) markUnreadable(add, 'channel', '来源渠道');
+        else if (!/^[1-9]$/.test(String(f.channel))) add('channel', 'warn', '来源渠道须为 1–9');
+      }
+      if (!fieldEmpty(f.expiry)) {
+        if (isUnreadableText(f.expiry)) markUnreadable(add, 'expiry', '有效期限');
+        else if (f.expiry !== '永久' && isPastDate(f.expiry)) add('expiry', 'warn', '卡已过期');
+      }
+      if (!fieldEmpty(f.gift)) {
+        if (isUnreadableText(f.gift)) markUnreadable(add, 'gift', '赠送项目');
+        else if (!dsl.test(f.gift)) add('gift', 'warn', '赠送项目格式应为「项目:次数」');
+      }
+      if (!fieldEmpty(f.special)) {
+        if (isUnreadableText(f.special)) markUnreadable(add, 'special', '特殊项目');
+        else if (!priceDsl.test(f.special)) add('special', 'warn', '特殊项目格式应为「项目:打折,9.9」');
+      }
+      if (!fieldEmpty(f.shopCode) && isUnreadableText(f.shopCode)) markUnreadable(add, 'shopCode', '开卡店铺编码');
+      if (!fieldEmpty(f.note) && isUnreadableText(f.note)) markUnreadable(add, 'note', '备注');
       return out;
     }
 
     if (cat === 'card') {
-      if (!f.type) add('type', 'error', '卡类型为空');
-      else if (CHECK_CARD_TYPES.indexOf(f.type) === -1) add('type', 'error', '卡类型不在 5 类之内');
-      if (!f.name) add('name', 'error', '卡名为空');
+      /* 必填：卡名 + 充值余额/购买价格；权益列至少一项 */
+      if (fieldEmpty(f.name)) add('name', 'error', '卡名为空');
+      else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '卡名');
       else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名卡，导入会跳过后者');
-      var pr = parseMoney(f.price);
-      if (f.price !== '' && pr === null) add('price', 'error', '金额无法解析');
-      if (f.type === '储值卡' && (f.price === '' || f.price === null)) add('price', 'error', '储值卡充值余额必填');
-      if (f.discount !== '' && f.discount !== undefined) {
-        var d = parseMoney(f.discount);
-        if (d === null) add('discount', 'error', '折扣无法解析');
-        else if (d <= 0 || d > 10) add('discount', 'error', '折扣须在 0–10 之间');
+
+      if (fieldEmpty(f.price)) add('price', 'error', '充值余额 / 购买价格为空');
+      else if (moneyUnreadable(f.price)) markUnreadable(add, 'price', '充值余额 / 购买价格');
+
+      if (!fieldEmpty(f.type)) {
+        if (isUnreadableText(f.type)) markUnreadable(add, 'type', '卡类型');
+        else if (CHECK_CARD_TYPES.indexOf(f.type) === -1) markUnreadable(add, 'type', '卡类型');
       }
-      if (f.times && !/^\d+$/.test(f.times)) add('times', 'error', '次数应为整数');
-      if (f.validity && !/^\d+$/.test(f.validity)) add('validity', 'error', '有效期限填月份数字，留空为永久');
-      if (f.gift && !dsl.test(f.gift)) add('gift', 'warn', '赠送项目格式应为「项目:次数」');
-      if (f.memberPrice && !priceDsl.test(f.memberPrice)) add('memberPrice', 'warn', '会员价格式应为「项目:打折,9.9」');
+
+      var hasBenefit = CARD_BENEFIT_KEYS.some(function (k) { return !fieldEmpty(f[k]); });
+      if (!hasBenefit) add('scope', 'error', '权益至少填一项');
+
+      if (!fieldEmpty(f.discount)) {
+        if (moneyUnreadable(f.discount)) markUnreadable(add, 'discount', '享受折扣');
+        else {
+          var d = parseMoney(f.discount);
+          if (d !== '' && (d <= 0 || d > 10)) add('discount', 'error', '折扣须在 0–10 之间');
+        }
+      }
+      if (intUnreadable(f.times)) markUnreadable(add, 'times', '次数');
+      if (!fieldEmpty(f.scope) && isUnreadableText(f.scope)) markUnreadable(add, 'scope', '适用大类 / 范围');
+      if (intUnreadable(f.validity)) markUnreadable(add, 'validity', '有效期限');
+      if (!fieldEmpty(f.gift)) {
+        if (isUnreadableText(f.gift)) markUnreadable(add, 'gift', '赠送项目');
+        else if (!dsl.test(f.gift)) add('gift', 'warn', '赠送项目格式应为「项目:次数」');
+      }
+      if (!fieldEmpty(f.memberPrice)) {
+        if (isUnreadableText(f.memberPrice)) markUnreadable(add, 'memberPrice', '会员价项目');
+        else if (!priceDsl.test(f.memberPrice)) add('memberPrice', 'warn', '会员价格式应为「项目:打折,9.9」');
+      }
+      if (!fieldEmpty(f.desc) && isUnreadableText(f.desc)) markUnreadable(add, 'desc', '卡项说明');
       return out;
     }
 
-    // price
-    if (!f.name) add('name', 'error', '项目名为空');
-    else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名项目，导入会跳过后者');
-    if (f.price === '' || f.price === null || f.price === undefined) add('price', 'error', '价格为空');
-    else if (parseMoney(f.price) === null) add('price', 'error', '价格无法解析');
-    else if (parseMoney(f.price) < 0) add('price', 'error', '价格不能为负');
-    if (!f.group) add('group', 'warn', '项目组为空，将作为自定义新增');
-    if (f.duration && !/^\d+$/.test(f.duration)) add('duration', 'error', '服务时长填分钟数');
-    if (f.bookable && f.bookable !== '是' && f.bookable !== '否') add('bookable', 'warn', '可开单填「是 / 否」，按「是」处理');
-    if (f.top && f.top !== '是' && f.top !== '否') add('top', 'warn', '置顶填「是 / 否」，按「否」处理');
+    if (cat === 'price') {
+      if (fieldEmpty(f.name)) add('name', 'error', '项目名为空');
+      else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '项目名');
+      else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名项目，导入会跳过后者');
+      if (fieldEmpty(f.price)) add('price', 'error', '价格为空');
+      else if (moneyUnreadable(f.price)) markUnreadable(add, 'price', '价格');
+      else if (parseMoney(f.price) < 0) add('price', 'error', '价格不能为负');
+      if (!fieldEmpty(f.group) && isUnreadableText(f.group)) markUnreadable(add, 'group', '项目组');
+      else if (fieldEmpty(f.group)) add('group', 'warn', '项目组为空，将作为自定义新增');
+      if (intUnreadable(f.duration)) markUnreadable(add, 'duration', '服务时长');
+      if (!fieldEmpty(f.bookable)) {
+        if (isUnreadableText(f.bookable)) markUnreadable(add, 'bookable', '可开单');
+        else if (f.bookable !== '是' && f.bookable !== '否') add('bookable', 'warn', '可开单填「是 / 否」，按「是」处理');
+      }
+      if (!fieldEmpty(f.top)) {
+        if (isUnreadableText(f.top)) markUnreadable(add, 'top', '置顶');
+        else if (f.top !== '是' && f.top !== '否') add('top', 'warn', '置顶填「是 / 否」，按「否」处理');
+      }
+      if (!fieldEmpty(f.shopCode) && isUnreadableText(f.shopCode)) markUnreadable(add, 'shopCode', '连锁店编码');
+      return out;
+    }
+
+    return out;
+  }
+
+  function checkProblemsStock(row, ctx) {
+    var f = row.f || {};
+    var out = [];
+    function add(field, level, msg) { out.push({ field: field, level: level, msg: msg }); }
+    /* 对齐库存模板必填：商品名 / 商品规格 / 单位 / 数量 */
+    if (fieldEmpty(f.name)) add('name', 'error', '商品名为空');
+    else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '商品名');
+    else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名商品，导入会跳过后者');
+    if (fieldEmpty(f.spec)) add('spec', 'error', '商品规格为空');
+    else if (isUnreadableText(f.spec)) markUnreadable(add, 'spec', '商品规格');
+    if (fieldEmpty(f.unit)) add('unit', 'error', '单位为空');
+    else if (isUnreadableText(f.unit)) markUnreadable(add, 'unit', '单位');
+    if (fieldEmpty(f.qty)) add('qty', 'error', '数量为空');
+    else if (intUnreadable(f.qty)) markUnreadable(add, 'qty', '数量');
+    else if (Number(f.qty) === 0) add('qty', 'warn', '库存为 0，导入后不可售');
+    if (moneyUnreadable(f.cost)) markUnreadable(add, 'cost', '采购价');
+    if (intUnreadable(f.warnQty)) markUnreadable(add, 'warnQty', '预警数量');
+    if (!fieldEmpty(f.barcode)) {
+      if (isUnreadableText(f.barcode)) markUnreadable(add, 'barcode', '规格条码');
+      else if (!/^\d{8,14}$/.test(String(f.barcode))) add('barcode', 'warn', '条码建议为 8–14 位数字');
+    }
+    if (!fieldEmpty(f.note) && isUnreadableText(f.note)) markUnreadable(add, 'note', '备注');
+    return out;
+  }
+
+  function checkProblemsProduct(row, ctx) {
+    var f = row.f || {};
+    var out = [];
+    function add(field, level, msg) { out.push({ field: field, level: level, msg: msg }); }
+    /* 入库必填：产品名称 + 产品售价；分类等选填 */
+    if (fieldEmpty(f.name)) add('name', 'error', '产品名称为空');
+    else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '产品名称');
+    else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名产品，导入会跳过后者');
+    if (fieldEmpty(f.price)) add('price', 'error', '产品售价为空');
+    else if (moneyUnreadable(f.price)) markUnreadable(add, 'price', '产品售价');
+    else if (parseMoney(f.price) < 0) add('price', 'error', '产品售价不能为负');
+    if (!fieldEmpty(f.category) && isUnreadableText(f.category)) markUnreadable(add, 'category', '产品分类');
+    else if (fieldEmpty(f.category)) add('category', 'warn', '产品分类为空，将归入「未分类」');
+    if (moneyUnreadable(f.memberPrice)) markUnreadable(add, 'memberPrice', '会员价');
+    if (!fieldEmpty(f.onShelf)) {
+      if (isUnreadableText(f.onShelf)) markUnreadable(add, 'onShelf', '是否上架');
+      else if (f.onShelf !== '上架' && f.onShelf !== '下架') add('onShelf', 'warn', '上架状态填「上架 / 下架」，按「下架」处理');
+    }
+    if (intUnreadable(f.stockQty)) markUnreadable(add, 'stockQty', '可售数量');
+    if (!fieldEmpty(f.shopCode) && isUnreadableText(f.shopCode)) markUnreadable(add, 'shopCode', '适用门店');
+    if (!fieldEmpty(f.note) && isUnreadableText(f.note)) markUnreadable(add, 'note', '备注');
     return out;
   }
 
   function recomputeCheck(cat) {
     var rows = checkRows(cat);
     var ctx = checkCtx(cat, rows);
-    rows.forEach(function (r) { r.problems = checkProblems(cat, r, ctx); });
+    var fn = cat === 'stock' ? checkProblemsStock
+      : (cat === 'product' ? checkProblemsProduct : checkProblems);
+    rows.forEach(function (r) {
+      r.problems = cat === 'stock' || cat === 'product' ? fn(r, ctx) : fn(cat, r, ctx);
+    });
   }
 
   function checkStats(cat) {
@@ -3634,7 +4773,9 @@
       '<div class="check-editor__acts">' +
         '<button type="button" class="check-editor__save" data-check-save="' + row.id + '">保存</button>' +
         '<button type="button" class="check-editor__ghost" data-check-ignore="' + row.id + '">' + (row.ignored ? '取消忽略' : '忽略此行') + '</button>' +
-        '<button type="button" class="check-editor__del" data-check-del="' + row.id + '">删除</button>' +
+        '<button type="button" class="check-editor__del" data-check-del="' + row.id + '" aria-label="删除此行" title="删除此行">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 7.2h14.8"/><path d="M9.4 7.2V5.4c0-.7.6-1.2 1.2-1.2h2.8c.6 0 1.2.5 1.2 1.2v1.8"/><path d="M6.6 7.2l.75 11c.06.9.8 1.6 1.7 1.6h5.9c.9 0 1.64-.7 1.7-1.6l.75-11"/><path d="M10.2 10.8v5.6M13.8 10.8v5.6"/></svg>' +
+        '</button>' +
       '</div>' +
     '</div>';
   }
@@ -3643,6 +4784,8 @@
     var f = row.f || {};
     if (cat === 'member') return f.name || '未填姓名';
     if (cat === 'card') return f.name || '未命名卡';
+    if (cat === 'stock') return f.name || '未命名商品';
+    if (cat === 'product') return f.name || '未命名产品';
     return f.name || '未命名项目';
   }
 
@@ -3650,6 +4793,8 @@
     var f = row.f || {};
     if (cat === 'member') return [f.memberNo, f.cardNo, f.phone, f.cardName].filter(Boolean).join(' · ');
     if (cat === 'card') return [f.type, f.price ? '¥' + f.price : '', f.validity ? f.validity + ' 个月' : '永久', f.scope].filter(Boolean).join(' · ');
+    if (cat === 'stock') return [f.spec, f.unit, f.cost ? '进价 ¥' + f.cost : '', f.qty ? '库存 ' + f.qty : ''].filter(Boolean).join(' · ');
+    if (cat === 'product') return [f.category, f.price ? '售价 ¥' + f.price : '', f.memberPrice ? '会员 ¥' + f.memberPrice : '', f.onShelf].filter(Boolean).join(' · ');
     return [f.group, f.price ? '¥' + f.price : '', f.duration ? f.duration + ' 分钟' : ''].filter(Boolean).join(' · ');
   }
 
@@ -3657,6 +4802,8 @@
     var f = row.f || {};
     if (cat === 'member') return f.cardType || '';
     if (cat === 'card') return f.type || '';
+    if (cat === 'stock') return f.unit || '件';
+    if (cat === 'product') return f.onShelf || '';
     return f.bookable === '否' ? '不可开单' : '可开单';
   }
 
@@ -3669,7 +4816,6 @@
     var ai = (row.aiFields && row.aiFields.length) ? '<i class="check-tag is-ai">AI 推断</i>' : '';
     var tag = checkRowTag(cat, row);
     var open = state.checkOpen === row.id;
-    var initial = checkRowTitle(cat, row).charAt(0) || '?';
     return '<div class="check-row is-' + lvl + (open ? ' is-open' : '') + '" id="checkRow-' + row.id + '" data-check-row="' + row.id + '">' +
       '<button type="button" class="check-row__main" data-check-open="' + row.id + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
         fmtIcon(catFmtKind(cat)) +
@@ -3706,99 +4852,258 @@
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
   }
 
+  function moneyOf(v) {
+    var n = parseMoney(v);
+    return typeof n === 'number' ? n : 0;
+  }
+
+  function verifyGroupKey(cat, row) {
+    var f = row.f || {};
+    if (cat === 'member') return f.cardType || '未分类卡';
+    if (cat === 'card') return f.type || '未分类';
+    if (cat === 'price') return f.group || '未分组';
+    if (cat === 'stock') return f.category || '默认分类';
+    if (cat === 'product') return f.category || '未分类';
+    return '全部';
+  }
+
+  function importableRows(cat) {
+    return checkRows(cat).filter(function (r) {
+      return !r.ignored && !rowHasLevel(r, 'error');
+    });
+  }
+
+  function blockedRows(cat) {
+    return checkRows(cat).filter(function (r) {
+      return !r.ignored && rowHasLevel(r, 'error');
+    });
+  }
+
+  function verifyTabMetrics(cat, rows) {
+    if (cat === 'member') {
+      var bal = rows.reduce(function (s, r) { return s + moneyOf(r.f.recharge) + moneyOf(r.f.remain); }, 0);
+      return [
+        { k: '人数', v: rows.length },
+        { k: '持卡', v: rows.length },
+        { k: '余额合计', v: fmtMoney(bal) }
+      ];
+    }
+    if (cat === 'card') return [{ k: '模板', v: rows.length + ' 种' }];
+    if (cat === 'price') {
+      var sum = rows.reduce(function (s, r) { return s + moneyOf(r.f.price); }, 0);
+      return [{ k: '项目', v: rows.length }, { k: '标价合计', v: fmtMoney(sum) }];
+    }
+    if (cat === 'stock') {
+      var qty = rows.reduce(function (s, r) { return s + (parseInt(r.f.qty, 10) || 0); }, 0);
+      var cost = rows.reduce(function (s, r) { return s + moneyOf(r.f.cost) * (parseInt(r.f.qty, 10) || 0); }, 0);
+      return [{ k: '品规', v: rows.length }, { k: '件数', v: qty }, { k: '货值', v: fmtMoney(cost) }];
+    }
+    if (cat === 'product') {
+      var on = rows.filter(function (r) { return r.f.onShelf === '上架'; }).length;
+      return [{ k: '产品', v: rows.length }, { k: '上架', v: on }];
+    }
+    return [{ k: '条数', v: rows.length }];
+  }
+
+  function verifyRowHtml(cat, row) {
+    var f = row.f || {};
+    if (cat === 'member') {
+      return '<div class="verify-row"><span class="verify-row__main"><b>' + esc(f.name || '—') + '</b>' +
+        '<i>' + esc((f.phone || '').slice(-4) ? '尾号 ' + String(f.phone).slice(-4) : '无手机') + ' · ' + esc(f.cardName || '') + '</i></span>' +
+        '<span class="verify-row__val">' + fmtMoney(moneyOf(f.recharge) || moneyOf(f.remain)) + '</span></div>';
+    }
+    if (cat === 'card') {
+      var tip = f.discount ? (f.discount + ' 折') : (f.times ? (f.times + ' 次') : (f.price ? ('充 ' + f.price) : ''));
+      return '<div class="verify-row"><span class="verify-row__main"><b>' + esc(f.name || '—') + '</b><i>' + esc(tip) + '</i></span></div>';
+    }
+    if (cat === 'price') {
+      return '<div class="verify-row"><span class="verify-row__main"><b>' + esc(f.name || '—') + '</b>' +
+        '<i>' + (f.bookable === '是' ? '可开单' : '不可开单') + '</i></span>' +
+        '<span class="verify-row__val">' + fmtMoney(moneyOf(f.price)) + '</span></div>';
+    }
+    if (cat === 'stock') {
+      return '<div class="verify-row"><span class="verify-row__main"><b>' + esc(f.name || '—') + '</b>' +
+        '<i>' + esc(f.spec || '') + ' · ' + esc(f.qty || '0') + esc(f.unit || '') + '</i></span>' +
+        '<span class="verify-row__val">' + fmtMoney(moneyOf(f.cost)) + '</span></div>';
+    }
+    return '<div class="verify-row"><span class="verify-row__main"><b>' + esc(f.name || '—') + '</b>' +
+      '<i>' + esc(f.onShelf || '') + '</i></span>' +
+      '<span class="verify-row__val">' + fmtMoney(moneyOf(f.price)) + '</span></div>';
+  }
+
+  function verifyBoardLabel(k) {
+    if (k === 'price') return '价目表·项目';
+    if (k === 'product') return '价目表·产品';
+    if (k === 'stock') return '库存品类';
+    if (k === 'card') return '卡模板';
+    if (k === 'member') return '会员';
+    return IMPORT_CAT_SHORT[k] || k;
+  }
+
+  /* 「价目表·项目」等：按 · 拆两行，窄格也能完整显示 */
+  function verifyLabelHtml(label) {
+    var s = String(label || '');
+    var i = s.indexOf('·');
+    if (i < 0) return esc(s);
+    return '<span class="lbl-2line">' +
+      '<span>' + esc(s.slice(0, i)) + '</span>' +
+      '<span>' + esc(s.slice(i + 1)) + '</span>' +
+      '</span>';
+  }
+
+  function verifyBoardItems(cats) {
+    var items = [];
+    var order = ['member', 'card', 'price', 'product', 'stock'];
+    order.forEach(function (k) {
+      if (cats.indexOf(k) < 0) return;
+      var rows = importableRows(k);
+      if (k === 'member') {
+        var people = {};
+        var bal = 0;
+        rows.forEach(function (r) {
+          var f = r.f || {};
+          people[f.memberNo || r.id] = true;
+          bal += moneyOf(f.recharge) + moneyOf(f.remain);
+        });
+        items.push({
+          key: k,
+          kind: 'member',
+          label: '会员',
+          people: Object.keys(people).length,
+          cards: rows.length,
+          balance: bal,
+          barN: rows.length
+        });
+      } else {
+        items.push({ key: k, kind: 'simple', label: verifyBoardLabel(k), n: rows.length, barN: rows.length });
+      }
+    });
+    return items;
+  }
+
   function renderCheckStats() {
     var cats = checkCats();
     var all = checkAllStats();
-    var pct = all.total ? Math.round(all.importable / all.total * 100) : 0;
-
+    var batchEl = $('#checkBatchText');
+    if (batchEl) {
+      batchEl.textContent = all.error
+        ? ('可导入 ' + all.importable.toLocaleString('zh-CN') + ' 条 · 未达门槛 ' + all.error.toLocaleString('zh-CN') + ' 条不会写入。')
+        : ('可导入 ' + all.importable.toLocaleString('zh-CN') + ' 条，和账本对一下即可。');
+    }
+    var metrics = $('#checkVerifyMetrics');
+    if (metrics) {
+      var items = verifyBoardItems(cats);
+      var maxN = 1;
+      items.forEach(function (it) { maxN = Math.max(maxN, it.barN || 0); });
+      var barSegs = items.map(function (it, i) {
+        return '<i class="verify-bar__seg is-c' + (i % 5) + '" style="flex:' + Math.max(it.barN, 0.01) + '" title="' + it.label + '"></i>';
+      }).join('');
+      /* 按数据项数量自适应：1→1列，2/4→2列，3/5→3列 */
+      var nItems = items.length;
+      var cols = nItems <= 1 ? 1 : (nItems === 2 || nItems === 4 ? 2 : 3);
+      var grid = items.map(function (it) {
+        var w = maxN ? Math.round((it.barN || 0) / maxN * 100) : 0;
+        if (it.kind === 'member') {
+          return '<div class="verify-stat is-member">' +
+            '<span class="verify-stat__tag">' + it.label + '</span>' +
+            '<div class="verify-stat__tri">' +
+              '<div><b>' + it.people.toLocaleString('zh-CN') + '</b><span>人数</span></div>' +
+              '<div><b>' + it.cards.toLocaleString('zh-CN') + '</b><span>持卡</span></div>' +
+              '<div><b>' + fmtMoney(it.balance) + '</b><span>余额</span></div>' +
+            '</div>' +
+            '<em class="verify-stat__bar"><i style="width:' + w + '%"></i></em>' +
+          '</div>';
+        }
+        return '<div class="verify-stat">' +
+          '<b>' + (it.n || 0).toLocaleString('zh-CN') + '</b>' +
+          '<span>' + verifyLabelHtml(it.label) + '</span>' +
+          '<em class="verify-stat__bar"><i style="width:' + w + '%"></i></em>' +
+        '</div>';
+      }).join('');
+      metrics.innerHTML =
+        '<div class="verify-board">' +
+          '<div class="verify-board__top">' +
+            '<div class="verify-board__total"><b>' + all.importable.toLocaleString('zh-CN') + '</b><span>即将导入</span></div>' +
+            (all.error
+              ? '<p class="verify-gate">另有 <em>' + all.error.toLocaleString('zh-CN') + '</em> 条未达入库门槛（缺必填或无法识别），确认后不会写入</p>'
+              : '') +
+            '<div class="verify-board__bar" aria-hidden="true">' + barSegs + '</div>' +
+            '<div class="verify-board__legend">' + items.map(function (it, i) {
+              return '<span><i class="is-c' + (i % 5) + '"></i>' + verifyLabelHtml(it.label) + '</span>';
+            }).join('') + '</div>' +
+          '</div>' +
+          '<div class="verify-board__grid" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' + grid + '</div>' +
+        '</div>';
+    }
     var totalEl = $('#checkTotal');
     if (totalEl) totalEl.textContent = all.total.toLocaleString('zh-CN');
     var catsEl = $('#checkCats');
-    if (catsEl) {
-      catsEl.textContent = cats.length + ' 类' + (all.ignored ? ' · 已忽略 ' + all.ignored.toLocaleString('zh-CN') : '');
-    }
-    var okEl = $('#checkOk');
-    if (okEl) okEl.textContent = all.ok.toLocaleString('zh-CN');
-    var warnEl = $('#checkWarn');
-    if (warnEl) warnEl.textContent = all.warn.toLocaleString('zh-CN');
-    var errEl = $('#checkErr');
-    if (errEl) errEl.textContent = all.error.toLocaleString('zh-CN');
-    var pctEl = $('#checkDonutPct');
-    if (pctEl) pctEl.textContent = pct + '%';
-    var donut = $('#checkDonut');
-    if (donut) donut.style.background = 'conic-gradient(#F32F41 0% ' + pct + '%, #EDEDED ' + pct + '% 100%)';
-    var batchEl = $('#checkBatchText');
-    if (batchEl) batchEl.textContent = cats.length + ' 类 · ' + all.total.toLocaleString('zh-CN') + ' 行';
-
-    var bars = $('#checkBars');
-    if (bars) {
-      var maxN = 1;
-      cats.forEach(function (k) { maxN = Math.max(maxN, checkStats(k).total); });
-      bars.innerHTML = cats.map(function (k) {
-        var st = checkStats(k);
-        var issues = st.error + st.warn;
-        return '<button type="button" class="check-bar' + (k === state.checkTab ? ' is-on' : '') + '" data-check-tab-jump="' + k + '">' +
-          '<span class="check-bar__label">' + IMPORT_CAT_SHORT[k] + '</span>' +
-          '<span class="check-bar__track"><i class="is-' + k + '" style="width:' + Math.round(st.total / maxN * 100) + '%"></i></span>' +
-          '<span class="check-bar__val">' + st.total.toLocaleString('zh-CN') + '</span>' +
-          (issues ? '<span class="check-bar__badge">' + issues + ' 处</span>' : '<span class="check-bar__badge is-ok"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>') +
-        '</button>';
-      }).join('');
-    }
+    if (catsEl) catsEl.textContent = cats.length + ' 类';
 
     var tabs = $('#checkTabs');
     if (tabs) {
       tabs.classList.toggle('hidden', cats.length < 2);
       tabs.innerHTML = cats.map(function (k) {
-        var st = checkStats(k);
         var on = k === state.checkTab;
-        var issues = st.error + st.warn;
-        return '<button type="button" class="check-tab' + (on ? ' is-on' : '') + '" role="tab" aria-selected="' + (on ? 'true' : 'false') + '" data-check-tab="' + k + '">' +
-          '<b>' + IMPORT_CAT[k] + '</b>' +
-          (issues ? '<i class="check-tab__badge">' + issues + '</i>' : '') +
-        '</button>';
+        var lab = verifyBoardLabel(k);
+        return '<button type="button" class="check-tab' + (on ? ' is-on' : '') + '" role="tab" aria-selected="' + (on ? 'true' : 'false') +
+          '" aria-label="' + esc(lab) + '" data-check-tab="' + k + '">' +
+          '<b>' + verifyLabelHtml(lab) + '</b></button>';
       }).join('');
       tabs.style.gridTemplateColumns = 'repeat(' + Math.max(cats.length, 1) + ', minmax(0, 1fr))';
+      tabs.classList.toggle('is-dense', cats.length >= 4);
     }
-
-    var chips = $('#checkChips');
-    if (chips) {
-      var st = checkStats(state.checkTab);
-      var issueN = st.error + st.warn;
-      var defs = [
-        { k: 'all', label: '全部', n: st.total },
-        { k: 'issue', label: '只看问题', n: issueN },
-        { k: 'ignored', label: '已忽略', n: st.ignored }
-      ];
-      chips.innerHTML = defs.map(function (d) {
-        return '<button type="button" class="check-chip' + (state.checkFilter === d.k ? ' is-on' : '') + '" data-check-filter="' + d.k + '">' +
-          d.label + '<i>' + d.n + '</i></button>';
-      }).join('');
-    }
-
-    // 任何一次重绘都会解除「全部忽略」的二次确认待命态
+    state.checkFilter = 'all';
     state.checkIgnoreArm = false;
-    clearTimeout(checkIgnoreArmTimer);
-    syncCheckIgnoreAll();
   }
 
   function renderCheckList() {
     var host = $('#checkList');
     if (!host) return;
-    var rows = checkVisibleRows();
-    var limit = state.checkFilter === 'issue' || state.checkFilter === 'ignored' ? 999 : state.checkLimit;
-    var shown = rows.slice(0, limit);
-
-    host.innerHTML = shown.map(function (r) { return checkRowHtml(state.checkTab, r); }).join('');
-
-    var more = $('#btnCheckMore');
-    if (more) {
-      var rest = rows.length - shown.length;
-      more.classList.toggle('hidden', rest <= 0);
-      more.textContent = rest > 0 ? '加载更多（还有 ' + rest + ' 行）' : '加载更多';
+    var cat = state.checkTab;
+    var rows = importableRows(cat);
+    var blocked = blockedRows(cat);
+    var sum = $('#checkTabSum');
+    if (sum) {
+      sum.innerHTML = verifyTabMetrics(cat, rows).map(function (m) {
+        return '<span><em>' + m.v + '</em>' + m.k + '</span>';
+      }).join('');
     }
+    var groups = {};
+    var order = [];
+    rows.forEach(function (r) {
+      var g = verifyGroupKey(cat, r);
+      if (!groups[g]) { groups[g] = []; order.push(g); }
+      groups[g].push(r);
+    });
+    var html = order.map(function (g) {
+      var list = groups[g];
+      var show = list.slice(0, 8);
+      var more = list.length - show.length;
+      return '<section class="verify-group">' +
+        '<div class="verify-group__hd"><b>' + esc(g) + '</b><span>' + list.length + ' 条</span></div>' +
+        show.map(function (r) { return verifyRowHtml(cat, r); }).join('') +
+        (more > 0 ? '<p class="verify-group__more">还有 ' + more + ' 条，导入后在列表中查看</p>' : '') +
+      '</section>';
+    }).join('');
+    if (blocked.length) {
+      html += '<section class="verify-group is-blocked">' +
+        '<div class="verify-group__hd"><b>未达入库门槛</b><span>' + blocked.length + ' 条</span></div>' +
+        '<p class="verify-group__hint">缺必填或含无法识别字段，确认导入时不会写入。</p>' +
+        blocked.slice(0, 6).map(function (r) {
+          var msg = ((r.problems || []).filter(function (p) { return p.level === 'error'; })[0] || {}).msg || '未达门槛';
+          return '<div class="verify-row is-blocked"><span class="verify-row__main"><b>' +
+            esc((typeof checkRowTitle === 'function' ? checkRowTitle(cat, r) : '') || '—') +
+            '</b><i>' + esc(msg) + '</i></span></div>';
+        }).join('') +
+        (blocked.length > 6 ? '<p class="verify-group__more">还有 ' + (blocked.length - 6) + ' 条未列出</p>' : '') +
+      '</section>';
+    }
+    host.innerHTML = html;
     var empty = $('#checkEmpty');
-    if (empty) empty.classList.toggle('hidden', rows.length > 0);
+    if (empty) empty.classList.toggle('hidden', rows.length > 0 || blocked.length > 0);
+    var moreBtn = $('#btnCheckMore');
+    if (moreBtn) moreBtn.classList.add('hidden');
   }
 
   function renderCheck() {
@@ -3918,6 +5223,15 @@
       row.f.channel = '1';
     } else if (cat === 'card') {
       row.f.type = '储值卡';
+      row.f.price = '';
+      row.f.discount = '';
+    } else if (cat === 'stock') {
+      row.f.spec = '';
+      row.f.unit = '件';
+      row.f.qty = '0';
+    } else if (cat === 'product') {
+      row.f.onShelf = '上架';
+      row.f.stockQty = '0';
     } else {
       row.f.bookable = '是';
       row.f.top = '否';
@@ -3983,14 +5297,39 @@
     $all('[data-conv-step]').forEach(function (el) { el.classList.remove('is-on', 'is-done'); });
   }
 
+  /* 空态：转换页停在「还没开始」。与 resetConvertUI 的区别是按钮要给出下一步，而不是「转换中…」 */
+  function setConvertIdle(msg) {
+    var title = $('#convertTitle');
+    if (title) title.textContent = '等待开始';
+    var lead = $('#convertLead');
+    if (lead) lead.textContent = msg || '';
+    var next = $('#btnConvertNext');
+    if (next) { next.disabled = true; next.textContent = '开始转换'; }
+    var host = $('#convertResult');
+    if (host) { host.innerHTML = ''; host.classList.add('hidden'); }
+    var eq = $('#convertEq');
+    if (eq) eq.classList.remove('is-done');
+    $all('[data-conv-step]').forEach(function (el) { el.classList.remove('is-on', 'is-done'); });
+  }
+
   function runConversion() {
     if (state.convertRunning) return;
     if (state.convertDone) {
       renderConvertResult();
       return;
     }
-    if (hasRealFiles()) {
-      runRealConversion();
+    // 真实模式：只要本批有真 Excel 或真照片，就走实测链路
+    if (isRealMode()) {
+      if (hasRealFiles() || hasRealPhotos()) {
+        runRealConversion();
+        return;
+      }
+      // 真实模式绝不造数：造出来的行看着像真的，会让人误判模型效果
+      var nextBtn = $('#btnConvertNext');
+      if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = '没有可转换的内容'; }
+      var leadEl = $('#convertLead');
+      if (leadEl) leadEl.textContent = '真实模式下本批没有真实文件或照片，请回上一步选 Excel 或拍照。';
+      showToast('真实模式：本批还没有真实文件或照片');
       return;
     }
     state.convertRunning = true;
@@ -4049,13 +5388,23 @@
     state.convertDone = true;
     state.realSheets = [];
     state.realErrors = errors || [];
-    state.realUsage = { prompt: 0, completion: 0, latency: 0, calls: 0 };
+    state.realUsage = { prompt: 0, completion: 0, latency: 0, calls: 0, photoCalls: 0 };
 
     var entries = Object.keys(results);
     entries.forEach(function (cat) {
       var res = results[cat];
       (res.sheets || []).forEach(function (s) { state.realSheets.push(s); });
       var u = (res.sheets || []).reduce(function (acc, s) {
+        // 照片表：tokens 记在 ocr 上（识别本身），映射那一次的记在 llm 上
+        var oc = s.ocr || null;
+        if (oc) {
+          var ous = oc.usage || {};
+          acc.prompt += ous.prompt_tokens || 0;
+          acc.completion += ous.completion_tokens || 0;
+          acc.latency += oc.latencyMs || 0;
+          acc.calls += oc.calls || 0;
+          acc.photoCalls += oc.calls || 0;
+        }
         var us = (s.llm && s.llm.usage) || {};
         acc.prompt += us.prompt_tokens || 0;
         acc.completion += us.completion_tokens || 0;
@@ -4097,8 +5446,9 @@
   }
 
   function runRealConversion() {
-    var entries = realFileEntries();
-    if (!entries.length) return;
+    var fileEntries = realFileEntries();
+    var photoEntries = realPhotoEntries();
+    if (!fileEntries.length && !photoEntries.length) return;
     if (!RtaBridge) { showToast('AI 桥未就绪'); return; }
 
     state.convertRunning = true;
@@ -4107,11 +5457,15 @@
     resetConvertUI(false);
     setConvStep(0);
 
-    // 按类别分组，逐类请求（后端每次处理一个类别）
+    // 按类别分组：同一个类别一次请求里同时带文件与照片，后端按表合并行
     var byCat = {};
-    entries.forEach(function (e) {
-      (byCat[e.cat] = byCat[e.cat] || []).push(e.file);
-    });
+    function slot(cat) {
+      if (!byCat[cat]) byCat[cat] = { files: [], photos: [] };
+      return byCat[cat];
+    }
+    fileEntries.forEach(function (e) { slot(e.cat).files.push(e.file); });
+    photoEntries.forEach(function (e) { slot(e.cat).photos = e.photos; });
+
     var cats = Object.keys(byCat);
     var results = {};
     var errors = [];
@@ -4127,7 +5481,8 @@
         return;
       }
       var cat = cats[idx++];
-      RtaBridge.convert(cat, byCat[cat], {
+      var job = byCat[cat];
+      RtaBridge.convert(cat, job.files, {
         onRead: function () { setConvStep(1); },
         onSent: function () { setConvStep(2); },
         onDone: function (res) {
@@ -4139,7 +5494,7 @@
           errors.push(IMPORT_CAT_SHORT[cat] + ' 转换失败：' + msg);
           nextCat();
         }
-      });
+      }, job.photos);
     }
     nextCat();
   }
@@ -4215,12 +5570,15 @@
 
       var st = s.stats || {};
       var llm = s.llm || {};
+      var isPhoto = s.source === 'photo';
       var meta = [
-        '真实文件',
+        isPhoto
+          ? ('照片 ' + ((s.photos && s.photos.length) || 1) + ' 张')
+          : '真实文件',
         '识别为「' + (s.targetLabel || s.target) + '」',
         st.columns + ' 列 / 对齐 ' + st.mapped + ' 列'
       ];
-      if (s.headerRow && s.headerRow > 1) meta.push('表头在第 ' + s.headerRow + ' 行');
+      if (!isPhoto && s.headerRow && s.headerRow > 1) meta.push('表头在第 ' + s.headerRow + ' 行');
       if (s.truncated) meta.push('已截断到 3000 行');
 
       // 把「AI 没认出来」和「原表根本没有这列」分开说 —— 这两种情况处理方式完全不同
@@ -4243,19 +5601,30 @@
         gap += '<p class="ai-sheet__gap is-warn">非必填未命中：' + esc(brief(warn)) + '</p>';
       }
 
+      var ocr = s.ocr || null;
+      var llmLine;
+      if (ocr) {
+        var ol = '照片识别 ' + esc((ocr.promptVersion || '')) +
+          ' · ' + ocr.calls + ' 张 · ' + (ocr.latencyMs || 0) + 'ms · ' +
+          ((ocr.usage && ocr.usage.total_tokens) || 0) + ' tokens';
+        llmLine = '<p class="ai-sheet__llm">' + ol + '</p>';
+      } else if (llm.called) {
+        llmLine = '<p class="ai-sheet__llm">模型 ' + esc(llm.model || 'deepseek') +
+          ' · ' + (llm.latencyMs || 0) + 'ms · ' +
+          ((llm.usage && llm.usage.total_tokens) || 0) + ' tokens' +
+          (llm.schemaErrors && llm.schemaErrors.length ? ' · 输出有 ' + llm.schemaErrors.length + ' 处不合规已丢弃' : '') +
+          '</p>';
+      } else {
+        llmLine = '<p class="ai-sheet__llm">词典已全部命中，未调用模型</p>';
+      }
+
       return '<div class="ai-sheet">' +
           '<div class="ai-sheet__hd"><b>' + esc(s.file || '') + '</b>' +
             '<span>' + esc(s.sheet || '') + '</span></div>' +
           '<p class="ai-sheet__meta">' + meta.map(esc).join(' · ') + '</p>' +
           gap +
           '<div class="ai-sheet__cols">' + rows + '</div>' +
-          (llm.called
-            ? '<p class="ai-sheet__llm">模型 ' + esc(llm.model || 'deepseek') +
-              ' · ' + (llm.latencyMs || 0) + 'ms · ' +
-              ((llm.usage && llm.usage.total_tokens) || 0) + ' tokens' +
-              (llm.schemaErrors && llm.schemaErrors.length ? ' · 输出有 ' + llm.schemaErrors.length + ' 处不合规已丢弃' : '') +
-              '</p>'
-            : '<p class="ai-sheet__llm">词典已全部命中，未调用模型</p>') +
+          llmLine +
         '</div>';
     }).join('');
 
@@ -4283,89 +5652,36 @@
   function openCheckTransfer() {
     if (state.transferRunning) return;
     if (!state.checkData) ensureCheckData();
-    var blocking = [];
-    checkCats().forEach(function (cat) {
-      checkRows(cat).forEach(function (r) {
-        if (!r.ignored && rowHasLevel(r, 'error')) blocking.push({ cat: cat, row: r });
-      });
-    });
-    if (blocking.length) {
-      var b = blocking[0];
-      state.checkTab = b.cat;
-      state.checkFilter = 'issue';
-      state.checkOpen = b.row.id;
-      renderCheckStats();
-      renderCheckList();
-      setTimeout(function () { scrollCheckRow(b.row.id); }, 40);
-      showToast('还有 ' + blocking.length + ' 行需修正，已跳到第一处');
-      return;
-    }
-
-    var counts = {};
-    var total = 0;
-    checkCats().forEach(function (k) {
-      var n = checkStats(k).importable;
-      counts[k] = n;
-      total += n;
-    });
+    var all = checkAllStats();
+    var total = all.importable;
     if (!total) {
-      showToast('没有可传输的数据');
+      showToast(all.error ? '没有达到入库门槛的数据' : '没有可导入的数据');
       return;
     }
 
     state.transferRunning = true;
     state.pendingStockApply = true;
+    state.lastImportGate = { importable: all.importable, blocked: all.error };
+    setImportStage('importing', 'import-check');
     runImportProgress({
-      title: '正在传输',
-      sub: '共 ' + total.toLocaleString('zh-CN') + ' 条数据',
+      title: '正在导入',
+      sub: '写入 ' + total.toLocaleString('zh-CN') + ' 条可入库数据' +
+        (all.error ? ' · 跳过 ' + all.error.toLocaleString('zh-CN') + ' 条未达门槛' : ''),
       stages: [
-        { at: 0, label: '校验数据' },
+        { at: 0, label: '准备数据' },
         { at: 30, label: '写入会员与持卡' },
         { at: 65, label: '写入卡模板与价目' },
         { at: 92, label: '完成' }
       ],
       duration: 2100,
       holdMs: 320,
-      doneLabel: '传输完成',
+      doneLabel: '导入完成',
       onDone: function () {
         state.transferRunning = false;
+        setImportStage('done', 'import-result');
         go('import-result');
       }
     });
-  }
-
-  /* --- 微信「文件传输助手」引导 --- */
-
-  function wechatTipMuted() {
-    try { return localStorage.getItem('rtb_wechat_tip_muted') === '1'; } catch (e) { return false; }
-  }
-
-  function showWechatTip() {
-    var mask = $('#wechatTipMask');
-    var tip = $('#wechatTip');
-    if (!mask || !tip) return;
-    mask.classList.add('show');
-    tip.classList.add('show');
-    tip.setAttribute('aria-hidden', 'false');
-    mask.setAttribute('aria-hidden', 'false');
-  }
-
-  function hideWechatTip() {
-    var mask = $('#wechatTipMask');
-    var tip = $('#wechatTip');
-    if (mask) mask.classList.remove('show');
-    if (tip) {
-      tip.classList.remove('show');
-      tip.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  function maybeShowWechatTip() {
-    if (state.wechatTipShown) return;
-    state.wechatTipShown = true;
-    if (document.documentElement.classList.contains('capture-mode')) return;
-    if (wechatTipMuted()) return;
-    setTimeout(showWechatTip, 360);
   }
 
   function openTplSheet() {
@@ -4414,10 +5730,17 @@
   }
 
   function historyRows() {
+    if (state.emptyPreview === 'history-true') return [];
     return state.historyDeleted ? [] : HISTORY_ROWS;
   }
 
+  function historyFilterActive() {
+    var q = state.historyQuery;
+    return !!(q.from || q.to || (q.min !== '' && q.min != null) || (q.max !== '' && q.max != null) || q.name);
+  }
+
   function historyMatches(row) {
+    if (state.emptyPreview === 'history-filter') return false;
     var q = state.historyQuery;
     if (q.from && row.date < q.from) return false;
     if (q.to && row.date > q.to) return false;
@@ -4425,6 +5748,45 @@
     if (q.max !== '' && Number(row.amount) > Number(q.max)) return false;
     if (q.name && String(row.name || '').indexOf(q.name) === -1) return false;
     return true;
+  }
+
+  function clearHistoryFilterQuery() {
+    state.historyQuery.from = '';
+    state.historyQuery.to = '';
+    state.historyQuery.min = '';
+    state.historyQuery.max = '';
+    state.historyQuery.name = '';
+    if ($('#historySearch')) $('#historySearch').value = '';
+    if ($('#historyFrom')) $('#historyFrom').value = '';
+    if ($('#historyTo')) $('#historyTo').value = '';
+    if ($('#historyMin')) $('#historyMin').value = '';
+    if ($('#historyMax')) $('#historyMax').value = '';
+  }
+
+  function syncHistoryEmptyUI(mode) {
+    var title = $('#historyEmptyTitle');
+    var hint = $('#historyEmptyHint');
+    var clearBtn = $('#btnHistoryEmptyClear');
+    var importBtn = $('#btnHistoryEmptyImport');
+    if (mode === 'true') {
+      if (title) title.textContent = '还没有历史订单';
+      if (hint) hint.textContent = '把老店账单导进来，只用于查看核对，不进订单流水。';
+      if (clearBtn) clearBtn.classList.add('hidden');
+      if (importBtn) {
+        importBtn.classList.remove('btn-outline');
+        importBtn.classList.add('btn-primary');
+        importBtn.textContent = '导入';
+      }
+    } else {
+      if (title) title.textContent = '没有符合条件的历史订单';
+      if (hint) hint.textContent = '换个时间或金额范围试试。';
+      if (clearBtn) clearBtn.classList.remove('hidden');
+      if (importBtn) {
+        importBtn.classList.remove('btn-primary');
+        importBtn.classList.add('btn-outline');
+        importBtn.textContent = '导入';
+      }
+    }
   }
 
   function histMonthKey(date) {
@@ -4441,16 +5803,23 @@
     var list = $('#historyList');
     var empty = $('#historyEmpty');
     var summary = $('#historySummary');
+    var screen = $('#screen-history-orders');
     if (!list) return;
-    var rows = historyRows().filter(historyMatches);
+    var base = historyRows();
+    var rows = base.filter(historyMatches);
     var total = rows.reduce(function (s, r) { return s + Number(r.amount || 0); }, 0);
     if (summary) summary.textContent = '共 ' + rows.length + ' 条 · 合计 ' + fmtMoney(total);
     if (!rows.length) {
       list.innerHTML = '';
+      var trueEmpty = state.emptyPreview === 'history-true' ||
+        (state.emptyPreview !== 'history-filter' && base.length === 0);
+      syncHistoryEmptyUI(trueEmpty ? 'true' : 'filter');
       if (empty) empty.classList.remove('hidden');
+      if (screen) screen.classList.add('is-list-empty');
       return;
     }
     if (empty) empty.classList.add('hidden');
+    if (screen) screen.classList.remove('is-list-empty');
 
     var groups = [];
     var byKey = {};
@@ -4474,9 +5843,11 @@
             return '<button type="button" class="history-item" data-history-id="' + r.id + '">' +
               '<span class="history-item__main">' +
                 '<span class="history-item__name">' + (r.name || '未留姓名') + '</span>' +
-                '<span class="history-item__meta">' + r.date.slice(5) + ' · ' + (r.raw['项目'] || '—') + '</span>' +
+                '<span class="history-item__meta">' + r.date.slice(5) + ' · ' + (r.raw['项目'] || '—') +
+                (r.raw['支付方式'] ? ' · ' + r.raw['支付方式'] : '') + '</span>' +
               '</span>' +
               '<span class="history-item__amount">' + fmtMoney(r.amount) + '</span>' +
+              '<svg class="history-item__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' +
             '</button>';
           }).join('') +
         '</div>' +
@@ -4557,17 +5928,47 @@
     var picked = !!state.historyFilePicked;
     var drop = $('#btnHistoryPickFile');
     var file = $('#historyPickedFile');
+    var sampleArea = $('#histSampleArea');
     var mapArea = $('#histMapArea');
     var next = $('#btnHistoryMapNext');
     if (drop) drop.classList.toggle('hidden', picked);
     if (file) file.classList.toggle('hidden', !picked);
-    if (mapArea) mapArea.classList.toggle('hidden', !picked);
+    // 默认只给样例核对；用户说「数值不对」才展开指定字段
+    if (sampleArea) sampleArea.classList.toggle('hidden', !picked);
+    if (mapArea) mapArea.classList.toggle('hidden', !(picked && state.historyMapOpen));
     if (next) next.disabled = !picked;
+    renderHistorySample();
     renderHistoryMap();
   }
 
+  function renderHistorySample() {
+    var host = $('#histSampleList');
+    if (!host) return;
+    var rows = HISTORY_ROWS.slice(0, 6);
+    var head = '<div class="history-sample__row history-sample__row--head history-sample__row--5">' +
+      '<span>日期</span><span>金额</span><span>顾客</span><span>支付</span><span>项目</span>' +
+    '</div>';
+    host.innerHTML = head + rows.map(function (r) {
+      return '<div class="history-sample__row history-sample__row--5">' +
+        '<span>' + r.date + '</span>' +
+        '<span>' + fmtMoney(r.amount) + '</span>' +
+        '<span>' + (r.name || '未留姓名') + '</span>' +
+        '<span>' + (r.raw['支付方式'] || '—') + '</span>' +
+        '<span>' + (r.raw['项目'] || '—') + '</span>' +
+      '</div>';
+    }).join('');
+    var d = $('#histRecogDate');
+    if (d) d.textContent = state.historyMap.date || '未识别';
+    var a = $('#histRecogAmount');
+    if (a) a.textContent = state.historyMap.amount || '未识别';
+    var n = $('#histRecogName');
+    if (n) n.textContent = state.historyMap.name || '未指定';
+    var p = $('#histRecogPay');
+    if (p) p.textContent = state.historyMap.pay || '未指定';
+  }
+
   function renderHistoryMap() {
-    var pairs = [['#historyMapDate', 'date'], ['#historyMapAmount', 'amount'], ['#historyMapName', 'name']];
+    var pairs = [['#historyMapDate', 'date'], ['#historyMapAmount', 'amount'], ['#historyMapName', 'name'], ['#historyMapPay', 'pay']];
     pairs.forEach(function (pair) {
       var sel = $(pair[0]);
       if (!sel) return;
@@ -4575,14 +5976,19 @@
       var opts = HISTORY_COLUMNS.slice();
       var cur = state.historyMap[key];
       var html = '';
-      if (key === 'name') {
-        html += '<option value=""' + (cur === '' ? ' selected' : '') + '>（不指定）</option>';
+      if (key === 'name' || key === 'pay') {
+        html += '<option value=""' + (!cur ? ' selected' : '') + '>（不指定）</option>';
       }
       html += opts.map(function (c) {
         return '<option value="' + c + '"' + (c === cur ? ' selected' : '') + '>' + c + '</option>';
       }).join('');
       sel.innerHTML = html;
     });
+  }
+
+  function historyMonthKey(dateStr) {
+    var m = /^(\d{4})-(\d{2})/.exec(String(dateStr || ''));
+    return m ? (m[1] + '-' + m[2]) : '未知';
   }
 
   function renderHistoryPreview() {
@@ -4597,23 +6003,35 @@
     if (countEl) countEl.textContent = rows.length;
     if (rangeEl) rangeEl.textContent = dates[0] + ' ~ ' + dates[dates.length - 1];
     if (totalEl) totalEl.textContent = fmtMoney(total);
-    list.innerHTML = rows.slice(0, 5).map(function (r) {
-      var name = r.name || '未留姓名';
-      var initial = r.name ? r.name.slice(0, 1) : '—';
-      return '<div class="hist-prev-row">' +
-        '<span class="hist-prev-row__avt"' + (r.name ? '' : ' is-empty') + ' aria-hidden="true">' + initial + '</span>' +
-        '<span class="hist-prev-row__body">' +
-          '<span class="hist-prev-row__name">' + name + '</span>' +
-          '<span class="hist-prev-row__meta">' + r.date + ' · ' + (r.raw['项目'] || '—') + '</span>' +
-        '</span>' +
-        '<span class="hist-prev-row__amount">' + fmtMoney(r.amount) + '</span>' +
-      '</div>';
+
+    var months = {};
+    var order = [];
+    rows.forEach(function (r) {
+      var mk = historyMonthKey(r.date);
+      if (!months[mk]) { months[mk] = { key: mk, rows: [], sum: 0 }; order.push(mk); }
+      months[mk].rows.push(r);
+      months[mk].sum += Number(r.amount || 0);
+    });
+    order.sort().reverse();
+    list.innerHTML = order.map(function (mk) {
+      var g = months[mk];
+      var open = state.histMonthOpen === mk;
+      var samples = g.rows.slice(0, 4).map(function (r) {
+        return '<div class="hist-month__sample">' +
+          '<span>' + (r.name || '未留姓名') + '</span>' +
+          '<span>' + (r.raw['支付方式'] || '—') + '</span>' +
+          '<b>' + fmtMoney(r.amount) + '</b></div>';
+      }).join('');
+      return '<button type="button" class="hist-month' + (open ? ' is-open' : '') + '" data-hist-month="' + mk + '">' +
+        '<span class="hist-month__hd"><b>' + mk + '</b><span>' + g.rows.length + ' 笔 · ' + fmtMoney(g.sum) + '</span></span>' +
+        (open ? '<span class="hist-month__body">' + samples + '</span>' : '') +
+      '</button>';
     }).join('');
+
     var warn = $('#historyPreviewWarn');
     if (warn) warn.classList.toggle('hidden', !HISTORY_FAIL_ROWS.length);
     var cnt = $('#historyPreviewFailCount');
     if (cnt) cnt.textContent = HISTORY_FAIL_ROWS.length;
-    // 进入本页时复位导入态（上次进度被中途跳转打断时不会留下禁用按钮）
     state.historyImporting = false;
     var hConfirm = $('#btnHistoryPreviewConfirm');
     if (hConfirm) hConfirm.disabled = false;
@@ -4658,7 +6076,7 @@
         '</div>' +
         '<dl class="import-fail-item__diff">' + diff + '</dl>' +
       '</div>';
-    }).join('');
+    }).join('') || '<div class="empty-hero" style="padding:36px 20px"><p class="empty-hero__title">暂无失败行</p><p class="empty-hero__hint">本批都识别成功了。</p></div>';
   }
 
   function bindHistory() {
@@ -4682,15 +6100,21 @@
     var reset = $('#btnHistoryFilterReset');
     if (reset) {
       reset.addEventListener('click', function () {
-        state.historyQuery.from = '';
-        state.historyQuery.to = '';
-        state.historyQuery.min = '';
-        state.historyQuery.max = '';
-        if ($('#historyFrom')) $('#historyFrom').value = '';
-        if ($('#historyTo')) $('#historyTo').value = '';
-        if ($('#historyMin')) $('#historyMin').value = '';
-        if ($('#historyMax')) $('#historyMax').value = '';
+        clearHistoryFilterQuery();
+        if (state.emptyPreview === 'history-filter') state.emptyPreview = null;
         renderHistoryOrders();
+        syncNav(state.flow);
+      });
+    }
+
+    var emptyClear = $('#btnHistoryEmptyClear');
+    if (emptyClear) {
+      emptyClear.addEventListener('click', function () {
+        clearHistoryFilterQuery();
+        if (state.emptyPreview === 'history-filter') state.emptyPreview = null;
+        renderHistoryOrders();
+        syncNav(state.flow);
+        showToast('已清除筛选');
       });
     }
 
@@ -4719,17 +6143,41 @@
     if (repick) {
       repick.addEventListener('click', function () {
         state.historyFilePicked = false;
+        state.historyMapOpen = false;
         renderHistoryImport();
       });
     }
 
-    [['#historyMapDate', 'date'], ['#historyMapAmount', 'amount'], ['#historyMapName', 'name']].forEach(function (pair) {
+    var histAdjust = $('#btnHistAdjust');
+    if (histAdjust) {
+      histAdjust.addEventListener('click', function () {
+        state.historyMapOpen = true;
+        renderHistoryImport();
+        var area = $('#histMapArea');
+        if (area && area.scrollIntoView) area.scrollIntoView({ block: 'start' });
+        showToast('可以手动指定日期 / 金额 / 姓名 / 支付方式');
+      });
+    }
+
+    [['#historyMapDate', 'date'], ['#historyMapAmount', 'amount'], ['#historyMapName', 'name'], ['#historyMapPay', 'pay']].forEach(function (pair) {
       var sel = $(pair[0]);
       if (!sel) return;
       sel.addEventListener('change', function () {
         state.historyMap[pair[1]] = sel.value;
+        renderHistorySample();
       });
     });
+
+    var histPrevList = $('#historyPreviewList');
+    if (histPrevList) {
+      histPrevList.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-hist-month]');
+        if (!btn) return;
+        var mk = btn.getAttribute('data-hist-month');
+        state.histMonthOpen = state.histMonthOpen === mk ? null : mk;
+        renderHistoryPreview();
+      });
+    }
 
     var mapNext = $('#btnHistoryMapNext');
     if (mapNext) {
@@ -4864,6 +6312,64 @@
   }
 
   function bindImport() {
+    /* ---- 新流程：选来源 → 获取 → 识别 → 分类卡片 ---- */
+    var enterExcel = $('#btnEnterExcel');
+    if (enterExcel) {
+      enterExcel.addEventListener('click', function () {
+        state.uploadFocus = null;
+        go('import-source');
+        /* 进页自动落 1 个演示文件；已有文件则不再自动追加 */
+        if (!state.pending.excel.length) addPendingExcel();
+        else renderExcelPick();
+      });
+    }
+
+    var enterPhoto = $('#btnEnterPhoto');
+    if (enterPhoto) {
+      enterPhoto.addEventListener('click', function () {
+        go('import-camera');
+      });
+    }
+
+    var pickExcel = $('#btnPickExcel');
+    if (pickExcel) {
+      pickExcel.addEventListener('click', function () {
+        addPendingExcel();
+      });
+    }
+
+    var analyze = $('#btnImportAnalyze');
+    if (analyze) {
+      analyze.addEventListener('click', function () {
+        startAnalysis();
+      });
+    }
+
+    var analyzeSkip = $('#btnAnalyzeSkip');
+    if (analyzeSkip) {
+      analyzeSkip.addEventListener('click', function () {
+        skipAnalysis();
+      });
+    }
+
+    var cardsNext = $('#btnCardsNext');
+    if (cardsNext) {
+      cardsNext.addEventListener('click', function () {
+        goCardsNext();
+      });
+    }
+
+    // 待识别清单里的「移除」：Excel 与照片共用一个 data 属性，按 id 归属哪个池子分流
+    document.addEventListener('click', function (e) {
+      var del = e.target.closest('[data-pending-del]');
+      if (!del) return;
+      var id = del.getAttribute('data-pending-del');
+      var inExcel = state.pending.excel.some(function (f) { return f.id === id; });
+      if (inExcel) removePendingExcel(id);
+      else removePendingPhoto(id);
+      showToast('已移除');
+    });
+
     var guideNext = $('#btnImportGuideNext');
     if (guideNext) {
       guideNext.addEventListener('click', function () {
@@ -4883,7 +6389,7 @@
     if (overviewContinue) {
       overviewContinue.addEventListener('click', function () {
         // 进入再导前清空上次模式，强制重新二选一
-        state.reimportMode = { member: null, card: null, price: null };
+        state.reimportMode = blankReimportMode();
         go('import-select');
       });
     }
@@ -4900,6 +6406,8 @@
         if (type === 'member') go('members');
         else if (type === 'card') go('card-list');
         else if (type === 'price') go('price-list');
+        else if (type === 'stock') go('stock-list');
+        else showToast(IMPORT_CAT_SHORT[type] + '列表为原型占位，以线上系统为准');
       });
     });
 
@@ -4922,6 +6430,12 @@
           return;
         }
         hideReimportModeSheet();
+        // 来自「确认有效项」链路：直接进 L3 核对
+        if (state.flow === 'import-confirm' || state.flow === 'import-cards' || state.confirmItems.acknowledged) {
+          setImportStage('check', 'import-check');
+          go('import-check');
+          return;
+        }
         renderImportSelect();
         proceedSelectNext();
       });
@@ -5023,35 +6537,7 @@
     var uploadDone = $('#btnImportUploadDone');
     if (uploadDone) {
       uploadDone.addEventListener('click', function () {
-        var cats = uploadCats();
-        if (!cats.length) {
-          go('import-select');
-          return;
-        }
-        var cur = cats[state.uploadStep] || cats[0];
-        if (!hasFiles(cur)) {
-          showToast('「' + IMPORT_CAT[cur] + '」还没选择文件');
-          return;
-        }
-        var next = -1;
-        for (var i = state.uploadStep + 1; i < cats.length; i++) {
-          if (!hasFiles(cats[i])) { next = i; break; }
-        }
-        if (next > -1) {
-          state.uploadStep = next;
-          state.uploadHi = cats[next];
-          renderUploadList();
-          renderImportSelect();
-          return;
-        }        state.uploadFocus = null;
-        state.uploadHi = null;
-        var noSrc = selectedCats().filter(function (k) { return !state.importSources[k]; });
-        if (noSrc.length) {
-          showToast('还有「' + noSrc.map(function (k) { return IMPORT_CAT[k]; }).join('、') + '」未选来源');
-          go('import-select');
-          return;
-        }
-        go('import-queue');
+        go('import-select');
       });
     }
 
@@ -5089,29 +6575,33 @@
       shutter.addEventListener('click', captureShot);
     }
 
+    var camTableDemo = $('#btnCamTableDemo');
+    if (camTableDemo) {
+      camTableDemo.addEventListener('click', function () {
+        state.camTableGuide = !state.camTableGuide;
+        syncCamWatermark();
+      });
+    }
+
     var camDone = $('#btnCameraDone');
     if (camDone) {
       camDone.addEventListener('click', function () {
-        var cat = state.importCameraCat || 'price';
-        if (!state.importPhotos[cat].length) {
-          showToast('还没有拍摄照片');
-          return;
-        }
-        go(state.importCameraReturn);
+        go('import-select');
+        if (state.pending.photo.length) showToast('已拍 ' + state.pending.photo.length + ' 张，可继续加 Excel');
       });
     }
 
     var camBack = $('#btnCameraBack');
     if (camBack) {
       camBack.addEventListener('click', function () {
-        go(state.importCameraReturn);
+        go('import-select');
       });
     }
 
     var camAlbum = $('#btnCameraAlbum');
     if (camAlbum) {
       camAlbum.addEventListener('click', function () {
-        showToast('从相册选择（演示占位）');
+        pickPhotoFor();
       });
     }
 
@@ -5277,6 +6767,8 @@
         if (type === 'member') go('members');
         else if (type === 'card') go('card-list');
         else if (type === 'price') go('price-list');
+        else if (type === 'stock') go('stock-list');
+        else showToast(IMPORT_CAT_SHORT[type] + '列表为原型占位，以线上系统为准');
       });
     });
 
@@ -5297,10 +6789,10 @@
       delConfirm.addEventListener('click', function () {
         hideDelBatchDialog();
         state.batchDeleted = true;
-        state.storeStock.member = 0;
-        state.storeStock.card = 0;
-        state.storeStock.price = 0;
-        state.reimportMode = { member: null, card: null, price: null };
+        ALL_CATS.forEach(function (k) { state.storeStock[k] = 0; });
+        var blankMode = {};
+        ALL_CATS.forEach(function (k) { blankMode[k] = null; });
+        state.reimportMode = blankMode;
         showToast('已删除已导入数据，会员与卡已回到导入前状态');
         go('import-guide');
       });
@@ -5447,11 +6939,17 @@
     if (convertNext) {
       convertNext.addEventListener('click', function () {
         if (convertNext.disabled) return;
+        setImportStage('check', 'import-check');
         go('import-check');
       });
     }
     var convertBack = $('#btnConvertBack');
-    if (convertBack) convertBack.addEventListener('click', function () { go('import-queue'); });
+    if (convertBack) {
+      convertBack.addEventListener('click', function () {
+        if (state.importTask.started) leaveImportShell();
+        else go('import-cards');
+      });
+    }
     var convertReupload = $('#btnConvertReupload');
     if (convertReupload) {
       convertReupload.addEventListener('click', function () {
@@ -5516,7 +7014,12 @@
     }
 
     var checkBack = $('#btnCheckBack');
-    if (checkBack) checkBack.addEventListener('click', function () { go('import-convert'); });
+    if (checkBack) {
+      checkBack.addEventListener('click', function () {
+        if (state.importTask.started) leaveImportShell();
+        else go('import-cards');
+      });
+    }
     var checkAdd = $('#btnCheckAdd');
     if (checkAdd) checkAdd.addEventListener('click', addCheckRow);
     var checkMore = $('#btnCheckMore');
@@ -5536,25 +7039,6 @@
     var checkHelpMask = $('#checkHelpMask');
     if (checkHelpMask) checkHelpMask.addEventListener('click', hideCheckHelp);
 
-    var wechatHow = $('#btnWechatHow');
-    if (wechatHow) wechatHow.addEventListener('click', showWechatTip);
-    var wechatTipOk = $('#btnWechatTipOk');
-    if (wechatTipOk) {
-      wechatTipOk.addEventListener('click', function () {
-        var mute = $('#wechatTipMute');
-        if (mute && mute.checked) {
-          try { localStorage.setItem('rtb_wechat_tip_muted', '1'); } catch (err) { /* 忽略 */ }
-        }
-        var from = state.flow;
-        hideWechatTip();
-        if (from === 'import-overview' || from === 'import-guide') go('import-select');
-      });
-    }
-    var wechatTipClose = $('#btnWechatTipClose');
-    if (wechatTipClose) wechatTipClose.addEventListener('click', hideWechatTip);
-    var wechatTipMask = $('#wechatTipMask');
-    if (wechatTipMask) wechatTipMask.addEventListener('click', hideWechatTip);
-
     var tplDownload = $('#btnTplDownload');
     if (tplDownload) tplDownload.addEventListener('click', openTplSheet);
     var tplClose = $('#btnTplClose');
@@ -5563,20 +7047,6 @@
     if (tplMask) tplMask.addEventListener('click', hideTplSheet);
 
     bindLegacyCard();
-
-    var closeFabAsk = $('#btnFabCloseYes');
-    var keepFab = $('#btnFabCloseNo');
-    if (closeFabAsk) {
-      closeFabAsk.addEventListener('click', function () {
-        hideFab();
-        hideDialog('#fabCloseDialog');
-      });
-    }
-    if (keepFab) {
-      keepFab.addEventListener('click', function () {
-        hideDialog('#fabCloseDialog');
-      });
-    }
   }
 
   function bindLegacyCard() {
@@ -5782,34 +7252,73 @@
       applyBatchToStock();
       state.pendingStockApply = false;
     }
+    renderResultTierSummary();
     renderResultStockLines();
     renderResultSources();
-    // 导入成功后不再用浮球催促；工作台常驻入口即可
-    if (state.fabVisible) {
-      setTimeout(function () {
-        showDialog('#fabCloseDialog');
-      }, 400);
-    }
+    setImportStage('done', 'import-result');
+  }
+
+  function renderResultTierSummary() {
+    ensureTierDemo();
+    var host = $('#resultTierSummary');
+    if (!host) return;
+    var l1 = (state.tierResult.l1 || []).length;
+    var l2 = (state.tierResult.l2 || []).length;
+    var l3n = 0;
+    (state.tierResult.l3Cats || []).forEach(function (k) {
+      if (state.importSelection[k]) l3n += checkStats(k).importable || batchCount(k) || 0;
+    });
+    host.innerHTML =
+      '<div class="result-tier-card">' +
+        '<div class="result-tier-row">' +
+          '<span class="result-tier-row__lab"><b>已入库</b><em>对上字段，已写入本店</em></span>' +
+          '<span class="result-tier-row__num">' + l3n + '</span>' +
+          '<button type="button" class="result-tier-row__go" data-result-tier="l3">去看</button>' +
+        '</div>' +
+        '<div class="result-tier-row">' +
+          '<span class="result-tier-row__lab"><b>识别摘要</b><em>可在各模块 ··· 查阅</em></span>' +
+          '<span class="result-tier-row__num">' + l2 + '</span>' +
+          '<button type="button" class="result-tier-row__go" data-result-tier="l2">去看</button>' +
+        '</div>' +
+        '<div class="result-tier-row">' +
+          '<span class="result-tier-row__lab"><b>仅存档</b><em>原件已留，可检索</em></span>' +
+          '<span class="result-tier-row__num">' + l1 + '</span>' +
+          '<button type="button" class="result-tier-row__go" data-result-tier="l1">去看</button>' +
+        '</div>' +
+      '</div>';
   }
 
   function bindWorkbench() {
     $all('[data-wb]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = btn.getAttribute('data-wb');
+        if (state.coachPhase === 'wb-migrate') {
+          if (key === 'migrate') {
+            endCoach(true);
+            markWorkbenchImportHit();
+            enterMigrate('workbench');
+            return;
+          }
+          scheduleCoachEnd(3000);
+        }
         if (key === 'migrate') {
-          enterMigrate();
+          markWorkbenchImportHit();
+          endCoach(true);
+          enterMigrate('workbench');
           return;
         }
-        if (key === 'history') {
-          go('history-orders');
-          return;
-        }
+        if (key === 'history') { go('history-orders'); return; }
+        if (key === 'price') { go('price-list'); return; }
+        if (key === 'card') { go('card-list'); return; }
+        if (key === 'customer') { go('members'); return; }
+        if (key === 'stock') { go('stock-list'); return; }
         showToast('演示占位');
       });
     });
     $all('[data-wb-tab]').forEach(function (tab) {
       tab.addEventListener('click', function () {
         var key = tab.getAttribute('data-wb-tab');
+        if (state.coachPhase === 'wb-migrate' && key !== 'workbench') scheduleCoachEnd(3000);
         if (key === 'home') go('home');
         else if (key !== 'workbench') showToast('演示占位');
       });
@@ -5817,14 +7326,501 @@
     var homeWb = $('#btnHomeWorkbench');
     if (homeWb) {
       homeWb.addEventListener('click', function () {
+        if (state.coachPhase === 'home-more') {
+          // 顶栏工作台入口也可作为「更多」等效入口
+          advanceCoachToWorkbench();
+          return;
+        }
         go('workbench');
       });
+    }
+  }
+
+  /* ---- 聚光灯引导 ---- */
+
+  function endCoach(silent) {
+    if (state.coachTimer) {
+      clearTimeout(state.coachTimer);
+      state.coachTimer = null;
+    }
+    state.coachPhase = null;
+    var layer = $('#coachLayer');
+    if (layer) layer.hidden = true;
+    $all('.is-coach-target').forEach(function (el) { el.classList.remove('is-coach-target'); });
+    if (!silent) { /* no-op */ }
+  }
+
+  function scheduleCoachEnd(ms) {
+    if (state.coachTimer) clearTimeout(state.coachTimer);
+    state.coachTimer = setTimeout(function () { endCoach(true); }, ms || 3000);
+  }
+
+  function placeCoachOn(el, tipTop) {
+    var layer = $('#coachLayer');
+    var hole = $('#coachHole');
+    var tip = $('#coachTip');
+    var phone = document.querySelector('.phone-inner');
+    var t = $('#coachPaneT');
+    var l = $('#coachPaneL');
+    var r = $('#coachPaneR');
+    var b = $('#coachPaneB');
+    if (!layer || !hole || !el || !phone) return;
+    layer.hidden = false;
+    var pr = phone.getBoundingClientRect();
+    var er = el.getBoundingClientRect();
+    var pad = 8;
+    var x = Math.max(0, er.left - pr.left - pad);
+    var y = Math.max(0, er.top - pr.top - pad);
+    var w = er.width + pad * 2;
+    var h = er.height + pad * 2;
+    var W = phone.clientWidth;
+    var H = phone.clientHeight;
+    hole.style.left = x + 'px';
+    hole.style.top = y + 'px';
+    hole.style.width = w + 'px';
+    hole.style.height = h + 'px';
+    if (t) { t.style.left = '0'; t.style.top = '0'; t.style.width = W + 'px'; t.style.height = y + 'px'; }
+    if (l) { l.style.left = '0'; l.style.top = y + 'px'; l.style.width = x + 'px'; l.style.height = h + 'px'; }
+    if (r) { r.style.left = (x + w) + 'px'; r.style.top = y + 'px'; r.style.width = Math.max(0, W - x - w) + 'px'; r.style.height = h + 'px'; }
+    if (b) { b.style.left = '0'; b.style.top = (y + h) + 'px'; b.style.width = W + 'px'; b.style.height = Math.max(0, H - y - h) + 'px'; }
+    if (tip) {
+      var preferAbove = y > 110;
+      var ty = typeof tipTop === 'number' ? tipTop : (preferAbove ? Math.max(12, y - 92) : (y + h + 14));
+      tip.style.top = ty + 'px';
+    }
+  }
+
+  function startCoachHomeMore() {
+    endCoach(true);
+    state.coachPhase = 'home-more';
+    go('home');
+    setTimeout(function () {
+      var btn = $('#btnHomeMore');
+      if (!btn) { endCoach(true); return; }
+      btn.classList.add('is-coach-target');
+      var title = $('#coachTipTitle');
+      var text = $('#coachTipText');
+      if (title) title.textContent = '数据导入在工作台';
+      if (text) text.textContent = '请点「更多」进入工作台，再找「数据导入」。';
+      placeCoachOn(btn, null);
+    }, 80);
+  }
+
+  function hitEl(el, clientX, clientY) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+  }
+
+  function bindCoachLayer() {
+    var layer = $('#coachLayer');
+    if (!layer) return;
+    layer.addEventListener('click', function (e) {
+      if (!state.coachPhase) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (state.coachPhase === 'home-more') {
+        if (hitEl($('#btnHomeMore'), e.clientX, e.clientY)) advanceCoachToWorkbench();
+        else showToast('请先点「更多」进入工作台');
+        return;
+      }
+      if (state.coachPhase === 'wb-migrate') {
+        var tile = document.querySelector('[data-wb="migrate"]');
+        if (hitEl(tile, e.clientX, e.clientY)) {
+          endCoach(true);
+          markWorkbenchImportHit();
+          enterMigrate('workbench');
+        } else {
+          scheduleCoachEnd(3000);
+          showToast('引导将在 3 秒后结束');
+        }
+      }
+    });
+  }
+
+  function advanceCoachToWorkbench() {
+    state.coachPhase = 'wb-migrate';
+    $all('.is-coach-target').forEach(function (el) { el.classList.remove('is-coach-target'); });
+    go('workbench');
+    setTimeout(function () {
+      var tile = document.querySelector('[data-wb="migrate"]');
+      if (!tile) { endCoach(true); return; }
+      tile.classList.add('is-coach-target');
+      var title = $('#coachTipTitle');
+      var text = $('#coachTipText');
+      if (title) title.textContent = '点这里开始导入';
+      if (text) text.textContent = '点「数据导入」结束引导；若点了别处，约 3 秒后引导也会结束。';
+      placeCoachOn(tile, 120);
+      try { tile.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+    }, 120);
+  }
+
+  function bindHomeActions() {
+    $all('[data-home-act]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var act = btn.getAttribute('data-home-act');
+        if (act === 'more') {
+          if (state.coachPhase === 'home-more') advanceCoachToWorkbench();
+          else go('workbench');
+          return;
+        }
+        if (state.coachPhase === 'home-more') {
+          showToast('请先点「更多」进入工作台');
+          return;
+        }
+        if (act === 'member') { go('members'); return; }
+        if (act === 'card') { go('card-list'); return; }
+        showToast('演示占位');
+      });
+    });
+  }
+
+  /* ---- 原始存档 / 识别摘要 ---- */
+
+  function domainItems(list, domain) {
+    var allow = DOMAIN_MATCH[domain] || [domain];
+    return (list || []).filter(function (it) { return allow.indexOf(it.domain) >= 0; });
+  }
+
+  function openArchiveList(domain) {
+    ensureTierDemo();
+    state.emptyPreview = null;
+    state.archiveDomain = domain || 'member';
+    state.archiveReturn = DOMAIN_FLOWS[state.archiveDomain] || 'members';
+    closeAllTitleMenus();
+    go('archive-list');
+  }
+
+  function openDigestList(domain) {
+    ensureTierDemo();
+    state.emptyPreview = null;
+    state.archiveDomain = domain || 'member';
+    state.archiveReturn = DOMAIN_FLOWS[state.archiveDomain] || 'members';
+    closeAllTitleMenus();
+    go('digest-list');
+  }
+
+  function renderArchiveList() {
+    ensureTierDemo();
+    var q = (($('#archiveSearch') && $('#archiveSearch').value) || '').trim().toLowerCase();
+    var title = $('#archiveListTitle');
+    var domainLab = DOMAIN_LABEL[state.archiveDomain] || '';
+    if (title) {
+      title.textContent = state.emptyPreview === 'archive'
+        ? '原始存档'
+        : ('原始存档 · ' + domainLab);
+    }
+    var rows = state.emptyPreview === 'archive'
+      ? []
+      : domainItems(state.tierResult.l1, state.archiveDomain).filter(function (f) {
+          return !q || String(f.name).toLowerCase().indexOf(q) >= 0;
+        });
+    var host = $('#archiveList');
+    var empty = $('#archiveEmpty');
+    var screen = $('#screen-archive-list');
+    if (host) {
+      host.innerHTML = rows.map(function (f) {
+        return '<button type="button" class="arch-row" data-arch-id="' + f.id + '">' +
+          '<span class="arch-row__ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></span>' +
+          '<span class="arch-row__body"><span class="arch-row__title">' + esc(f.name) + '</span>' +
+          '<span class="arch-row__meta">' + esc(f.note) + ' · ' + esc(f.size) + '</span></span>' +
+          '<span class="arch-row__chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></span></button>';
+      }).join('');
+    }
+    if (empty) empty.classList.toggle('hidden', rows.length > 0);
+    if (screen) screen.classList.toggle('is-list-empty', rows.length === 0);
+  }
+
+  function renderDigestList() {
+    ensureTierDemo();
+    var q = (($('#digestSearch') && $('#digestSearch').value) || '').trim().toLowerCase();
+    var title = $('#digestListTitle');
+    var domainLab = DOMAIN_LABEL[state.archiveDomain] || '';
+    if (title) {
+      title.textContent = state.emptyPreview === 'digest'
+        ? '识别摘要'
+        : ('识别摘要 · ' + domainLab);
+    }
+    var rows = state.emptyPreview === 'digest'
+      ? []
+      : domainItems(state.tierResult.l2, state.archiveDomain).filter(function (d) {
+          if (!q) return true;
+          var blob = (d.title + ' ' + d.looseText + ' ' + d.fields.map(function (f) { return f.v; }).join(' ')).toLowerCase();
+          return blob.indexOf(q) >= 0;
+        });
+    var host = $('#digestList');
+    var empty = $('#digestEmpty');
+    var screen = $('#screen-digest-list');
+    if (host) {
+      var tip = rows.length
+        ? '<p class="digest-list-tip">点进详情可把缺的字段补上，补完后就能导入系统。</p>'
+        : '';
+      host.innerHTML = tip + rows.map(function (d) {
+        var miss = (d.fails || []).length;
+        return '<button type="button" class="arch-row" data-digest-id="' + d.id + '">' +
+          '<span class="arch-row__ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h11M8 12h11M8 18h7"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>' +
+          '<span class="arch-row__body"><span class="arch-row__title">' + esc(d.title) + '</span>' +
+          '<span class="arch-row__meta">' + esc(d.fields.map(function (f) { return f.k + ' ' + f.v; }).slice(0, 2).join(' · ')) +
+          (miss ? ' · 缺 ' + miss + ' 项可补' : '') + '</span></span>' +
+          '<span class="arch-row__chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></span></button>';
+      }).join('');
+    }
+    if (empty) empty.classList.toggle('hidden', rows.length > 0);
+    if (screen) screen.classList.toggle('is-list-empty', rows.length === 0);
+  }
+
+  function promoteDigestToCheck(d) {
+    var cat = d.domain === 'product' ? 'product' : (d.domain === 'price' ? 'price' : (d.domain === 'card' ? 'card' : (d.domain === 'stock' ? 'stock' : 'member')));
+    state.importSelection[cat] = true;
+    if (!state.importSources[cat]) state.importSources[cat] = d.source && d.source.kind === 'photo' ? 'photo' : 'excel';
+    ensureCheckData();
+    if (!state.checkData[cat]) state.checkData[cat] = [];
+    var f = {};
+    (d.fields || []).forEach(function (x) { f[x.k] = x.v; });
+    (d.fails || []).forEach(function (x) { f[x.k] = (x.edit || '').trim() || x.v; });
+    // 映射到核对行常用键（演示）
+    var row = {
+      id: 'dig-' + d.id,
+      f: {
+        name: f['人物'] || f['姓名'] || f['卡名称'] || f['项目'] || f['商品'] || f['产品名'] || d.title,
+        phone: f['手机号'] || '',
+        cardName: f['正式卡种'] || f['卡名称'] || '',
+        memberNo: f['会员编号'] || '',
+        cardType: f['卡类型'] || '储值卡',
+        recharge: String(f['金额'] || f['开卡价'] || f['售价'] || '').replace(/[^\d.]/g, '') || '0',
+        remain: '',
+        type: f['卡类型'] || '储值卡',
+        price: String(f['金额'] || f['售价'] || f['开卡价'] || '').replace(/[^\d.]/g, '') || '0',
+        group: f['项目组'] || '未分组',
+        bookable: f['是否可开单'] === '是' ? '是' : '是',
+        category: f['产品分类'] || f['商品分类'] || '默认分类',
+        spec: f['规格'] || '',
+        unit: f['单位'] || '件',
+        qty: f['库存数量'] || f['精确数量'] || '0',
+        cost: String(f['金额'] || '').replace(/[^\d.]/g, '') || '0',
+        onShelf: f['是否上架'] || '上架'
+      },
+      problems: [],
+      ignored: false,
+      aiFields: [],
+      fromDigest: true
+    };
+    state.checkData[cat].unshift(row);
+    recomputeCheck(cat);
+    d.promoted = true;
+    collectPlan();
+    state.checkTab = cat;
+    setImportStage('check', 'import-check');
+    go('import-check');
+    showToast('已补充，进入核对导入');
+  }
+
+  function renderDigestDetail() {
+    ensureTierDemo();
+    var d = (state.tierResult.l2 || []).filter(function (x) { return x.id === state.digestId; })[0];
+    var host = $('#digestDetailBody');
+    if (!host) return;
+    if (!d) {
+      host.innerHTML = '<p class="proto-note">未找到该摘要</p>';
+      return;
+    }
+    (d.fails || []).forEach(function (f) { if (f.edit === undefined) f.edit = ''; });
+    host.innerHTML =
+      '<div class="digest-loose">' +
+        '<button type="button" class="digest-loose__copy" id="btnDigestCopy">复制</button>' +
+        '<div class="digest-loose__text" id="digestLooseText">' + esc(d.looseText) + '</div>' +
+      '</div>' +
+      '<div class="digest-block"><div class="digest-block__hd">已识别字段</div>' +
+        d.fields.map(function (f) {
+          return '<div class="digest-kv"><b>' + esc(f.k) + '</b><span>' + esc(f.v) + '</span></div>';
+        }).join('') +
+      '</div>' +
+      '<div class="digest-block"><div class="digest-block__hd">未能对应字段 · 可补充</div>' +
+        '<p class="digest-edit-tip">把缺的信息补全后，就能导入系统。</p>' +
+        (d.fails || []).map(function (f, i) {
+          return '<label class="digest-edit">' +
+            '<span class="digest-edit__lab">' + esc(f.k) + '</span>' +
+            '<span class="digest-edit__hint">' + esc(f.v) + '</span>' +
+            '<input class="digest-edit__inp" type="text" data-digest-fail="' + i + '" value="' + esc(f.edit || '') + '" placeholder="在此填写">' +
+          '</label>';
+        }).join('') +
+      '</div>' +
+      '<button type="button" class="digest-source" id="btnDigestSource">' +
+        '<span class="digest-source__lab"><b>数据出处</b>' + esc(d.source.name) + '</span>' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg>' +
+      '</button>' +
+      '<div class="digest-foot">' +
+        '<p class="digest-foot__tip">补充完整后点下方按钮，将进入「核对导入」。</p>' +
+        '<button type="button" class="btn-primary" id="btnDigestPromote"' + (d.promoted ? ' disabled' : '') + '>' +
+          (d.promoted ? '已加入本批导入' : '补充完成，导入') +
+        '</button>' +
+      '</div>';
+    var copy = $('#btnDigestCopy');
+    if (copy) {
+      copy.onclick = function () {
+        var text = d.looseText;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { showToast('已复制'); }, function () { showToast('已复制（演示）'); });
+        } else showToast('已复制（演示）');
+      };
+    }
+    var srcBtn = $('#btnDigestSource');
+    if (srcBtn) {
+      srcBtn.onclick = function () {
+        openSourcePreview(d.source, 'digest-detail');
+      };
+    }
+    $all('[data-digest-fail]', host).forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var i = Number(inp.getAttribute('data-digest-fail'));
+        if (d.fails[i]) d.fails[i].edit = inp.value;
+      });
+    });
+    var promote = $('#btnDigestPromote');
+    if (promote && !d.promoted) {
+      promote.onclick = function () {
+        var misses = (d.fails || []).filter(function (f) { return !String(f.edit || '').trim(); });
+        if (misses.length) {
+          showToast('还有 ' + misses.length + ' 项未补充：' + misses[0].k);
+          return;
+        }
+        promoteDigestToCheck(d);
+      };
+    }
+  }
+
+  function openSourcePreview(source, ret) {
+    state.sourcePayload = source || null;
+    state.sourceReturn = ret || 'digest-detail';
+    go('source-preview');
+  }
+
+  function renderSourcePreview() {
+    var s = state.sourcePayload || { kind: 'excel', name: '未知文件', label: '出处' };
+    var title = $('#sourcePreviewTitle');
+    if (title) title.textContent = s.label || '数据出处';
+    var host = $('#sourcePreviewBody');
+    if (!host) return;
+    if (s.kind === 'photo') {
+      host.innerHTML = '<div class="src-preview"><div class="src-preview__ph">照片预览（演示）<br>' + esc(s.name) + '<br><br>真机将打开系统内存放的原图以便复核</div></div>';
+    } else {
+      host.innerHTML = '<div class="src-preview"><table class="src-preview__sheet"><thead><tr><th>列 A</th><th>列 B</th><th>列 C</th></tr></thead><tbody>' +
+        '<tr><td>姓名</td><td>手机号</td><td>备注</td></tr>' +
+        '<tr><td>王姐</td><td>138****6621</td><td>黄金卡</td></tr>' +
+        '<tr><td>…</td><td>…</td><td>（演示片段）</td></tr>' +
+        '</tbody></table><p class="proto-note" style="padding:12px 16px">文件：' + esc(s.name) + '</p></div>';
+    }
+  }
+
+  function closeAllTitleMenus() {
+    $all('[data-more-panel]').forEach(function (p) { p.hidden = true; });
+  }
+
+  function bindArchiveMenus() {
+    document.addEventListener('click', function (e) {
+      var more = e.target.closest('[data-more-menu]');
+      if (more) {
+        e.stopPropagation();
+        var key = more.getAttribute('data-more-menu');
+        var panel = document.querySelector('[data-more-panel="' + key + '"]');
+        var open = panel && !panel.hidden;
+        closeAllTitleMenus();
+        if (panel && !open) panel.hidden = false;
+        return;
+      }
+      var arch = e.target.closest('[data-arch-open]');
+      if (arch) {
+        var kind = arch.getAttribute('data-arch-open');
+        var domain = arch.getAttribute('data-arch-domain') || 'member';
+        if (kind === 'archive') openArchiveList(domain);
+        else openDigestList(domain);
+        return;
+      }
+      if (!e.target.closest('[data-more-panel]')) closeAllTitleMenus();
+
+      var dig = e.target.closest('[data-digest-id]');
+      if (dig) {
+        state.digestId = dig.getAttribute('data-digest-id');
+        go('digest-detail');
+        return;
+      }
+      var af = e.target.closest('[data-arch-id]');
+      if (af) {
+        var id = af.getAttribute('data-arch-id');
+        var file = (state.tierResult.l1 || []).filter(function (x) { return x.id === id; })[0];
+        if (file) openSourcePreview({ kind: file.kind, name: file.name, label: file.kind === 'photo' ? '数据源照片' : '系统存放的 Excel' }, 'archive-list');
+        return;
+      }
+      var rt = e.target.closest('[data-result-tier]');
+      if (rt) {
+        var tier = rt.getAttribute('data-result-tier');
+        if (tier === 'l3') { go('members'); return; }
+        if (tier === 'l2') { openDigestList('member'); return; }
+        if (tier === 'l1') { openArchiveList('member'); return; }
+      }
+      var ck = e.target.closest('[data-confirm-id]');
+      if (ck) {
+        toggleConfirmItem(ck.getAttribute('data-confirm-kind'), ck.getAttribute('data-confirm-id'));
+      }
+    });
+    var ab = $('#btnArchiveBack');
+    if (ab) ab.addEventListener('click', function () {
+      state.emptyPreview = null;
+      go(state.archiveReturn || 'members');
+    });
+    var db = $('#btnDigestBack');
+    if (db) db.addEventListener('click', function () {
+      state.emptyPreview = null;
+      go(state.archiveReturn || 'members');
+    });
+    var sb = $('#btnSourceBack');
+    if (sb) sb.addEventListener('click', function () { go(state.sourceReturn || 'digest-detail'); });
+    var as = $('#archiveSearch');
+    if (as) as.addEventListener('input', renderArchiveList);
+    var ds = $('#digestSearch');
+    if (ds) ds.addEventListener('input', renderDigestList);
+    var cn = $('#btnConfirmNext');
+    if (cn) cn.addEventListener('click', goConfirmNext);
+  }
+
+  function openEmptyPreview(kind) {
+    state.emptyPreview = kind || null;
+    if (kind === 'history-true') {
+      clearHistoryFilterQuery();
+      go('history-orders');
+      return;
+    }
+    if (kind === 'history-filter') {
+      /* 强制筛选无结果：保留演示数据存在感，但匹配恒为 0 */
+      state.historyDeleted = false;
+      state.historyQuery.name = '';
+      state.historyQuery.from = '';
+      state.historyQuery.to = '';
+      state.historyQuery.min = '';
+      state.historyQuery.max = '';
+      if ($('#historySearch')) $('#historySearch').value = '';
+      go('history-orders');
+      return;
+    }
+    if (kind === 'archive') {
+      state.archiveDomain = 'member';
+      state.archiveReturn = 'workbench';
+      if ($('#archiveSearch')) $('#archiveSearch').value = '';
+      go('archive-list');
+      return;
+    }
+    if (kind === 'digest') {
+      state.archiveDomain = 'member';
+      state.archiveReturn = 'workbench';
+      if ($('#digestSearch')) $('#digestSearch').value = '';
+      go('digest-list');
     }
   }
 
   function bindNav() {
     $all('.site-nav [data-flow]').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        state.emptyPreview = null;
         var flow = btn.getAttribute('data-flow');
         // 从左侧导航直接进「认领门店」看完整态，不弹权限说明
         if (flow === 'claim') {
@@ -5834,7 +7830,17 @@
         if (flow === 'import-overview' && !hasP0Stock()) {
           seedStoreStockDemo();
         }
+        // 侧栏点「首页」：清 banner 静音，方便反复评审
+        if (flow === 'home') clearBannerMute();
         go(flow);
+        if (document.documentElement.classList.contains('view-mobile')) {
+          document.documentElement.classList.remove('nav-drawer-open');
+        }
+      });
+    });
+    $all('.site-nav [data-empty]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openEmptyPreview(btn.getAttribute('data-empty'));
         if (document.documentElement.classList.contains('view-mobile')) {
           document.documentElement.classList.remove('nav-drawer-open');
         }
@@ -5869,20 +7875,22 @@
 
   // ===== 抓取路由（仅 ?capture= 生效，不影响默认演示行为） =====
   function seedCaptureImportDemo() {
-    state.importSelection = { member: true, card: true, price: true };
-    state.importSources = { member: 'excel', card: 'excel', price: 'excel' };
+    state.importSelection = { member: true, card: true, price: true, stock: true, product: false };
+    state.importSources = { member: 'excel', card: 'excel', price: 'excel', stock: 'photo', product: null };
     state.importFiles = {
       member: [{ name: '会员与持卡信息.xlsx', size: '1.2 MB' }],
       card: [{ name: '会员卡模板.xlsx', size: '0.4 MB' }],
-      price: [{ name: '价目表.xlsx', size: '0.6 MB' }]
+      price: [{ name: '价目表.xlsx', size: '0.6 MB' }],
+      stock: [],
+      product: []
     };
-    state.importPhotos = { member: [], card: [], price: [] };
-    state.importPlan = { excel: ['member', 'card', 'price'], photo: [] };
-    state.importMapTab = 'member';
-    state.importMapAck = {};
-    state.importMapConfirmed = false;
-    state.importMapReturned = false;
-    state.tplGen = null;
+    state.importPhotos = {
+      member: [], card: [], price: [],
+      stock: [{ id: 'cap-p1', src: '' }],
+      product: []
+    };
+    state.importPlan = { excel: ['member', 'card', 'price'], photo: ['stock'] };
+    state.analysisCats = ['member', 'card', 'price', 'stock'];
     state.batchDeleted = false;
     collectPlan();
   }
@@ -5892,6 +7900,8 @@
       member: BATCH_DEMO.member,
       card: BATCH_DEMO.card,
       price: BATCH_DEMO.price,
+      stock: BATCH_DEMO.stock,
+      product: BATCH_DEMO.product,
       history: HISTORY_ROWS.length
     };
     state.historyImported = true;
@@ -5944,16 +7954,27 @@
       step(showInviteSheet, 320);
       return;
     }
+    // 首页数据导入 banner（待开始）
+    if (cap === 'import-banner' || cap === 'migrate-fab') {
+      clearBannerMute();
+      state.importTask = { started: false, stage: 'idle', resumeFlow: null, entry: 'home' };
+      go('home');
+      renderImportBanner();
+      return;
+    }
     if (cap === 'import-overview') {
       seedStoreStockDemo();
       go('import-overview');
       return;
     }
     if (cap === 'reimport-mode') {
+      // 该半屏的真实触发点是「识别结果」页点「下一步：核对」（见 commitAnalysis），
+      // 因此底页必须是识别结果，否则浮层背景与触发时机不符。
       seedStoreStockDemo();
       seedCaptureImportDemo();
-      state.reimportMode = { member: null, card: null, price: null };
-      go('import-select');
+      collectPlan();
+      state.reimportMode = blankReimportMode();
+      go('import-cards');
       step(openReimportModeSheet, 400);
       return;
     }
@@ -5964,20 +7985,11 @@
       return;
     }
     if (cap === 'fab-close') {
+      // 浮球已下线：改为结果页 + 已完成 banner 态（兼容旧 capture id）
       seedCaptureImportDemo();
+      clearBannerMute();
+      setImportStage('done', 'import-result');
       go('import-result');
-      showFab();
-      step(function () {
-        showDialog('#fabCloseDialog');
-      }, 400);
-      return;
-    }
-    if (cap === 'preview-detail') {
-      seedCaptureImportDemo();
-      openPreviewType('member');
-      step(function () {
-        showPreviewDetail(0);
-      }, 320);
       return;
     }
     if (cap === 'fail-fix') {
@@ -5996,7 +8008,7 @@
     }
     if (cap === 'import-progress') {
       seedCaptureImportDemo();
-      go('import-queue');
+      go('import-cards');
       step(function () {
         var box = $('#importProgress');
         if (!box) return;
@@ -6019,21 +8031,220 @@
       }, 320);
       return;
     }
-    // 下游页需要有演示表格，否则映射页会跳过、队列为空
-    if (/^import-(source|queue|map|tpl-gen|preview|preview-detail|result|fail)$/.test(cap) ||
-        cap === 'import-camera') {
+    // 下游页需要有演示数据，否则卡片 / 核对 / 结果为空
+    if (/^import-(cards|confirm|convert|result|fail)$/.test(cap) ||
+        cap === 'import-source' || cap === 'import-camera' ||
+        cap === 'import-select' || cap === 'import-analyze' ||
+        cap === 'archive-list' || cap === 'digest-list' || cap === 'digest-detail') {
       seedCaptureImportDemo();
       if (cap === 'import-camera') {
-        state.importCameraCat = 'price';
-        state.importSources.price = 'photo';
-        state.importPhotos.price = [];
-        collectPlan();
         setCameraDemo(true);
       }
-      if (cap === 'import-source') {
-        // 展示「已选文件」态，更接近真实链路
-        state.uploadStep = 0;
+      if (cap === 'import-source' || cap === 'import-select') {
+        state.pending.excel = [
+          { id: 'cap-e1', name: '会员与持卡信息.xlsx', size: '1.2 MB', readablePct: 88 },
+          { id: 'cap-e2', name: '库存盘点表.xlsx', size: '0.8 MB', readablePct: 18 }
+        ];
+        state.pending.photo = [];
       }
+      if (cap === 'import-cards' || cap === 'import-confirm' ||
+          cap === 'archive-list' || cap === 'digest-list' || cap === 'digest-detail') {
+        collectPlan();
+        state.checkData = null;
+        state.tierResult = { l1: [], l2: [], l3Cats: [] };
+        seedTierDemo();
+      }
+      if (cap === 'digest-detail') {
+        var dig = (state.tierResult.l2 || [])[0];
+        state.digestId = dig ? dig.id : null;
+        state.archiveDomain = dig ? dig.domain : 'member';
+      }
+      if (cap === 'archive-list' || cap === 'digest-list') {
+        state.archiveDomain = 'member';
+      }
+    }
+    if (cap === 'wechat-tip') {
+      seedCaptureImportDemo();
+      go('import-source');
+      step(function () {
+        var mask = $('#wechatTipMask') || $('#wxGuideMask');
+        var sheet = $('#wechatTipSheet') || $('#wxGuideSheet');
+        if (typeof openWechatTip === 'function') openWechatTip();
+        else if (mask && sheet) {
+          mask.classList.add('show');
+          sheet.classList.add('show');
+        }
+      }, 400);
+      return;
+    }
+    // 五类全出的核对页（用于拍到 5 类密排 tab）；不改默认演示分支
+    if (cap === 'import-check') {
+      seedCaptureImportDemo();
+      state.importSelection = { member: true, card: true, price: true, stock: true, product: true };
+      state.analysisCats = ALL_CATS.slice();
+      state.checkData = null;
+      go('import-check');
+      return;
+    }
+    // 核对页 · 展开「需修正」行编辑器（修改有问题数据）
+    if (cap === 'import-check-edit') {
+      seedCaptureImportDemo();
+      state.importSelection = { member: true, card: true, price: true, stock: true, product: true };
+      state.analysisCats = ALL_CATS.slice();
+      state.checkData = null;
+      go('import-check');
+      step(function () {
+        ensureCheckData();
+        var blocking = [];
+        checkCats().forEach(function (cat) {
+          checkRows(cat).forEach(function (r) {
+            if (!r.ignored && rowHasLevel(r, 'error')) blocking.push({ cat: cat, row: r });
+          });
+        });
+        if (!blocking.length) return;
+        var b = blocking[0];
+        state.checkTab = b.cat;
+        state.checkFilter = 'issue';
+        state.checkOpen = b.row.id;
+        renderCheckStats();
+        renderCheckList();
+        setTimeout(function () { scrollCheckRow(b.row.id); }, 40);
+      }, 500);
+      return;
+    }
+    // 核对页 · 问题标记说明半屏
+    if (cap === 'check-help') {
+      seedCaptureImportDemo();
+      state.importSelection = { member: true, card: true, price: true, stock: true, product: true };
+      state.analysisCats = ALL_CATS.slice();
+      state.checkData = null;
+      go('import-check');
+      step(openCheckHelp, 500);
+      return;
+    }
+    // 标准表转换的完成态：跑一遍演示转换，等 3s 再截（与核对页一致，五类全出）
+    if (cap === 'import-convert-done') {
+      seedCaptureImportDemo();
+      state.importSelection = { member: true, card: true, price: true, stock: true, product: true };
+      state.analysisCats = ALL_CATS.slice();
+      state.checkData = null;
+      go('import-convert');
+      step(runConversion, 300);
+      return;
+    }
+    // 订单详情需要一条已选记录，否则是「记录不存在」空态
+    if (cap === 'history-detail') {
+      state.historySelectedId = HISTORY_ROWS[0].id;
+      go('history-detail');
+      return;
+    }
+    // 已选文件态：展示 v2.15 的「AI 已识别 + 6 行样例」
+    if (cap === 'history-import-upload-picked') {
+      state.historyFilePicked = true;
+      state.historyMapOpen = false;
+      go('history-import-upload');
+      return;
+    }
+    /* ---- §三 状态补拍 ---- */
+    if (cap === 'history-empty-true') {
+      openEmptyPreview('history-true');
+      return;
+    }
+    if (cap === 'history-empty-filter') {
+      openEmptyPreview('history-filter');
+      return;
+    }
+    if (cap === 'archive-empty') {
+      openEmptyPreview('archive');
+      return;
+    }
+    if (cap === 'digest-empty') {
+      openEmptyPreview('digest');
+      return;
+    }
+    if (cap === 'import-overview-empty') {
+      state.storeStock = { member: 0, card: 0, price: 0, stock: 0, product: 0, history: 0 };
+      state.historyImported = false;
+      state.historyDeleted = false;
+      go('import-overview');
+      return;
+    }
+    if (cap === 'import-select-empty') {
+      state.pending.excel = [];
+      state.pending.photo = [];
+      go('import-select');
+      return;
+    }
+    if (cap === 'import-camera-normal' || cap === 'import-camera-table') {
+      state.pending.photo = [];
+      state.camTableGuide = cap === 'import-camera-table';
+      go('import-camera');
+      step(function () {
+        setCameraDemo(true);
+        syncCamWatermark();
+      }, 200);
+      return;
+    }
+    if (cap === 'import-convert-idle') {
+      seedCaptureImportDemo();
+      state.convertDone = false;
+      state.convertRunning = false;
+      go('import-convert');
+      step(function () {
+        resetConvertUI(false);
+        setConvertIdle('选择文件后开始转换');
+      }, 200);
+      return;
+    }
+    if (cap === 'import-cards-nol3') {
+      seedCaptureImportDemo();
+      collectPlan();
+      state.checkData = null;
+      seedTierDemo();
+      state.tierResult.l3Cats = [];
+      go('import-cards');
+      return;
+    }
+    if (/^import-banner-(idle|analyzing|check|importing|done)$/.test(cap)) {
+      var stage = cap.replace('import-banner-', '');
+      clearBannerMute();
+      state.importTask = {
+        started: stage !== 'idle',
+        stage: stage,
+        resumeFlow: stage === 'idle' ? null
+          : (stage === 'analyzing' ? 'import-analyze'
+            : stage === 'check' ? 'import-check'
+              : stage === 'importing' ? 'import-check'
+                : 'import-result'),
+        entry: 'home'
+      };
+      go('home');
+      renderImportBanner();
+      return;
+    }
+    if (cap === 'coach-home-more') {
+      try { localStorage.removeItem(WB_IMPORT_HIT_KEY); } catch (e) {}
+      muteImportBanner();
+      startCoachHomeMore();
+      return;
+    }
+    if (cap === 'coach-wb-migrate') {
+      try { localStorage.removeItem(WB_IMPORT_HIT_KEY); } catch (e) {}
+      muteImportBanner();
+      endCoach(true);
+      state.coachPhase = 'wb-migrate';
+      go('workbench');
+      step(function () {
+        var tile = document.querySelector('[data-wb="migrate"]');
+        if (!tile) return;
+        tile.classList.add('is-coach-target');
+        var title = $('#coachTipTitle');
+        var text = $('#coachTipText');
+        if (title) title.textContent = '点这里开始导入';
+        if (text) text.textContent = '点「数据导入」结束引导；若点了别处，约 3 秒后引导也会结束。';
+        placeCoachOn(tile, 120);
+      }, 200);
+      return;
     }
     if (document.querySelector('.phone-inner > .screen[data-flow="' + cap + '"]')) {
       go(cap);
@@ -6049,15 +8260,15 @@
     bindConfirm();
     bindTriage();
     bindInvite();
-    bindFab();
+    bindImportBanner();
     bindImport();
+    bindHomeActions();
+    bindArchiveMenus();
+    bindCoachLayer();
     bindHistory();
-    bindMapCustomInputs();
-    bindPreviewDetail();
     bindMembers();
     bindWorkbench();
     applyDeepLink();
-    syncImportMapLockUI();
     applyCaptureRoute();
   }
 
@@ -6072,6 +8283,16 @@
   if (/[?&]__test=1\b/.test(location.search)) {
     window.__rtbDebug = {
       addRealFile: addPickedFile,
+      addPhoto: function (cat, dataUrl, name) {
+        state.importSources[cat] = 'photo';
+        state.importPhotos[cat].push({ id: 'p' + Date.now().toString(36), src: dataUrl,
+                                       file: { name: name || '照片.bmp' } });
+        state.convertDone = false;
+        state.realSheets = null;
+        renderImportSelect();
+        renderCamera();
+      },
+      setMode: setMode,
       go: go,
       runConversion: runConversion,
       select: function (cats) {
@@ -6080,10 +8301,12 @@
       },
       snapshot: function () {
         return {
+          mode: state.mode,
           bridge: state.aiBridge,
           convertDone: state.convertDone,
           convertRunning: state.convertRunning,
           realFiles: realFileEntries().length,
+          realPhotos: realPhotoEntries().reduce(function (s, e) { return s + e.photos.length; }, 0),
           cats: checkCats(),
           stats: checkCats().reduce(function (acc, k) { acc[k] = checkStats(k); return acc; }, {}),
           sheets: (state.realSheets || []).map(function (s) {

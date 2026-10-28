@@ -68,6 +68,76 @@
   height: 37px; z-index: 2;
   display: flex; align-items: center; justify-content: space-between;
 }
+
+/* 数据导入进度 banner：挂在 vh-body 顶部（文档流，避开 hero 背景遮挡） */
+.import-banner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 10px 12px 0;
+  background: #fff;
+  border-radius: 12px;
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  overflow: hidden;
+}
+.import-banner[hidden] { display: none !important; }
+.vh-body > .import-banner + .vh-kpi { margin-top: 10px; }
+.import-banner__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px 12px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  color: #333;
+}
+.import-banner__main:active { background: rgba(0, 0, 0, 0.03); }
+.import-banner__ico {
+  flex: 0 0 auto;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: #FFF1F2;
+  color: #F32F41;
+  display: flex; align-items: center; justify-content: center;
+}
+.import-banner__text {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.import-banner__text b {
+  font-size: 14px; font-weight: 600; line-height: 20px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.import-banner__text span {
+  font-size: 12px; color: #929292; line-height: 16px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.import-banner__go {
+  flex: 0 0 auto;
+  font-size: 12px; font-weight: 600; color: #F32F41;
+  padding-right: 4px;
+}
+.import-banner__close {
+  flex: 0 0 auto;
+  width: 40px;
+  border: none;
+  background: transparent;
+  color: #929292;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+.import-banner__close:active { background: rgba(0, 0, 0, 0.04); }
+.import-banner.is-progress .import-banner__ico { background: #E8F8F2; color: #2BA471; }
+.import-banner.is-done .import-banner__ico { background: #E8F8F2; color: #2BA471; }
 .vh-store__left {
   display: flex; align-items: flex-start; gap: 6px;
   border: 0; background: transparent; padding: 0; cursor: pointer;

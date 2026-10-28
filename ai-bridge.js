@@ -35,10 +35,21 @@
   }
 
   function pickFile(multiple, cb) {
+    pickInput('.xlsx,.xls,.csv', multiple, cb);
+  }
+
+  /* 相册 / 系统相机。capture 会直接把系统相机拉起来（手机上比 getUserMedia 更可靠：
+     后者在 http:// + 非 localhost 下根本不可用）。 */
+  function pickImage(multiple, cb) {
+    pickInput('image/*', multiple, cb, true);
+  }
+
+  function pickInput(accept, multiple, cb, capture) {
     var input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.xlsx,.xls,.csv';
+    input.accept = accept;
     input.multiple = !!multiple;
+    if (capture) input.setAttribute('capture', 'environment');
     input.style.position = 'fixed';
     input.style.left = '-9999px';
     document.body.appendChild(input);
@@ -81,22 +92,43 @@
     return Math.max(1, Math.round(bytes / 1024)) + ' KB';
   }
 
-  /* 把一批文件交给后端：解析 → 规则层 → 模型 → 校验，一次返回。
+  /* 把一批文件/照片交给后端：解析 → 规则层 → 模型 → 校验，一次返回。
+   * photos 传 [{src}]（dataURL 或 dataURL 字符串）即可，由这里转成后端要的形状。
    * hooks: onSent() 请求发出；onDone(res)；onError(msg) */
-  function convert(category, files, hooks) {
+  function convert(category, files, hooks, photos) {
     hooks = hooks || {};
     var list = Array.prototype.slice.call(files || []);
-    Promise.all(list.map(function (f) {
+    var shots = Array.prototype.slice.call(photos || []);
+
+    var fileJobs = list.map(function (f) {
       return readBase64(f).then(function (b64) {
         return { name: f.name, data: b64 };
       });
-    })).then(function (payload) {
-      if (hooks.onRead) hooks.onRead(payload.length);
-      if (hooks.onSent) hooks.onSent();
-      return fetch(BASE + '/api/ai/convert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: category, files: payload, online: true })
+    });
+    var photoJobs = shots.map(function (p, i) {
+      if (!p || !p.src) return null;
+      var s = String(p.src);
+      var b64 = s.indexOf(',') >= 0 ? s.slice(s.indexOf(',') + 1) : s;
+      return Promise.resolve({
+        name: (p.file && p.file.name) || ('照片 ' + (i + 1) + '.jpg'),
+        data: b64
+      });
+    }).filter(Boolean);
+
+    Promise.all(fileJobs).then(function (filePayload) {
+      return Promise.all(photoJobs).then(function (photoPayload) {
+        if (hooks.onRead) hooks.onRead(filePayload.length, photoPayload.length);
+        if (hooks.onSent) hooks.onSent();
+        return fetch(BASE + '/api/ai/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: category,
+            files: filePayload,
+            photos: photoPayload,
+            online: true
+          })
+        });
       });
     }).then(function (r) {
       return r.json().then(function (j) {
@@ -115,6 +147,7 @@
   global.RtaBridge = {
     health: health,
     pickFile: pickFile,
+    pickImage: pickImage,
     convert: convert,
     sizeText: sizeText,
     info: function () { return probe.info; }

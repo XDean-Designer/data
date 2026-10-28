@@ -32,6 +32,7 @@ sys.path.insert(0, os.path.join(HERE, "src"))
 
 import dict_match          # noqa: E402
 import llm                 # noqa: E402
+import ocr_table           # noqa: E402
 import parse_sheet         # noqa: E402
 import to_rows             # noqa: E402
 import validate            # noqa: E402
@@ -143,6 +144,7 @@ def convert_sheet(dic, category, target_key, file_name, sheet_name, sheet, onlin
     return {
         "file": file_name,
         "sheet": sheet_name,
+        "source": sheet.get("source", "excel"),
         "target": target_key,
         "targetLabel": target["label"],
         "headerRow": sheet["headerRow"],
@@ -166,15 +168,122 @@ def convert_sheet(dic, category, target_key, file_name, sheet_name, sheet, onlin
     }
 
 
+def header_signature(columns):
+    """表头指纹：用来判断多张照片是不是同一张表。
+
+    归一化后逐列拼接。只有指纹完全相同才合并——宁可多出一张表，
+    也不要把两张不同的表拼在一起（拼错后行会串列，很难发现）。
+    """
+    return "|".join(dict_match.norm(c) for c in columns)
+
+
+def process_photos(dic, category, photos, syn_idx, warnings):
+    """照片 → 若干张表。表头相同的照片合并成一张表（连拍场景）。"""
+    label = {"member": "会员与持卡信息", "card": "会员卡模板",
+             "price": "价目表"}.get(category, category)
+
+    groups = {}          # 指纹 → {header, rows, names, usage, latency, images}
+    order = []
+    for i, p in enumerate(photos):
+        name = str(p.get("name") or ("照片 %d" % (i + 1)))
+        data = p.get("data") or ""
+        if not data:
+            warnings.append("跳过 %s：没有图片数据" % name)
+            continue
+        try:
+            got = ocr_table.read_table(data, label)
+        except Exception as e:
+            warnings.append("照片 %s 识别失败：%s" % (name, e))
+            continue
+
+        cols, rows = got["columns"], got["rows"]
+        if not rows:
+            warnings.append("照片 %s 里没找到表格，已跳过" % name)
+            continue
+        if not cols:
+            # 没有表头就没法对齐列名。不拿第一行硬当表头——那是猜，猜错会把
+            # 整张表错位。交给用户重拍补上表头。
+            warnings.append("照片 %s 没读到表头，无法对齐列名；请重拍并把表头拍进画面" % name)
+            continue
+
+        width = len(cols)
+        fixed = []
+        for r in rows:
+            r = (r + [""] * width)[:width]
+            fixed.append(r)
+
+        sig = header_signature(cols)
+        if sig not in groups:
+            groups[sig] = {"header": cols, "rows": [], "names": [],
+                           "prompt": 0, "completion": 0, "latency": 0, "images": []}
+            order.append(sig)
+        g = groups[sig]
+        g["rows"].extend(fixed)
+        g["names"].append(name)
+        u = got.get("usage") or {}
+        g["prompt"] += u.get("prompt_tokens") or 0
+        g["completion"] += u.get("completion_tokens") or 0
+        g["latency"] += got.get("latency_ms") or 0
+        if got.get("image"):
+            g["images"].append(got["image"])
+
+    out = []
+    for sig in order:
+        g = groups[sig]
+        header = g["header"]
+        rows = g["rows"][:parse_sheet.MAX_ROWS]
+        sheet = {
+            "header": header,
+            "samples": rows[:parse_sheet.SAMPLES],
+            "rows": rows,
+            "headerRow": 1,
+            "headerHit": 0,
+            "truncated": len(g["rows"]) > parse_sheet.MAX_ROWS,
+            "source": "photo",
+        }
+        target_key = pick_target(dic, category, "照片", header)
+        res = convert_sheet(dic, category, target_key, "照片 %d 张" % len(g["names"]),
+                            "照片识别", sheet, True)
+        if not res["stats"]["mapped"]:
+            warnings.append("照片表（%s）没有任何列能对上标准字段，已跳过"
+                            % "、".join(g["names"]))
+            continue
+        res["source"] = "photo"
+        res["photos"] = g["names"]
+        res["ocr"] = {
+            "calls": len(g["names"]),
+            "latencyMs": g["latency"],
+            "usage": {"prompt_tokens": g["prompt"], "completion_tokens": g["completion"],
+                      "total_tokens": g["prompt"] + g["completion"]},
+            "images": g["images"],
+            "promptVersion": ocr_table.PROMPT_VERSION,
+        }
+        # 照片没有 sheet 概念，把 llm 换成「识别 + 映射」合并口径，UI 只读一次
+        res["llm"] = {
+            "called": True,
+            "unresolvedInput": 0,
+            "error": None,
+            "latencyMs": (res.get("llm") or {}).get("latencyMs", 0),
+            "usage": (res.get("llm") or {}).get("usage") or {},
+            "promptVersion": (res.get("llm") or {}).get("promptVersion"),
+            "model": (res.get("llm") or {}).get("model"),
+            "schemaErrors": (res.get("llm") or {}).get("schemaErrors") or [],
+        }
+        res["fileSize"] = 0
+        out.append(res)
+    return out
+
+
 def handle_convert(payload):
     dic = load_dict()
     category = payload.get("category")
     files = payload.get("files") or []
+    photos = payload.get("photos") or []
     online = payload.get("online", True)
     if category not in ("member", "card", "price"):
         raise ValueError("category 必须是 member / card / price")
-    if not files:
-        raise ValueError("没有文件")
+    if not files and not photos:
+        raise ValueError("没有文件也没有照片")
 
     key, key_src = load_env_key()
     if online and not key:
@@ -244,6 +353,12 @@ def handle_convert(payload):
             except OSError:
                 pass
 
+    # ---- 照片：先由视觉模型读成二维表，再走与 Excel 完全相同的映射链路 ----
+    if photos and online:
+        results.extend(process_photos(dic, category, photos, syn_idx, warnings))
+    elif photos and not online:
+        warnings.append("离线状态不处理照片：照片必须经视觉模型识别")
+
     # 合并同一类别的所有行
     all_rows = []
     for r in results:
@@ -294,7 +409,9 @@ class Handler(SimpleHTTPRequestHandler):
                 "hasKey": bool(key),
                 "keySrc": src,
                 "model": os.environ.get("DEEPSEEK_MODEL", llm.DEFAULT_MODEL),
+                "visionModel": os.environ.get("DEEPSEEK_VISION_MODEL", llm.VISION_MODEL),
                 "promptVersion": llm.PROMPT_VERSION,
+                "photoPromptVersion": ocr_table.PROMPT_VERSION,
                 "appDir": APP_DIR,
             })
         return super().do_GET()
@@ -324,19 +441,55 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(500, {"ok": False, "error": "%s: %s" % (type(e).__name__, e)})
 
 
+def lan_ips():
+    """本机所有非回环 IPv4，用来打印手机该访问哪个地址。"""
+    out = []
+    try:
+        import socket
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = info[4][0]
+            if ip.startswith("127.") or ip.startswith("169.254."):
+                continue
+            if ip not in out:
+                out.append(ip)
+    except OSError:
+        pass
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8787)
-    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--host", default=None, help="监听地址，默认 127.0.0.1")
+    ap.add_argument("--lan", action="store_true",
+                    help="绑 0.0.0.0，让同一 Wi-Fi 下的手机也能访问（会把无鉴权服务暴露到内网）")
     args = ap.parse_args()
+
+    host = args.host or ("0.0.0.0" if args.lan else "127.0.0.1")
 
     if not os.path.isdir(APP_DIR):
         raise SystemExit("找不到原型目录：%s" % APP_DIR)
     key, src = load_env_key()
     print("原型目录：%s" % APP_DIR)
     print("DeepSeek Key：%s" % ("已加载（来源 %s）" % src if key else "未配置 → 只能用规则层"))
-    print("打开：http://%s:%d/" % (args.host, args.port))
-    HTTPServer((args.host, args.port), Handler).serve_forever()
+
+    if host in ("127.0.0.1", "localhost", "::1"):
+        print("打开：http://127.0.0.1:%d/" % args.port)
+    else:
+        print()
+        print("⚠️  已绑定 %s —— 同一网络内的设备都能访问，本服务没有鉴权。" % host)
+        print("    只在可信内网临时用；测完请按 Ctrl+C 停掉。")
+        print()
+        ips = lan_ips()
+        if ips:
+            for ip in ips:
+                print("    手机打开：http://%s:%d/" % (ip, args.port))
+        else:
+            print("    没探测到内网 IP，手动用 ipconfig 查。")
+        print("    手机连不上时，先查 Windows 防火墙是否放行 %d 端口。" % args.port)
+        print()
+
+    HTTPServer((host, args.port), Handler).serve_forever()
 
 
 if __name__ == "__main__":
