@@ -60,7 +60,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.35</td>
+<td>v2.45</td>
 </tr>
 <tr>
 <td>日期</td>
@@ -68,7 +68,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 <tr>
 <td>交互原型（唯一可视依据）</td>
-<td>同目录 <code>index.html</code>（390 × 844；主流程按<strong>三档识别</strong>（原始存档 / 识别摘要 / 可入库）组织；新增确认有效项、存档/摘要列表与详情、出处预览、库存管理占位等 screen；首页快捷区含「更多」+ 关 banner 聚光灯引导工作台「数据导入」；弹层含标准模板、标记说明、导入进度、历史说明半屏、聚光灯层；历史消费旁路本版未改；深链 <code>index.html?flow=&lt;id&gt;</code>）；左侧导航「文档」直达本页</td>
+<td>同目录 <code>index.html</code>（390 × 844；主流程按<strong>三档识别</strong>（原始存档 / 识别摘要 / 可入库）组织；<strong>历史消费走同一套导入流程、只有两档（原始存档 / 识别摘要）</strong>，另有「顾客详情」占位屏与「会员历史消费」年份卡片子屏；新增确认有效项、存档/摘要列表与详情、出处预览、库存管理占位等 screen；首页快捷区含「更多」+ 关 banner 聚光灯引导工作台「数据导入」；弹层含标准模板、标记说明、导入进度、聚光灯层；深链 <code>index.html?flow=&lt;id&gt;</code>）；左侧导航「文档」直达本页</td>
 </tr>
 <tr>
 <td>画布</td>
@@ -95,6 +95,56 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.45</td>
+<td>2026-10-29</td>
+<td><strong>历史消费记录架构重做：按姓名匹配会员 + 逐条解除 + 复用通用导入（只有两档）</strong>。<strong>① 匹配口径</strong>：历史消费行只有「顾客姓名」、<strong>没有手机号</strong>，故只按<strong>姓名完全相等</strong>挂到会员名下；同名多位会员时<strong>每人各挂一份</strong>并提示「同名 N 人，请核对手机号」，系统不自动择一；姓名为空的行不匹配。<strong>② 顾客详情（新增占位屏 <code>member-detail</code>，<code>#screen-member-detail</code>）</strong>：会员列表点行由「弹 toast」改为进本页；页顶标注「示意占位」；档案卡（头像 + 姓名 + 手机号 · 卡名 + 余额）+「消费明细」节，节内入口行「历史消费」（次行「2023–2025 · 3 笔 · ¥2,340」+「只读」+ chevron）。<strong>③ 会员历史消费（新增 <code>member-history</code>，<code>#screen-member-history</code>）</strong>：<strong>年份卡片</strong>（左年份 17px/600、右该年合计金额 15px/600 + 笔数 + chevron），年份降序、默认全收起、同时只展开一年；展开后每行两段式——可点区（项目 + 日期 · 支付方式 + 金额）进 <strong><code>history-detail</code></strong>，行尾独立「解除」按钮（26px 圆角 13、浅灰底 / 12px <code>#6B6B6B</code>）把该行记入 <code>state.historyUnmatched</code>：<strong>只解除与本会员的挂靠，记录仍留在历史订单，金额 / 日期原样不动</strong>；解除后合计与年份卡即时重算（该年归零则整卡消失）。空态文案与页脚说明同步。<strong>④ 导入流程复用（删除专用四屏）</strong>：删掉 <code>history-import-upload</code> / <code>history-import-preview</code> / <code>history-import-result</code> / <code>history-import-fail</code> 与「说明」半屏 <code>#historyIntroSheet</code>、整批删除弹层 <code>#historyDelDialog</code>，历史导入改为<strong>与主链同一套页面</strong>（选择导入方式 → 上传 Excel → AI 识别中 → 识别结果 → 核对 → 完成），靠 <code>state.importMode = 'history'</code> 切文案与分档：<strong>只出 Excel 卡（拍照卡整卡隐藏）、隐藏官方模板下载与「最多 5 个文件」提示</strong>；离开历史链路一律复位为 <code>main</code>。<strong>⑤ 只保留两档</strong>：识别结果只有<strong>识别摘要（L2）</strong>与<strong>原始存档（L1）</strong>，<strong>没有「可放心导入」</strong>——历史消费永远不直接写经营数据。<strong>⑥ 取消人工映射</strong>：整段删除 <code>#histMapArea</code> / <code>#histSampleArea</code> / 四行字段下拉 / <code>#btnHistAdjust</code> / 标准表头卡与样例表（DOM + CSS 一并清理），口径是「历史表列名不固定，逐列指定反而抵消自动找列」。<strong>⑦ 核对页按月卡片</strong>：标题「核对历史数据」，隐藏指标卡 / 类别 tab / tab 汇总 / 上架提示；改为<strong>按月可折叠卡片</strong>（<code>.hist-month-card</code>，卡头「2025 年 12 月」+「2 笔 · ¥1,448」+ chevron），<strong>点明细行直接进 <code>history-detail</code></strong>，返回回到核对页且保留展开态（<code>state.historyReturnFlow</code>）；未识别行数在列表下方提示。<strong>⑧ 完成页</strong>：标题「历史消费已导入」、分档改为「写入历史订单 / 仅存档」两块，隐藏「失败明细」「去导入历史消费记录」「删除本批数据」。<strong>⑨ PRD 同步</strong>：§6.23–§6.29 整段重写并新增 §6.27（顾客详情）/ §6.28（会员历史消费），删去指向已废弃页面的描述。<strong>⑩ 口径</strong>：改 <code>index.html</code> / <code>app.js</code> / <code>tier.css</code> / <code>app.css</code> + 本 PRD；已做 <code>node --check app.js</code>；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.44</td>
+<td>2026-10-29</td>
+<td><strong>「官方标准模板」半屏的下载图标换成 Figma 线描图标</strong>。四行下载项右侧原为纯文字箭头 <code>↓</code>（<code>.tpl-row__dl</code> 用 <code>font-size: var(--fs-title-s)</code> 撑开），视觉偏弱、且字形随系统字体浮动。改为 <strong>Stratis UI Icons 的 <code>download-02</code></strong>（Figma node <code>101:2192</code>）：「托盘 + 下箭头」线描图标，<code>viewBox</code> <code>0 0 24 24</code>、渲染 <strong>20×20</strong>、<code>fill="none"</code>、<code>stroke="currentColor"</code>、<code>stroke-width: 2</code>、端点与拐角 <code>round</code>，路径按 Figma 原样内联（未改写坐标）。颜色<strong>沿用行内既有品牌红 <code>#f32f41</code></strong>——由 <code>.tpl-row__dl</code> 的 <code>color</code> 经 <code>currentColor</code> 透传，<strong>SVG 内不写死颜色</strong>，日后换主题色只改 CSS 一处。<code>.tpl-row__dl</code> 同步由「文字 span」改为 <strong>20×20 flex 居中盒子</strong>（<code>flex: 0 0 auto</code>、<code>svg { display: block }</code>），删掉 <code>font-size</code>，行高仍由 <code>padding: 12px</code> + 内容决定（实测 61px）。<strong>PRD 同步</strong>：§6.9.1 由「三行下载项 / 右侧 <code>↓</code>」更正为<strong>四行</strong>并补下载图标规格段；模板表补「价目表 · 产品」一行（<code>RTB店铺产品导入模版.xlsx</code>，8 列），修正此前 6.9.1 只列三份文件、与页面四行不符的历史偏差。<strong>口径</strong>：已做 <code>node --check app.js</code> 与本地 DOM 量测（4 行均为 SVG、20×20、<code>stroke rgb(243,47,65)</code>、<code>fill none</code>、<code>stroke-width 2px</code>、<code>viewBox 0 0 24 24</code>，页面已无 <code>↓</code> 文本箭头）；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.43</td>
+<td>2026-10-29</td>
+<td><strong>价目表数据卡片层级重排 + 库存品类残留全量清理</strong>。<strong>① 层级（方案 A）</strong>：原「大类名 13px/600/#1A1A1A、项目名 14px/500/#1A1A1A」——<strong>大类名比项目名还小、两者同色、价格字重最重</strong>，层级失效（「剪发」既是组名又是项目名时几乎分不清）。改为<strong>大类名降为组眉标</strong>（12px / 500 / <code>#8E8E8E</code>，右侧条数 11px / <code>#B0B0B0</code>，组头内距 <code>12px 0 8px</code>），<strong>项目名升为主信息</strong>（15px / 600 / <code>#1A1A1A</code>），价格同步 15px / 600；三者均固定 <code>line-height: 21px</code>，行高恒 52px、价格块恒 31px，<strong>进入编辑态不产生任何位移</strong>（输入框同步 15px）。作用域用 <code>#checkList.is-price-cat</code> 限定在<strong>价目表·项目 / 价目表·产品</strong>两个 tab，卡模板 / 会员列表的分组标题<strong>不受影响</strong>（实测仍为 13px/600/#1A1A1A）。<strong>② 库存残留清理</strong>（v2.36 起库存已不进导入，本轮把代码里剩下的全部拔掉）：<strong>(a) 有实际影响</strong>——<code>promoteDigestToCheck()</code> 原把 <code>d.domain === 'stock'</code> 映射成 <code>'stock'</code>，会生成 <code>ALL_CATS</code> 之外的第 5 类幽灵行，改为<strong>落回 <code>product</code></strong>；<code>ensureCheckData()</code> 删掉 <code>if (state.importSelection.stock) data.stock = buildStockRows()</code> 与兜底判断里的 <code>data.stock</code>；<code>?capture=import-check</code> / <code>check-help</code> 的演示造数去掉 <code>stock: true</code>。<strong>(b) 状态对象</strong>——<code>importSelection / importSources / importFiles / importPhotos / reimportMode / storeStock</code> 六个对象移除 <code>stock</code> 键（两处 <code>storeStock</code> 重置同步）。<strong>(c) 死代码整块删除</strong>——<code>buildStockRows()</code>（38 行假数据）、<code>CHECK_FIELDS.stock</code>（8 字段）、<code>CHECK_UNIT.stock</code>、<code>checkProblemsStock()</code> 及其 dispatch、<code>checkRowTitle/Sub/Tag</code> 三条 stock 分支、<code>verifyGroupKey / verifyTabMetrics / verifyBoardLabel / verifyBoardItems(order) / addCheckRow / checkCtx</code> 的 stock 分支、<code>verifyRowHtml</code> 的库存行分支、<code>promoteDigestToCheck</code> 里只为库存服务的 <code>spec / unit / qty / cost</code> 字段（<code>stockQty</code> 改为从 <code>f.stockQty || f.qty || 可售数量…</code> 取，价目表·产品照旧带可售数量）。<strong>④ 保留（不是残留）</strong>：<code>#screen-stock-list</code>「库存管理」占位页与 <code>data-flow="stock-list"</code> / <code>data-wb="stock"</code>（线上系统独立模块）；<code>.v3-stock__*</code>（迁移中心「本店已有存量」行样式，仅命名带 stock）；价目表·产品的 <code>stockQty</code> 可售数量列与校验；识别时 <code>/库存|盘点/ → product</code> 的兼容推断（老表仍能落到价目表·产品）。<strong>⑤ PRD 同步</strong>：§6.13.1 类别 tab 由「1–5 类 / 5 类收窄」改为「1–4 类」，§15 类别数、15.7 标题、数据概览、库存校验行、再导 / 整批删除、AC-N05 / AC-N08 一律改为 4 类口径并注明库存商品作废。<strong>⑥ 口径</strong>：改 <code>app.js</code> / <code>tier.css</code> / 本 PRD 与 <code>index.html</code> 版本字样；已做 <code>node --check app.js</code> 与本地 DOM 量测（价目 tab：组头 12px/500/#8E8E8E、项目名 15px/600、价格 15px/600、行高 52、编辑态 1 个输入框且聚焦、名称仍为 <code>SPAN.is-static</code>；卡模板 tab：组头仍 13px/600 不受影响；核对页 tab 只剩 member/card/price/product 四个、顶部类型卡同四个、无库存行）；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.42</td>
+<td>2026-10-29</td>
+<td><strong>水印表头下移取景框内 + 列间竖线 / 步骤条改小圆点方案 C / 价目名称只读仅价格可改 / 核对页顶部类型卡可点跳转</strong>。<strong>① 拍照水印</strong>：表头从「贴取景框上沿」<strong>下移到取景框内</strong>——水印区 <code>inset</code> 由 <code>5% 7% 22%</code> 改为 <code>12% 7% 20%</code>，表头距取景框顶实测 <strong>73px</strong>（取景框高 606px 的 12%）；<strong>表头字段恢复线框</strong>：相邻两格之间画 <strong>4 条竖线</strong>（<code>.cam-wm__table th + th { border-left: 1px solid rgba(255,255,255,.5) }</code>），<strong>不给表头整行加外框</strong>——外框由下方 <code>.cam-wm__rails</code> 的左右竖线与表头底边接着走，视觉上是一个连续的开口框；仍<strong>不画任何表体格线 / 内部网格</strong>，五列仍等宽 67px。<strong>② 步骤条（全原型 6 处统一，方案 C）</strong>：由「22px 圆环 + 中心 7px 点 + 1px 连线（约 40px 高）」改为<strong>小圆点 + 1px 连线</strong>——点容器统一 8px 透明无边框（所有状态同心，连线穿过圆心）；未到达 = 7px 空心环（1px <code>--n-200</code>），已完成 = 6px 实心 <code>--brand</code> 点，当前步 = 8px 实心 <code>--brand</code> 点 + 标签 600；连线 1px / <code>top: 4px</code> / 两端各让 7px；<strong>末位未到达也照常出环</strong>（不再沿用「End 变体只留环不放点」的省略逻辑）；<strong>整条高 28px</strong>。<strong>③ 价目表</strong>：<strong>项目 / 产品的名称改为不可编辑</strong>（渲染为 <code>&lt;span class="verify-row__name is-static"&gt;</code>，无 <code>data-inline-start</code>、无按压底色、光标为默认箭头），<strong>只有价格可点</strong>：点价格 → 该价格原位变输入框（其余不变）+ 下方展开「取消 / 确定」；提交<strong>只校验并写回 <code>price</code></strong>（不再有「名称不能为空」分支，也不再动 <code>name</code>）。<strong>④ 核对页顶部类型卡</strong>：<code>.verify-stat</code> 由 <code>div</code> 改为 <code>button</code>（带 <code>data-check-jump="&lt;类别&gt;"</code> 与 <code>aria-label="查看&lt;类别&gt;数据列表"</code>，重置按钮默认样式 + 按下底色 <code>#EFEFEF</code>）；点击后<strong>切成该类别 tab</strong>（筛选 / 展开态 / 编辑态一并复位）并<strong>平滑滚到下方数据列表顶部</strong>（<code>#checkList</code> 的 <code>scrollIntoView</code>，实测 <code>#checkBody.scrollTop</code> 591、列表顶与滚动容器顶对齐）。<strong>⑤ 口径</strong>：仅改本地原型（<code>app.js</code> / <code>app.css</code> / <code>tier.css</code>，<code>index.html</code> 无改动）+ 本 PRD；已做 <code>node --check app.js</code> 与本地 DOM 量测（水印表头距顶 73px、4 条列间竖线 0.67px·<code>rgba(255,255,255,.5)</code>、五列各 67px；步骤条 28px 高、当前步 8px 实心 / 已完成 6px 实心 / 未到达 7px 空心环、连线 1px；价目行名称为 <code>SPAN</code> 且不可点、编辑态只有 1 个输入框且聚焦价格、行高 52 不变、<code>299</code> 落库为 <code>¥299</code> 且名称不变；顶部卡点击后 tab 切到「价目表·产品」、<code>#checkBody.scrollTop</code> 591、列表顶对齐）；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.41</td>
+<td>2026-10-29</td>
+<td><strong>水印只留表头 + 两侧线框 / 价目行原地变输入框</strong>。<strong>① 水印（拍照页）</strong>：根因是早前把 <code>&lt;table class="cam-wm__table"&gt;</code> 一并写进了 <code>.cam-wm__general</code> 的 <code>display: flex</code> 规则，表格被当成 flex 容器，五列被按内容宽挤压 → 下半部分呈「变形网格」。本版把该规则从 <code>.cam-wm__table</code> 上摘掉（表格恢复 <code>display: table</code>、<code>table-layout: fixed</code>），并<strong>彻底删除表体</strong>：<code>paintCamWatermark()</code> 只输出 <code>&lt;thead&gt;</code> 一行五个表头，<strong>不再渲染任何 <code>&lt;tbody&gt;</code> 行 / 格线 / 文本</strong>。版式改为「表头 + 从表头两侧向下延伸的框体，无内部网格」：表头一行（15px / 600 / 白色、居中、五列等宽各占 20%、不换行不省略）移到取景框上沿附近（<code>inset: 5% 7% 22%</code>，实测表头距取景框顶 30px），其下用 <code>.cam-wm__rails</code> 画<strong>一条上沿（表头底边）+ 左右两条竖线</strong>的开口框体（<code>border-bottom: 0</code>），<strong>不画底部横线、不画任何内部格线</strong>；框体内不再有格子，因此不可能再出现挤压。整体不透明度仍为 <code>.3</code>；框体自带向下渐隐（<code>mask-image</code>：0–42% 全显、100% 透明），表头本身不受蒙版影响、保持清晰。<strong>② 价目表原地编辑</strong>：点名称或价格后<strong>不再把整行重排成表单</strong>——去掉原来的 <code>.verify-row.is-inline-editing</code>（灰底 + 竖向堆叠 + 行高由 44 变 141 的抖动源）。改为：<strong>名称与价格同时原地变成输入框</strong>，两者沿用文字盒模型（同字号 14px、同内距、无边框、透明底、名称左对齐 / 价格右对齐并带绿色 1px 内描边作编辑提示），<strong>右侧上架 / 下架开关保持原位不变</strong>；价格块宽度固定 <code>76px</code>、输入框高度与文字按钮等高 31px，因此进入编辑态时<strong>行高、行位置、名称与价格的左上角坐标全部不变</strong>（实测进入前后 <code>rowTop 737 / rowH 52</code>、名称 <code>737,748,176,31</code>、价格 <code>921,748,76,31</code> 完全一致）。<strong>「取消 / 确定」在该行下方单独一行展开</strong>（<code>.inline-acts</code>，右对齐、30px 高、<code>translateY(-2px)</code> 渐入 160ms），只把该行后的内容轻推下去 <code>42px</code>，不再改变本行布局。校验 / 落库口径不变：名称非空、价格须为数字，<strong>点「确定」才落库</strong>，「取消」/ Esc / 点编辑行以外均不落库。<strong>③ 口径</strong>：仅改本地原型（<code>index.html</code> 加 <code>.cam-wm__rails</code> 节点，<code>app.js</code> / <code>app.css</code> / <code>tier.css</code>）+ 本 PRD；已做 <code>node --check app.js</code> 与本地 DOM 量测（水印 <code>tbody</code> 行数 0、5 列各 67px 等宽无溢出、表头 15px / 31px 高 / 距取景框顶 30px、框体仅上 + 左 + 右三边、总宽 334px 与表头左右边对齐；价目行进入编辑态前后行高 52 / 行首 737 与名称、价格矩形完全一致，下方动作条 42px，点「确定」后价格由 <code>¥68</code> 正确写为 <code>¥128.5</code>）；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.40</td>
+<td>2026-10-29</td>
+<td><strong>卡类型角标分色 / 价目表行内只改名称与价格 / 水印线框等高等距 + 向下渐隐 / 叠图点击飞出收回</strong>。<strong>① 卡类型角标</strong>：储值卡蓝、计次卡粉、折扣卡紫、套餐卡黄、周期卡橙（具体色值见 §6.13 现值口径），仅角标上色，分组标题不上色。<strong>② 价目表</strong>：删掉行内「可开单 · 点按可改」/「上架 · 点按可改」小字；<strong>取消展开详细字段编辑器</strong>——价目表·项目与价目表·产品两类只允许在行内改<strong>名称</strong>和<strong>价格</strong>，点哪格就聚焦哪格（手机直接弹键盘、原值全选），<strong>点「确定」才落库</strong>，点「取消」/ Esc / 点编辑行以外均不落库；校验名称非空、价格必须为数字。<strong>③ 水印</strong>：修掉下半部分「被挤压的网格」——表头与表体行<strong>统一 34px 高</strong>、格内无文本（<code>line-height: 0</code>），并在水印卡上加<strong>向下渐隐蒙版</strong>（24% 前全显、60% 处 62%、94% 起透明），透明度仍为 <code>.3</code>。<strong>④ 叠图动效</strong>：动效对象为<strong>叠图本身</strong>与<strong>点开后出现在上一行（取景区底部）的已选照片</strong>——展开时照片从叠图的实图位置逐一飞向上一行各自格位（46px → 48px、白描边与圆角对齐），真身延后 210ms 淡入避免重影；收起时先量格位坐标再重绘，照片从格位飞回叠图并缩小淡出；多张按 40–45ms 错峰，叠图同时作一次 1 → .86 → 1 的收缩呼应；飞行图 <code>fixed</code> 挂 <code>body</code>、不拦截点击、动画结束移除，<code>prefers-reduced-motion</code> 下不播。<strong>⑤ 口径</strong>：仅改本地原型（<code>index.html</code> 无改动，<code>app.js</code> / <code>app.css</code> / <code>tier.css</code>）+ 本 PRD；已做 <code>node --check app.js</code> 与本地 DOM 走查（水印 6 行均为 34–35px、蒙版已生效、25 个表体格无文本；价目行无小字、无编辑器；点名称聚焦名称、点价格聚焦价格、非法价格不落库、点外部取消；五种卡类型角标取色正确；叠图飞出节点起点 = 图标中心、620ms 后自动移除）；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.39</td>
+<td>2026-10-29</td>
+<td><strong>选源卡按 Figma 410-619 重做 / 拍照取景与快门返修 / 核对页分组与配色返修 / 摘要详情去复制卡 / 完成批重进从头开始</strong>。<strong>① 选源两卡</strong>：直接按 Figma 文件 <code>gxc2uEgKV5jElYrDzdpvmz?node-id=410-619</code> 落地——每卡高 <strong>182px</strong>、圆角 12、<strong>2px 描边</strong>（Excel <code>#E8F8F2</code> / 拍照 <code>#EEF5FC</code>）、左 <strong>96×84</strong> 插图（该节点两个 SVG 原样内联）、右标题 <strong>16px / 700 / #333 / 行高 24</strong>、副文 <strong>12px / #6B6B6B / 行高 18</strong>，内距 <code>10 / 14 / 10 / 10</code>、图文间距 14、两卡间距 10；文案改设计值「表格文件 · xls / xlsx / csv」「纸质价目表、手写本，对准拍」。<strong>② 拍照-相册入叠图</strong>：相册勾选或预览里「选择这张」后，照片即刻进入快门左侧叠图（顶层 = 最新一张，46px + 1px 白描边 + 白边阴影），并自动展开已选栏以便看到 × 取消。<strong>③ 拍照-快门白屏</strong>：根因是 <code>.import-camera__vf.is-flash::after</code> 的动画缺 <code>fill-mode</code>，动画结束回落到基础样式（白底 opacity 1）→ 取景常白；改为基础态 <code>opacity: 0</code> + <code>animation-fill-mode: forwards</code> + <code>pointer-events: none</code>，并在 320ms 后由脚本摘除 <code>is-flash</code>。<strong>④ 拍照-水印</strong>：去掉全部示例数值行，<strong>只留线框 + 表头一行</strong>（4 套模板轮换不变），不透明度 <code>.6 → .3</code>、线 <code>rgba(255,255,255,.85) → .5</code>，不再有类别小标题。<strong>⑤ 拍照-取景框</strong>：四角括号保留（2px <code>#F32F41</code>、22×22），恢复此前被删的<strong>扫描线</strong>（<code>.cam-scan</code>，2.6s 往复），并把取景框层级提到水印之上（水印 z1 / 取景 z2 / 扫描线 z3）。<strong>⑥ 拍照-标题栏</strong>：删右侧「已拍 N 张」小字（DOM 与脚本同步清理），标题栏只留返回 + 「拍照」。<strong>⑦ 核对-配色</strong>：每张分项卡加 <code>is-c0..c4</code>，<strong>大数值与数值条统一取该分项色</strong>，与上方分段条、图例一一对应（原数值条写死绿色）。<strong>⑧ 核对-会员</strong>：会员是「人」不是卡模板，<strong>取消按卡类型分组</strong>，改平铺单卡；行副标改为「会员编号 · 手机号（中间四位打码）· 卡名」。<strong>⑨ 核对-卡模板</strong>：卡类型大卡内<strong>每张卡各自成卡</strong>（卡名 + 类型角标 + 充值 / 折扣 / 有效期 / 持卡四项 + 适用范围 + 上架开关），上架开关行为不变。<strong>⑩ 摘要详情</strong>：删顶部带「复制」的原文卡，页面直接从「已识别字段」开始。<strong>⑪ 完成批重进</strong>：新增 <code>resetImportBatch()</code>；当批次状态为 <code>done</code>（或恢复点为完成页）时，从首页 banner / 工作台再次进入先清空待识别池、识别结果与核对态并置回 idle，再按存量落到「本店概况」（有存量）或「选择导入方式」（无存量），不再停在成功页。<strong>⑫ 口径</strong>：仅改本地原型（<code>index.html</code> / <code>app.js</code> / <code>app.css</code> / <code>tier.css</code>）+ 本 PRD；已做 <code>node --check app.js</code>，并按规格做了本地 DOM 量测冒烟（选源卡 341×182 / 2px 描边 / 96×84 插图 / 16px·12px 字、水印表头 5 列 + 5 行空白格（无任何文字）且 opacity .3、扫描线与取景框层级、闪光 500ms 后 <code>::after</code> 已无内容、分项卡与分段条取色一致、会员平铺无分组、卡模板 8 张卡砖与上架开关、摘要详情无复制卡、完成批重进落到选择导入方式）；<strong>未跑断言脚本、未截图、未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.38</td>
+<td>2026-10-29</td>
+<td><strong>引导下载卡 / 选源大卡 / 拍照水印与相册 / 核对顶卡返修</strong>。<strong>① 引导</strong>：引导页下载卡加 <code>.tpl-promo--full</code> 并改竖向排布——上区保留原「标题 + 副文 + 下载按钮」，下区四行清单左类名右 Excel 图标 + 文件名，行高 44、末行无分隔线（上传页同款卡不受影响）。<strong>② 选源</strong>：两枚<strong>大卡</strong>（每枚高 172px、合计约 356px，占内容区一大半；短屏 156px），左 88×88 图标、右标题 21px / 副文 13px；下方待识别清单保留。<strong>③ 拍照</strong>：删顶部「无法调用相机，已切换演示模式」提示条（降级逻辑仍保留、不再展示）；水印改为<strong>白色线框 + 白字 + 半透</strong>的大表格（约 86% 宽、贴取景框），4 套模板每 3s 轮换；左侧相片叠层仅最上一张显示实图，下面两层为灰阶层次。<strong>④ 相册</strong>：每张缩略图右上角勾选组件（选中红底白勾），点缩略图开全屏黑底预览（× 关闭、左右切换、底部选择 / 取消选择）；已选栏缩略图右上角 × 可取消。<strong>⑤ 核对</strong>：恢复顶部数据预览卡（<code>verify-board</code>：分布条 + 图例 + 分项网格），仅删「N 即将导入」总数文案与「另有 N 条未达入库门槛…不会写入」提示。<strong>⑥ 口径</strong>：仅改本地原型 + 本 PRD；已做 <code>node --check app.js</code> 与本地 DOM 量测冒烟（选源卡 172px×2、引导卡四行纵向、水印 334/389 白线白字、相册勾选/预览/× 与核对顶卡 4 格均已渲染）；未跑断言脚本、未截图、未提交。</td>
+</tr>
+<tr>
+<td>v2.37</td>
+<td>2026-10-29</td>
+<td><strong>引导/选源/拍照/识别中/核对返修（A D2 E1 F1 H1）</strong>。<strong>① 模板</strong>：四类对齐官方文件（产品用 <code>RTB店铺产品导入模版.xlsx</code>）；docs-pick 去掉「全部」；引导下载卡左类名右 Excel 图标+文件名。<strong>② 选源</strong>：方案 A 双横条入口。<strong>③ 拍照</strong>：线框表格水印轮换；相册贴页底默认露半张；底栏左叠图/中快门/右提交对称；演示相册图。<strong>④ 识别中</strong>：三步右侧灰字分别轮播文件名/类别/字段；回首页 caption 居中；清 banner mute 保证续进。<strong>⑤ 核对</strong>：删顶区门槛话术与「识别结果」入口；卡/价目行内上架下架（均导入）；修价目点按编辑；会员点行只读详情 sheet；未达门槛灰区保留。仅本地 + PRD；已做 <code>node --check app.js</code>；未截图、未导 Figma、未提交。</td>
+</tr>
+<tr>
+<td>v2.36</td>
+<td>2026-10-29</td>
+<td><strong>导入主链大改（E2/F1/G2/H1/I1）</strong>。<strong>① 引导</strong>：删拍表格橙块；模板卡列可下文件并与上方间距 ≥12；底栏去红注；标题栏 ···「识别摘要 / 原始存档」进 <code>docs-pick</code> 选类后再进列表，另加「导出店内数据」（演示 toast）。<strong>② 再导</strong>：一律清空再导，下线合并半屏；选源/核对温和警告条。<strong>③ 步骤条</strong>：统一 3 步（提供→识别→核对）并克制化。<strong>④ 去红底脚注</strong>：主链改为灰字 / soft-tip。<strong>⑤ 类别</strong>：去掉库存导入，保留会员 / 卡 / 价目项目 / 价目产品。<strong>⑥ 选源</strong>：大卡 + 精简清单 + 开始识别。<strong>⑦ 识别中</strong>：过程文案轮播 + 回首页；结束直进核对。<strong>⑧ 核对</strong>：主页；识别结果 / 确认有效项为子页；G2 未确认先进确认；卡行有效期·持卡；价目可编。<strong>⑨ 成功页</strong>：删第二块已入库明细；文案「已导入」。<strong>⑩ 拍照</strong>：相册抽屉、左侧叠图、提交、水印 4 套轮换。仅改本地原型 + 本 PRD；已做 <code>node --check app.js</code>；未跑自动化断言、未截图、未导 Figma、未提交。</td>
+</tr>
 <tr>
 <td>v2.35</td>
 <td>2026-10-29</td>
@@ -544,13 +594,18 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 <tr>
 <td>历史消费导入</td>
-<td>独立链路：说明 / 上传 Excel / 指定日期·金额·顾客姓名 / 核对 / 结果 / 失败明细（下载失败行，不站内补录）；仅 Excel，无拍照</td>
-<td>§6.20–§6.27</td>
+<td><strong>复用通用导入流程</strong>（选择导入方式 → 上传 Excel → 识别 → 核对 → 完成），<code>importMode='history'</code> 下只出 Excel、隐藏模板下载、<strong>无人工作字段映射</strong>；分档仅两层（识别摘要 / 原始存档）；核对页按月卡片、行可点</td>
+<td>§6.23–§6.26</td>
+</tr>
+<tr>
+<td>会员历史消费</td>
+<td>会员列表 → 顾客详情（占位）→「历史消费」；按<strong>顾客姓名</strong>挂靠会员，年份卡片 + 逐条「解除」（记录仍留历史订单）</td>
+<td>§6.27 / §6.28</td>
 </tr>
 <tr>
 <td>历史订单</td>
 <td>工作台「店铺管理」入口；时间倒序流水 + 自定义时间 / 金额区间 / 姓名搜索 + 独立详情（原始字段）+ 整批删除</td>
-<td>§6.28 / §6.29</td>
+<td>§6.20–§6.22</td>
 </tr>
 <tr>
 <td>失败闭环</td>
@@ -856,21 +911,23 @@ flowchart LR
 </div>
 <div class="mermaid">
 flowchart LR
-  R[导入完成] -->|去导入历史消费记录| HU[导入历史消费 · 合并页]
-  HO[历史订单列表] -->|导入| HU
-  HU -->|页头「说明」| HI[[说明半屏]]
-  HU -->|选择文件 · 就地展开| HM[指定字段 · 同页第 2 段]
-  HM -->|下一步：核对| HP[核对历史数据]
-  HP -->|确认无误，导入| HR[历史消费导入完成]
+  R[导入完成] -->|去导入历史消费记录| HS[选择导入方式 · 历史模式 · 仅 Excel]
+  HO[历史订单列表] -->|导入| HS
+  HS -->|上传 Excel| HSrc[上传 Excel]
+  HSrc -->|开始识别| HA[AI 识别中]
+  HA -->|只有两层| HC[识别结果 · 识别摘要 / 原始存档]
+  HC -->|去核对| HP[核对历史数据 · 按月卡片]
+  HP -->|确认导入历史消费| HR[导入完成 · 历史模式]
   HR -->|查看| HO
-  HR -->|失败明细| HF[历史消费失败明细]
-  HF -->|下载失败行| DL[下载 .xls]
-  HR -->|删除本批历史消费| HD[删除确认]
-  HD -->|确认| HO
   HO -->|点行| HDT[历史订单详情 · 只读]
+  HP -->|点明细行| HDT
+  MEM[会员列表] -->|点行| MD[顾客详情 · 占位]
+  MD -->|历史消费| MH[会员历史消费 · 年份卡片]
+  MH -->|点消费行| HDT
+  MH -->|解除| MU[解除匹配 · 记录仍留历史订单]
   HO -->|筛选| HFT[[筛选半屏]]
 </div>
-<p><strong>关键口径</strong>：主链只有一条 —— <strong>引导 → 类型（每类选来源）→ 拍照 / 上传 → 待识别内容 → AI 标准表转换 → 数据概览 → 确认传输 → 结果</strong>；<strong>待识别内容是 Excel 与照片的唯一合并确认点</strong>，<strong>数据概览是唯一的核对与传输入口</strong>（行内即可改，无需再跳回上游），分类明细是概览的下级只读页，失败补录是结果的旁支闭环。历史消费是<strong>第二条独立链路</strong>（合并页选文件 + 指定三列 → 核对 → 结果，说明收进页头半屏），只从结果页次按钮与历史订单页进入，<strong>不混入类型页</strong>。除「添加卡 / 补录老卡」为右侧滑入的独立页外，其余均为同层 screen 整页切换。</p>
+<p><strong>关键口径</strong>：主链只有一条 —— <strong>引导 → 类型（每类选来源）→ 拍照 / 上传 → 待识别内容 → AI 标准表转换 → 数据概览 → 确认传输 → 结果</strong>；<strong>待识别内容是 Excel 与照片的唯一合并确认点</strong>，<strong>数据概览是唯一的核对与传输入口</strong>（行内即可改，无需再跳回上游），分类明细是概览的下级只读页，失败补录是结果的旁支闭环。<strong>历史消费（v2.45）不再是独立链路</strong>：它<strong>复用同一套流程页</strong>（只出 Excel、只有两层、核对页按月卡片），从结果页次按钮与历史订单页进入，<strong>不混入类型页</strong>；会员侧另有一条只读旁路 <strong>会员列表 → 顾客详情 → 会员历史消费</strong>，按姓名挂靠、可逐条解除。除「添加卡 / 补录老卡」为右侧滑入的独立页外，其余均为同层 screen 整页切换。</p>
 <h2>3.1 页面树</h2>
 <pre><code>开店入驻与数据迁移
 ├─ 开店入驻
@@ -903,13 +960,11 @@ flowchart LR
 ├─ 历史订单（只读旁路）
 │   ├─ 历史订单列表（搜索 + 筛选 + 汇总 + 按月分组的粘性组头 + 空态）
 │   ├─ 筛选半屏（时间区间 / 金额区间）
-│   ├─ 历史订单详情（已识别三项 + 原始字段 · 两列 diff · 只读）
-│   └─ 历史消费导入
-│        ├─ 导入历史消费（<strong>v2.15：选文件后先给「AI 已识别 + 6 行样例」</strong>；点「数值不对？手动指定字段」才展开日期 / 金额 / 顾客姓名三项映射）
-│        │    └─ 说明半屏（不进流水 / 仅 Excel / 只认三项 · 页头「说明」唤起）
-│        ├─ 核对历史数据（汇总 + 抽 5 条 + 失败提示）
-│        ├─ 导入完成（条数 + 查看 + 失败入口 + 整批删除）
-│        └─ 失败明细（行号 + 原因 + 三列 diff；仅下载失败行）
+│   ├─ 历史订单详情（已识别三项 + 原始字段 · 两列 diff · 只读；返回按来源回退）
+│   └─ 历史消费导入（<strong>v2.45 复用通用流程</strong>：选择导入方式 · 仅 Excel → 上传 Excel → AI 识别中 → 识别结果 · 仅两层 → 核对历史数据 · 按月卡片 → 导入完成）
+├─ 会员侧（只读旁路）
+     ├─ 顾客详情（示意占位：档案卡 + 消费明细 · 历史消费入口 · 同名提示）
+     └─ 会员历史消费（年份卡片 → 展开消费行 → 订单详情；行尾「解除」解除挂靠）
 └─ 弹层 / 浮球
      ├─ 导入邀请半屏
      ├─ 数据迁移浮球 + 浮球关闭确认
@@ -923,8 +978,6 @@ flowchart LR
      ├─ 再导模式半屏（合并 / 清空本类 · 强制二选一）
      ├─ 历史再导半屏（追加 / 先删再导）
      ├─ 历史订单筛选半屏
-     ├─ 历史消费导入说明半屏（不进流水 / 仅 Excel / 只认三项 · 页头「说明」唤起）
-     ├─ 删除本批历史消费确认 Dialog
      └─ 导入进度层（v2.1：识别 / 正式传输 / 历史消费导入共用；原全屏仪式层已删除）
 </code></pre>
 <p><strong>占位提示</strong>：树里「开店入驻」4 屏（登录 / 认领门店 / 确认门店信息 / 分流）、「落点」2 屏（首页 / 工作台），以及「会员列表 / 会员卡模板列表 / 价目表」与「添加卡 / 补录老卡」共 <strong>11 屏为示意占位</strong> —— 线上系统已有真实页面，实际开发以线上为准，设计改造跳过，详见 §3.5。</p>
@@ -1140,7 +1193,7 @@ flowchart LR
 <td>会员列表</td>
 <td>整页 · 示意占位</td>
 <td>导入结果「查看」会员</td>
-<td>返回结果页；点行 → 演示 toast「会员详情占位」</td>
+<td>返回结果页；点行 → 顾客详情（<code>member-detail</code>，示意占位）</td>
 </tr>
 <tr>
 <td>21</td>
@@ -1164,7 +1217,7 @@ flowchart LR
 <td>历史订单</td>
 <td>整页 · 只读旁路</td>
 <td>工作台「店铺管理 · 历史订单」/ 结果页查看</td>
-<td>返回工作台；「导入」→ 合并页；筛选半屏；点行 → 详情</td>
+<td>返回工作台；「导入」→ 通用「选择导入方式」（历史模式，仅 Excel）；筛选半屏；点行 → 详情</td>
 </tr>
 <tr>
 <td>24</td>
@@ -1172,42 +1225,27 @@ flowchart LR
 <td>历史订单详情</td>
 <td>整页 · 只读</td>
 <td>历史订单列表点行</td>
-<td>返回列表</td>
+<td>返回来源页（历史订单列表 / 核对页 / 会员历史消费，按 <code>state.historyReturnFlow</code>）</td>
 </tr>
 <tr>
 <td>25</td>
-<td><code>history-import-upload</code></td>
-<td>导入历史消费（选文件 → <strong>AI 已识别 + 样例行</strong> → 按需展开指定字段）</td>
-<td>整页 · v2.8 合并两屏 / v2.15 改「样例优先」</td>
-<td>结果页「去导入历史消费记录」/ 历史订单页「导入」/ 空态按钮</td>
-<td>页头「说明」→ 说明半屏；选文件后<strong>先出三项识别结果 + 6 行样例</strong>，映射收在「数值不对？手动指定字段」之后；「下一步：核对」→ 核对页（未选文件为禁用态）</td>
+<td><code>member-detail</code></td>
+<td>顾客详情</td>
+<td>整页 · 示意占位</td>
+<td>会员列表点行</td>
+<td>返回会员列表；「消费明细 · 历史消费」→ 会员历史消费（§6.28）</td>
 </tr>
 <tr>
 <td>26</td>
-<td><code>history-import-preview</code></td>
-<td>核对历史数据</td>
-<td>整页 · 唯一可导入</td>
-<td>合并页「下一步：核对」</td>
-<td>返回合并页（不丢文件与映射）；确认 → 结果</td>
-</tr>
-<tr>
-<td>27</td>
-<td><code>history-import-result</code></td>
-<td>历史消费导入完成</td>
-<td>整页 · 成功态</td>
-<td>核对页确认导入</td>
-<td>查看历史订单 / 失败明细 / 整批删除 / 返回工作台</td>
-</tr>
-<tr>
-<td>28</td>
-<td><code>history-import-fail</code></td>
-<td>历史消费失败明细</td>
-<td>整页</td>
-<td>结果页失败条</td>
-<td>返回结果；下载失败行（toast）</td>
+<td><code>member-history</code></td>
+<td>会员历史消费（年份卡片 + 逐条解除）</td>
+<td>整页 · 只读（可解除挂靠）</td>
+<td>顾客详情「历史消费」入口</td>
+<td>返回顾客详情；点行 → 历史订单详情（返回回本页）；「解除」→ 从本会员名下移出（§6.28）</td>
 </tr>
 </tbody>
 </table>
+<p><strong>v2.45 屏幕变更</strong>：删除 <code>history-import-upload</code> / <code>history-import-preview</code> / <code>history-import-result</code> / <code>history-import-fail</code> 四屏，历史消费导入<strong>复用 08–17 的通用流程页</strong>（<code>import-select</code> 起到 <code>import-result</code> 止，靠 <code>state.importMode='history'</code> 切换文案与分档）；新增 <code>member-detail</code> / <code>member-history</code> 两屏。</p>
 <h2>3.3 弹层 / 浮球 / 对话框</h2>
 <table>
 <thead>
@@ -1286,10 +1324,10 @@ flowchart LR
 <td>查看结果 / 重置（不清输入框）/ 点遮罩</td>
 </tr>
 <tr>
-<td>删除本批历史消费</td>
-<td><code>historyDelDialog</code> / <code>historyDelMask</code></td>
-<td>历史消费结果页「删除本批历史消费」</td>
-<td>先不删 / 点遮罩 / 确认删除</td>
+<td>整批删除历史消费（v2.45 起无专用弹层）</td>
+<td>—</td>
+<td>回滚入口保留在历史订单页（标题栏 ···），<strong>不</strong>在导入完成页提供删除按钮</td>
+<td>—</td>
 </tr>
 <tr>
 <td>微信「文件传输助手」引导</td>
@@ -1342,11 +1380,11 @@ flowchart LR
 </tr>
 <tr>
 <td>历史订单</td>
-<td><code>history-orders</code> · <code>history-detail</code> · <code>history-import-upload</code>（合并页；说明为其半屏 <code>#historyIntroSheet</code>） · <code>history-import-preview</code> · <code>history-import-result</code> · <code>history-import-fail</code></td>
+<td><code>history-orders</code> · <code>history-detail</code>（导入复用 <code>import-select</code>–<code>import-result</code>，历史模式）</td>
 </tr>
 <tr>
 <td>查看落点</td>
-<td><code>members</code> · <code>card-list</code> · <code>price-list</code></td>
+<td><code>members</code> · <code>member-detail</code> · <code>member-history</code> · <code>card-list</code> · <code>price-list</code></td>
 </tr>
 </tbody>
 </table>
@@ -1979,7 +2017,7 @@ flowchart LR
 </tr>
 </tbody>
 </table>
-<p><strong>历史消费再导入</strong>：列表有数据时点「导入」→ 半屏二选一「追加导入」（按行追加、不去重）/「先整批删除再导入」（走删除确认后进合并页）。空列表直接进合并页（§6.24）；说明随时可从该页页头「说明」拉起。</p>
+<p><strong>历史消费再导入</strong>：列表有数据时点「导入」→ 半屏二选一「追加导入」（按行追加、不去重）/「先整批删除再导入」；两者都进入<strong>通用「选择导入方式」（历史模式）</strong>。空列表直接进该页（§6.23）；<strong>v2.45 起不再有「说明」半屏</strong>，要点已并入选择页提示行。</p>
 <p><strong>不做</strong>：静默覆盖全店；跨类别一键覆盖；历史自动去重；断点续传（中途退出再进从概况 / 引导重新开始）。</p>
 <h2>5.6 整批删除</h2>
 <table>
@@ -2512,7 +2550,7 @@ flowchart LR
 <h3>④ 工作台入口</h3>
 <ul>
 <li>「工作台 → 店铺管理 → 数据迁移」瓦片（第 9 个）→ 流程引导，<strong>只负责会员与持卡信息 / 会员卡模板 / 价目表</strong>。  </li>
-<li>「工作台 → 店铺管理 → 历史订单」瓦片（第 10 个）→ 历史订单列表（§6.20）；页内「导入」→ 历史消费导入合并页（§6.24），说明收在同页页头「说明」半屏（§6.23）。  </li>
+<li>「工作台 → 店铺管理 → 历史订单」瓦片（第 10 个）→ 历史订单列表（§6.20）；页内「导入」→ 通用「选择导入方式」<strong>历史模式</strong>（§6.23），只出 Excel。  </li>
 <li>工作台其他瓦片为演示 toast「演示占位」；底部 tab 仅「首页 / 工作台」可切。  </li>
 <li><strong>入口不混用</strong>：历史消费<strong>只能</strong>从「导入完成页文字链」与「历史订单页导入」进入，不出现在数据迁移的类型页里。</li>
 </ul>
@@ -2584,6 +2622,10 @@ flowchart LR
 <tr>
 <td>注意事项（2 条 · 无标题）</td>
 <td>卡模板与价目表<strong>同批导入</strong>，分两个表上传<br />历史消费<strong>单独导入</strong><br /><strong>只保留会影响用户操作顺序的 2 条，不加小标题、每条一行；同类 3 个表的上限在上传页就地提示，不在本页占用注意力</strong></td>
+</tr>
+<tr>
+<td>模板下载卡</td>
+<td>白卡<strong>竖排</strong>：上区「用官方标准模板填写，可完美识别导入」+ 副文案 + 右侧「下载」按钮；下区四行下载清单——<strong>左侧类别标签，右侧 Excel 图标 + 文件名</strong>，行高约 44px、末行无分隔线。</td>
 </tr>
 <tr>
 <td>底部</td>
@@ -2759,7 +2801,8 @@ flowchart LR
 </table>
 <p><strong>口径</strong>：本页<strong>一次只呈现一类</strong>，避免三类并列造成篇幅与干扰；类别顺序与类型页一致（会员与持卡信息 → 会员卡模板 → 价目表）。本页<strong>不再选来源</strong>（来源已在上一步按类确定）；若本批还有类别没选来源，本页不静默丢弃，回类型页补齐。<strong>「标准模板」是可选加速项，不是前置条件</strong>：用户拿任意导出表直接上传即可，AI 负责对齐；只有当 AI 转换不完整或用户希望自己核对时才需要下模板。因此页面上不再出现「按列名整理首行」的引导，也不再有逐列修改表头的入口。v2.1 起 <strong>AI 转换入口按「已选文件」条件出现</strong>（<code>state.uploadStd[cat]</code> 记录「按标准模板填写」开关，默认 <code>false</code> = 走 AI 转换），未选文件时页面不出现任何 AI 说明，避免用户在上传前先读一段解释。</p>
 <h3>6.9.1 官方标准模板（下载半屏）</h3>
-<p>上传页「下载标准模板（可选）」打开底部半屏（<code>#tplSheet</code>，遮罩 <code>#tplMask</code>，点遮罩或「关闭」收起）。三行下载项各占一行：左侧 <code>XLS</code> 角标、中间标题 + 一行列名摘要、右侧 <code>↓</code>；点行直接下载仓库内的官方模板文件。</p>
+<p>上传页「下载标准模板（可选）」打开底部半屏（<code>#tplSheet</code>，遮罩 <code>#tplMask</code>，点遮罩或「关闭」收起）。<strong>四行</strong>下载项各占一行：左侧 <code>XLS</code> 角标、中间标题 + 一行列名摘要、右侧<strong>下载图标</strong>；点行直接下载仓库内的官方模板文件。</p>
+<p><strong>下载图标（v2.44）</strong>：由纯文字箭头 <code>↓</code> 换成线描「托盘 + 下箭头」图标（源自 Stratis UI Icons / <code>download-02</code>，Figma node <code>101:2192</code>）。规格：<code>viewBox</code> <code>0 0 24 24</code>、渲染尺寸 <strong>20×20</strong>、<code>fill="none"</code>、<code>stroke="currentColor"</code>、<code>stroke-width: 2</code>、端点 <code>round</code>；颜色沿用行内既有品牌红 <code>#f32f41</code>（由 <code>.tpl-row__dl</code> 的 <code>color</code> 透传，<strong>不在 SVG 内写死颜色</strong>）。<code>.tpl-row__dl</code> 为 <strong>20×20</strong> flex 居中容器、<code>flex: 0 0 auto</code>，不参与行高计算，<strong>不应</strong>再出现文字箭头或 <code>font-size</code>。</p>
 <table>
 <thead>
 <tr>
@@ -2784,6 +2827,11 @@ flowchart LR
 <td><code>excel模板/RTB店铺价目表导入文档模版-v1.xls</code></td>
 <td><strong>8 列</strong>：序号（每次最多 200 条）/ 项目名 / 项目组（不存在则作为自定义新增）/ 价格 / 可开单与否（不填为是）/ 置顶与否（不填为否）/ 服务时长（分钟，可空）/ 连锁店编码</td>
 </tr>
+<tr>
+<td>价目表 · 产品</td>
+<td><code>excel模板/RTB店铺产品导入模版.xlsx</code></td>
+<td><strong>8 列</strong>：序号 / 产品名称 / 产品分类 / 产品售价 / 会员价 / 是否上架 / 可售数量 / 适用门店；与「价目表 · 项目」分列两行下载，导入后在核对页各占一个 tab</td>
+</tr>
 </tbody>
 </table>
 <p><strong>半屏文案（v2.29）</strong>：标题「官方标准模板」，副文案「按官方标准模板填写，可完美识别导入。」；三行下载项标题分别为「会员资料（24 列 · 一行一张卡）」「卡模板（5 类分 sheet）」「价目表（8 列 · 单批 ≤ 200 行）」，各带一行列名摘要；底部一句「其它表格也能识别，可能要多核对几行。」。<strong>入口</strong>：引导区与上传 Excel 页各有一张 <code>.tpl-promo</code> 推荐卡（主文强调完美识别 + 「下载模板」按钮）；选源页脚注同步提示模板更准、其它表也能认。</p>
@@ -2791,15 +2839,24 @@ flowchart LR
 <h2>6.10 拍照识表与「确认待识别内容」</h2>
 <h3>6.10.1 拍照页</h3>
 <ul>
-<li><strong>外壳</strong>：标题栏保持全站统一白底（返回 24px 描边图标 + 标题「拍照识别」+ 右侧「<strong>已拍 N 张</strong>」，<code>--fs-caption</code> + 等宽数字）；标题栏以下的拍照区为深色壳 <code>#2B2B2B</code>。  </li>
-<li>顶栏（深色区内）：类别名（16px / 600 / 白色）+ 1px 白色 28% 竖分隔 + 提示「<strong>对准表格四角，可连拍</strong>」（11px / 白色 62%）。  </li>
-<li>取景区：真实相机流（后置优先，<code>object-fit: cover</code>）+ <strong>四角取景括号</strong>（4 个 22×22 直角，2px <code>--brand</code>，只画角、不画整框）+ <strong>扫描线</strong>（1.5px <code>--brand</code>、左右各留 9% 内缩，2.6s 自 10% 往复到 90% 并淡入淡出）+ 底部提示「保持表格完整入框」（11px / 白色 72%）。  </li>
-<li><strong>相机降级</strong>：环境无法取流（无权限、无摄像头、非安全上下文）→ 自动切演示模式，取景区<strong>上方</strong>出降级条「无法调用相机，已切换演示模式」（橙底 16% + 米橙字）+ 右侧 24px「<strong>重试</strong>」描边钮（重新申请取流，不刷新页面）；<strong>不阻断流程</strong>，演示照片为带类别名与序号的表格样张。  </li>
-<li><strong>连拍</strong>：64px 白色快门（3px 白环 + 52px 白实心内圆，按下内圆缩至 0.94）→ 取景区白色闪光 0.28s → 照片<strong>立即计入该类别</strong>并进入缩略图条，计数 +1，toast「已拍第 N 张」；不设张数上限。  </li>
+<li><strong>外壳</strong>：标题栏保持全站统一白底（返回 24px 描边图标 + 标题「<strong>拍照</strong>」），<strong>右侧不再有「已拍 N 张」</strong>（v2.39 删除，DOM 与脚本同步清理）；标题栏以下的拍照区为深色壳 <code>#2B2B2B</code>。  </li>
+<li><strong>取景水印</strong>：取景区覆盖<strong>白色线框 + 白色表头</strong>的半透大表格水印（约 86% 宽、贴取景框，无白色底卡）；<strong>只画表头与框体，不画表 body</strong>；整体不透明度约 <strong>0.3</strong>、线 <code>rgba(255,255,255,.5)</code>；4 套表头（会员资料 / 卡模板 / 价目表·项目 / 价目表·产品）每 3s 轮换，仅作取景辅助，不拦截点击。  </li>
+<li><strong>v2.42 修整（现行）</strong>：<strong>表头下移到取景框内 + 恢复表头字段线框</strong>——水印区 <code>inset</code> 改为 <code>12% 7% 20%</code>，表头距取景框上沿约 <strong>73px</strong>（不再贴顶）；相邻两格之间画 <strong>4 条竖线</strong>（1px <code>rgba(255,255,255,.5)</code>）作列分隔，<strong>表头不加整行外框</strong>（外框由下方左右竖线 + 表头底边接着走）；<strong>表头以下仍无任何表体格线 / 内部网格</strong>，五列保持等宽（实测各 67px）。  </li>
+<li><strong>v2.41 修整（表体删除）</strong>：<strong>表体整块删除</strong>——<code>paintCamWatermark()</code> 只输出 <code>&lt;thead&gt;</code> 一行五个表头，<strong>DOM 中不存在任何 <code>&lt;tbody&gt;</code> 行、竖线、横线与格内文本</strong>，从根上消除「下半部分网格被挤压变形」。版式为<strong>「表头 + 从表头两侧向下延伸的框体，无内部网格」</strong>：  <ul>
+<li><strong>表头</strong>：一行五列、<strong>等宽各占 20%</strong>、<code>text-align: center</code>、15px / 600 / 纯白、不换行不省略；位置距取景框顶约 30px（水印区 <code>inset: 5% 7% 22%</code>、高约 31px）——<strong>v2.42 已改为 <code>12% 7% 20%</code>、距顶 73px 并恢复列间竖线，以 v2.42 为准</strong>；字号较此前 13px 放大到 <strong>15px</strong>。  </li>
+<li><strong>框体</strong>：表头下方 <code>.cam-wm__rails</code> 只画<strong>上沿一条（即表头底边）+ 左右两条竖线</strong>，<code>border-bottom: 0</code>——即一个<strong>开口的线框</strong>，左 / 右竖线与表头左右边严格对齐（同宽 334px）；框体内<strong>不放任何格子</strong>。  </li>
+<li><strong>渐隐</strong>：蒙版只加在框体上（0–42% 全显 → 100% 透明），表头本身不加蒙版、保持清晰。  </li>
+<li><strong>根因备忘</strong>：<code>.cam-wm__table</code> 曾被并入 <code>.cam-wm__general</code> 的 <code>display: flex</code> 规则，导致 <code>&lt;table&gt;</code> 被当成 flex 容器、五列按内容宽挤压 —— 现该规则已与 <code>.cam-wm__table</code> 解耦，表格恢复 <code>display: table</code> + <code>table-layout: fixed</code>，五列恒等宽。  </li>
+</ul></li>
+<li>取景区：真实相机流（后置优先，<code>object-fit: cover</code>）+ <strong>四角取景括号</strong>（4 个 22×22 直角，2px <code>--brand</code>，只画角、不画整框）+ <strong>扫描线</strong>（1.5px 品牌色，2.6s 从 10% 扫到 90% 往复）；层级为水印 1 / 取景框 2 / 扫描线 3，取景辅助元素始终压在水印之上。  </li>
+<li><strong>相机降级</strong>：环境无法取流（无权限、无摄像头、非安全上下文）→ 自动切演示模式，演示照片为带类别名与序号的表格样张；<strong>页面上不再展示降级提示条</strong>，也不阻断流程。  </li>
+<li><strong>连拍</strong>：64px 白色快门（3px 白环 + 52px 白实心内圆，按下内圆缩至 0.94）→ 取景区白色闪光 0.28s → 照片<strong>立即计入该类别</strong>并进入缩略图条，计数 +1，toast「已拍第 N 张」；不设张数上限。<strong>闪光必须真正消失</strong>：<code>::after</code> 基础态 <code>opacity: 0</code> + 动画 <code>forwards</code>，并在 320ms 后摘除 <code>is-flash</code>，不允许动画结束后回落成不透明白底把取景盖死。  </li>
+<li><strong>左侧叠图</strong>：底栏左侧相片图标只把<strong>最上面一张</strong>显示为真实照片（46×46、1px 白描边 + 白边投影），下面两层为灰阶层次占位；<strong>相册选中的照片与快门拍的照片同等对待</strong>，选完即刷新为最新一张并自动展开已选栏；点叠图展开已选照片栏。<strong>v2.40：动效对象是「叠图」与「点开后出现在上一行（取景区底部）的已选照片」本身</strong>，两者做<strong>共享元素过渡</strong>：<strong>展开</strong>时，叠图顶部那张（以及已选各张）依次从叠图的实图位置飞向上一行里各自的格位，由 46px 放大到 48px、圆角与白描边随之对齐；真身照片延后 210ms 再淡入并放大到 <code>scale(1)</code>，避免与飞行图重影；<strong>收起</strong>时相反——先量出各格位坐标再重绘，照片从格位飞回叠图并缩到 46px、淡出消失。多张时按 40–45ms 逐张错峰，叠图本身同时做一次 <code>1 → .86 → 1</code> 的轻微收缩（约 380ms）呼应。飞行图 <code>position: fixed</code> 挂 <code>body</code>、<code>z-index: 9999</code>、<code>pointer-events: none</code>，起点与终点都用 <code>getBoundingClientRect</code> 实测（<code>?mobile=1</code> 的等比缩放下同样对齐），动画结束即移除节点。<code>prefers-reduced-motion</code> 下整体不播，直接切换。  </li>
+<li><strong>相册抽屉</strong>：贴页面最底部、默认只露把手（约 56px），点把手展开；网格为 4 列演示相册图，每张右上角有<strong>勾选组件</strong>（选中红底白勾）；点缩略图开<strong>全屏黑底预览</strong>（× 关闭、左右切换、底部「选择这张 / 取消选择」），点勾选组件则直接选中 / 取消；已选栏缩略图右上角 <strong>×</strong> 可取消选择。  </li>
 <li>缩略图条：96px 高横滑区、缩略图 60×78，每张右上角 × 可<strong>单张删除</strong>；无照片时居中显示「拍摄后在这里预览」（白色 50%）。  </li>
-<li>底栏：三个 76px 等宽操作位——左「相册 + 占位」→ toast「从相册选择（演示占位）」；中 64px 快门；右「完成」（白色 600 字重）。图标 24px 线性、白色 86%。  </li>
-<li><strong>动效降级</strong>：<code>prefers-reduced-motion</code> 下扫描线停在中线、不做往复。  </li>
-<li>「完成」：本类别<strong>无照片</strong> → toast「还没有拍摄照片」并留在本页；有照片 → 返回进入前的页面（类型页刷新徽标与缩略图；待识别内容页刷新清单）。  </li>
+<li>底栏：<code>72px / 1fr / 72px</code> 三列居中对齐——左相片叠图、中 64px 快门、右「提交」；三者在同一水平中线上对称。  </li>
+<li><strong>动效降级</strong>：<code>prefers-reduced-motion</code> 下水印轮换与闪光均停止。  </li>
+<li>「提交」：本类别<strong>无照片</strong> → toast「还没有拍摄照片」并留在本页；有照片 → 返回进入前的页面（类型页刷新徽标与缩略图；待识别内容页刷新清单）。  </li>
 <li>返回：已拍照片<strong>保留</strong>，回进入前的页面。  </li>
 </ul>
 <h3>6.10.2 确认待识别内容（下一步页）</h3>
@@ -3274,6 +3331,8 @@ flowchart LR
 </details>
 <h2>6.13 数据概览（核对 · 行内轻改 · 唯一可传输）</h2>
 <p>屏 id <code>import-check</code>，标题栏文案为「<strong>数据核对</strong>」（本节沿用旧称「数据概览」指同一页）。这一个页面同时解决两件事：① <strong>看清这批数据到底什么状况</strong>（多少能传、哪里有问题、哪一类最脏）；② <strong>就地改掉识别错的地方</strong>（不用回上传、不用重传整张表）。改完、确认无误后，才进入确认传输（<strong>浮窗进度</strong>，§6.13.3）。</p>
+<p><strong>v2.39 口径（覆盖下方旧描述中与之冲突的部分）</strong>：① 顶部保留数据预览卡（<code>verify-board</code> = 分段对比条 + 图例 + 分项网格），<strong>不再显示</strong>「N 即将导入」总数与「另有 N 条未达入库门槛…不会写入」文案；分项卡上<strong>大数值与数值条同取该分项色</strong>（<code>is-c0..c4</code>，与分段条、图例一一对应）。② <strong>会员是按卡分组错误</strong>：会员信息属「人」，<strong>不得按卡类型 / 卡名分组</strong>，列表内平铺展示；行副标为「会员编号 · 手机号（中间打码）· 卡名」，点行只弹会员详情 sheet。③ <strong>卡模板</strong>仍按卡类型分组（组头 = 卡类型 + 条数），但<strong>组内每张卡各自成一张卡片</strong>（卡名 + 类型角标 + 充值 / 折扣 / 有效期 / 持卡四项 + 适用范围 + 上架开关），不再是纯文本行。</p>
+<p><strong>v2.40 口径</strong>：卡砖右上角的<strong>卡类型角标按类型分色</strong>（浅底深字，11px / 600 / 圆角 6 / 内距 <code>2px 6px</code>）：<strong>储值卡</strong>蓝（字 <code>#1F6FD0</code> / 底 <code>#EAF3FE</code>）、<strong>计次卡</strong>粉（字 <code>#D6407F</code> / 底 <code>#FDECF3</code>）、<strong>折扣卡</strong>紫（字 <code>#7A4FD0</code> / 底 <code>#F2ECFD</code>）、<strong>套餐卡</strong>黄（字 <code>#B0790C</code> / 底 <code>#FFF6DD</code>）、<strong>周期卡</strong>橙（字 <code>#C25A0E</code> / 底 <code>#FDEFE4</code>），其余 / 未识别类型保持中性绿；<strong>仅角标上色，卡类型分组标题文字不上色</strong>。</p>
 <h3>6.13.1 概览区</h3>
 <table>
 <thead>
@@ -3301,7 +3360,7 @@ flowchart LR
 </tr>
 <tr>
 <td>类别 tab</td>
-<td>卡片式横向等分（类目数 1–5），<strong>只显示类别全称</strong>：会员资料 / 卡模板 / 价目表 / 库存商品 / 店铺产品（<strong>不显示行数</strong>）；有问题时右上角叠红色角标「N」（问题条数，14px 内、不占文字位）；当前项白底 + 品牌色文字。<strong>只有 1 类时隐藏 tab 区</strong>。<strong>5 类时收窄（v2.16）</strong>：每格约 66px，字号 14 → <strong>12px</strong>、左右内边距 6 → <strong>2px</strong>、格间距 2 → <strong>1px</strong>，保证 4 字全称<strong>单行完整显示、不出现省略号</strong>；1–4 类仍为 14px / 6px 不变；tab 高度恒为 40px</td>
+<td>卡片式横向等分（类目数 1–4），<strong>只显示类别短名</strong>：会员 / 卡模板 / 价目表·项目 / 价目表·产品（<strong>不显示行数</strong>）；有问题时右上角叠红色角标「N」（问题条数，14px 内、不占文字位）；当前项白底 + 品牌色文字。<strong>只有 1 类时隐藏 tab 区</strong>。<strong>4 类时收窄</strong>：每格约 86px，字号 14 → <strong>12px</strong>、左右内边距 6 → <strong>2px</strong>，保证「价目表·项目」等长名<strong>两行完整显示、不出现省略号</strong>（<code>.lbl-2line</code> 按「·」拆行）；1–3 类仍为 14px / 6px 不变；tab 高度恒为 40px。<strong>库存品类已于 v2.36 起下线，不得回流为第 5 类</strong>（AC-N34）</td>
 </tr>
 <tr>
 <td>筛选 chips</td>
@@ -3326,6 +3385,35 @@ flowchart LR
 </tbody>
 </table>
 <h3>6.13.2 行内轻改（展开编辑器）</h3>
+<p><strong>v2.40 口径（覆盖下方「展开编辑器」中与价目表冲突的部分）</strong>：<strong>价目表·项目</strong>与<strong>价目表·产品</strong>两类<strong>不再展开详细字段编辑器</strong>，行内<strong>只提供改「名称」与「价格」</strong>；会员 / 卡模板保持只读（会员点行开详情 sheet），其余字段（项目组 / 可开单 / 置顶 / 服务时长 / 分类 / 会员价等）不在核对页修改。价目行的副行小字（原「可开单 · 点按可改」「上架 · 点按可改」）<strong>整行删除</strong>，不保留替代文案。</p>
+<p><strong>v2.41 口径（覆盖上一条的「编辑态布局」实现方式）</strong>：点价格后<strong>不把整行重排成表单</strong>——被点的价格位<strong>在同一位置变成输入框</strong>，布局、行高、右侧上架开关全部不变；「取消 / 确定」<strong>在该行下方另起一行</strong>展开，只把后面内容轻推下移，<strong>不产生 UI 抖动</strong>。原 v2.40 的「浅灰底整行表单 + 隐藏上架开关 + 36px 输入框 + 3px 光圈」作废。</p>
+<p><strong>v2.42 口径（本版现行：名称只读、只改价格）</strong>：价目表·项目 / 产品的<strong>名称改为不可编辑</strong>——名称是纯文本 <code>&lt;span class="verify-row__name is-static"&gt;</code>，没有 <code>data-inline-start</code>、按下无底色、光标为默认箭头，点它没有任何反应；<strong>只有价格可点</strong>，价格在原地变成输入框（名称始终是文字，编辑态里<strong>不存在名称输入框</strong>），下方照旧展开「取消 / 确定」；提交<strong>只校验数字并写回 <code>price</code></strong>，不再有「名称不能为空」校验，也不再写 <code>name</code>。</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>可点区域</td>
+<td>行内<strong>只有一处可点</strong>：<strong>价格</strong>（右，浅灰圆角底 <code>#F5F7F9</code>、<code>¥1,234</code> 千分位）；<strong>名称是只读文本</strong>（左，省略号截断，点按无反应），右侧上架 / 下架开关行为不变。点价格进入该行编辑态，并<strong>自动聚焦价格输入框</strong>（手机直接弹键盘、全选原值便于覆盖）。</td>
+</tr>
+<tr>
+<td>编辑态布局（v2.41 现行：原地替换 + 下方动作条）</td>
+<td><strong>不重排整行</strong>：名称与价格<strong>同时</strong>在各自原位变成输入框——沿用原文字盒模型（14px、同内距、透明底、无边框；名称左对齐、价格右对齐并带 1px 品牌色内描边作编辑提示），<strong>行高与右侧上架开关完全不动</strong>（进入前后行高 52px、行首 y 与名称 / 价格矩形坐标一致，价格块宽度固定 76px）。<strong>「取消 / 确定」在该行下方单独一行展开</strong>（右对齐、按钮高 30px、阴影与圆角同常规次要 / 主按钮），仅把后续内容轻推下移约 42px，<strong>不再出现整块灰底表单与布局跳动</strong>。编辑态<strong>保留</strong>上架 / 下架开关（不隐藏、不位移）。</td>
+</tr>
+<tr>
+<td>提交</td>
+<td><strong>必须点「确定」才落库</strong>：校验名称非空、价格可空但必须是数字（允许 1–2 位小数，<code>¥ / ￥ / 逗号 / 空格</code> 自动剔除）；校验失败 toast 具体原因（「名称不能为空」/「价格请填写数字」）并保持编辑态。<strong>点「取消」、按 Esc、或点编辑行以外任意位置均不落库</strong>，原值保持不变。回车等同「确定」。</td>
+</tr>
+<tr>
+<td>落库后</td>
+<td>写入本行 <code>name</code> / <code>price</code>，摘掉这两项的「AI 推断」标；<strong>重算该类全部行</strong>校验（必填缺失可能因此解除）→ 重绘分项统计与列表，toast「已修改」。切换类别 tab 或筛选时自动退出编辑态。</td>
+</tr>
+</tbody>
+</table>
 <table>
 <thead>
 <tr>
@@ -3567,7 +3655,7 @@ flowchart LR
 <tr>
 <td>次要操作</td>
 <td><strong>两枚 40px 描边次按钮纵向排列</strong>（<code>.result-acts</code> + <code>.v3-foot__link</code>，白底 + 1px <code>--n-200</code>、圆角 8px、14px / 500）：「去导入历史消费记录」/「删除本批数据」（后者浅红描边 + <code>--error-ink</code>）</td>
-<td>前者 → 历史消费导入<strong>合并页</strong>（§6.24；本店已有历史消费时先弹「追加 / 整批替换」半屏，§6.27）；后者开删除确认。v2.8 起不再用红色文字链</td>
+<td>前者 → 通用「选择导入方式」<strong>历史模式</strong>（§6.23；本店已有历史消费时先弹「追加导入 / 先整批删除再导入」半屏）；后者开删除确认。v2.8 起不再用红色文字链。<strong>历史模式下该行两枚按钮均隐藏</strong>（§6.26）</td>
 </tr>
 <tr>
 <td>底部</td>
@@ -3578,6 +3666,11 @@ flowchart LR
 <td>浮球</td>
 <td>若浮球可见：进页 400ms 后弹关闭确认（§6.6）</td>
 <td>—</td>
+</tr>
+<tr>
+<td>批次收尾后重进（v2.39）</td>
+<td>本页即「已收尾」状态的终点：只要批次处于完成态，从首页 banner / 工作台再进「数据导入」都应<strong>从头开始</strong>，不得回落到本页</td>
+<td>重进时先清空该批的待识别池、识别结果与核对态并把任务置回 <code>idle</code>，再按存量落到「本店概况」（已有存量）或「选择导入方式」（无存量）；本页的「返回首页 / 标题栏返回」只出导入壳，不自动清空，清空发生在下一次进入时</td>
 </tr>
 </tbody>
 </table>
@@ -3853,7 +3946,7 @@ flowchart LR
 <tr>
 <td>标题栏</td>
 <td>返回 → 工作台；标题「历史订单」；右侧 30px 胶囊描边钮「导入」</td>
-<td>「导入」→ 历史消费导入<strong>合并页</strong>（§6.24，说明已收进页头「说明」半屏）；本店已有历史消费时先弹「追加 / 整批替换」半屏</td>
+<td>「导入」→ 通用「选择导入方式」<strong>历史模式</strong>（§6.23，只出 Excel）；本店已有历史消费时先弹「追加导入 / 先整批删除再导入」半屏</td>
 </tr>
 <tr>
 <td>搜索</td>
@@ -3878,7 +3971,7 @@ flowchart LR
 <tr>
 <td>空态（v2.22 / v2.23）</td>
 <td><strong>真无数据</strong>：140×140 面性浅灰插图 +「还没有历史订单」+「把老店账单导进来…」+ 主按钮「导入」。<strong>筛选无结果</strong>：同插图 +「没有符合条件的历史订单」+「换个时间或金额范围试试。」+ 主按钮「清除筛选」+ 次按钮「导入」。汇总条「共 N 条」与搜索栏左右对齐（左距 16px）</td>
-<td>「导入」→ 合并页（§6.24）；「清除筛选」清空搜索与半屏条件后重绘列表</td>
+<td>「导入」→ 选择导入方式（§6.23，历史模式）；「清除筛选」清空搜索与半屏条件后重绘列表</td>
 </tr>
 <tr>
 <td>底部说明</td>
@@ -3959,142 +4052,89 @@ flowchart LR
 </tr>
 </tbody>
 </table>
-<p><strong>只读边界</strong>：本页<strong>不提供编辑、单条删除、转开单</strong>；回滚只能整批删除（§6.28）。</p>
+<p><strong>只读边界</strong>：本页<strong>不提供编辑、单条删除、转开单</strong>；回滚只能整批删除（§6.29）。</p>
 
-<h2>6.23 历史消费导入 · 说明（半屏，v2.8 由独立页降级）</h2>
+<h2>6.23 历史消费导入：复用通用导入流程（v2.45 重写）</h2>
+<p><strong>本版变更（v2.45）</strong>：历史消费<strong>不再有专用导入页</strong>。原来的 <code>history-import-upload</code>（上传 + 指定字段同页）、<code>history-import-preview</code>（按月核对）、<code>history-import-result</code>、<code>history-import-fail</code> 四屏<strong>全部删除</strong>，改为与「会员资料 / 卡模板 / 价目表」<strong>同一套流程页</strong>：选择导入方式 → 上传 Excel → AI 识别中 → 识别结果（分档）→ 核对 → 完成。<strong>差异只在「合理适配」的三处</strong>：①只接受 Excel；②只有两层（没有可直接入库）；③核对页按月卡片、行可点进订单详情。</p>
 <table>
 <thead>
 <tr>
-<th>区块</th>
-<th>规格</th>
+<th>步骤</th>
+<th>页面（复用）</th>
+<th>历史消费模式下的差异</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>形态</td>
-<td><strong>下半屏浮层</strong>（<code>#historyIntroSheet</code> + 遮罩 <code>#historyIntroMask</code>，圆角 16px 顶、上滑 260ms）：<strong>不再占一屏</strong>，只在需要解释时拉起</td>
+<td>0 · 入口</td>
+<td>历史订单页页头「导入」按钮</td>
+<td>已有历史订单时先弹「本店已有历史订单」半屏（追加 / 先整批删除再导入）；「追加导入」与「先整批删除再导入」都进入 <strong>§6.23 选择导入方式</strong>（历史模式）；<strong>不再二次确认</strong>——「先整批删除再导入」本身就是确认</td>
 </tr>
 <tr>
-<td>打开入口</td>
-<td>合并页（§6.24）页头右侧「<strong>说明</strong>」胶囊钮；点遮罩 /「知道了」关闭；离开合并页自动关闭</td>
+<td>1 · 选择导入方式</td>
+<td><code>import-select</code>（选择导入方式）</td>
+<td><strong>只出现「Excel 导入」一张卡</strong>，拍照卡<strong>整卡隐藏</strong>；步骤条上方加一行提示（<code>#importHistoryNote</code>）：「历史消费只接受 Excel；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。」；待识别清单最多 1 份表；「开始识别」不带份数后缀</td>
 </tr>
 <tr>
-<td>标题</td>
-<td>把老账单带过来</td>
+<td>2 · 上传 Excel</td>
+<td><code>import-source</code>（上传 Excel）</td>
+<td>「选择 Excel 文件」说明改为「历史消费表：列名不必固定，系统会自己找这几列，无需手动指定。」；<strong>官方模板下载卡整块隐藏</strong>（历史表没有官方模板）；<strong>「最多 5 个文件」提示隐藏</strong>（一次一份）</td>
 </tr>
 <tr>
-<td>引导语</td>
-<td>只用于查看核对历史订单，不参与开单、业绩与会员资产计算。</td>
+<td>3 · AI 识别中</td>
+<td><code>import-analyze</code>（AI 识别中）</td>
+<td>标题「正在读这批老账单」、副文「抽取日期、金额、顾客姓名，其余列原样保留」；三步文案改为<strong>读取文件 → 抽取日期与金额 → 对齐顾客姓名</strong>；右侧轮播的类别固定为「历史消费」、字段轮播为「消费日期 / 实收金额 / 顾客姓名 / 支付方式」。结束时<strong>不判断四类</strong>，直接生成两层分档</td>
 </tr>
 <tr>
-<td>要点 ①</td>
-<td><strong>不进订单流水</strong> —— 导入后只出现在「历史订单」，不影响经营数据与会员余额。</td>
+<td>4 · 识别结果</td>
+<td><code>import-cards</code>（识别结果）</td>
+<td><strong>只有两块</strong>：识别摘要、原始存档（详见 §6.24）；主按钮「去核对」</td>
 </tr>
 <tr>
-<td>要点 ②</td>
-<td><strong>只支持 Excel</strong> —— 历史账单手写、截图多，拍照识别不可靠，本功能只接受表格。</td>
+<td>5 · 核对</td>
+<td><code>import-check</code>（核对导入）</td>
+<td>标题「核对历史数据」；<strong>收起</strong>顶部指标卡、类别 tab、tab 汇总、上架提示；列表换成<strong>按月卡片 + 行可点</strong>（§6.25）；底栏说明「只写入「历史订单」，不进订单流水、不计业绩与会员余额。」；主按钮「确认导入历史消费」</td>
 </tr>
 <tr>
-<td>要点 ③</td>
-<td><strong>只认三项</strong> —— 日期、金额、顾客姓名用于筛选搜索；其余列原样保留。</td>
-</tr>
-<tr>
-<td>引导提示</td>
-<td>品牌浅底提示条：建议先导入会员与持卡信息、会员卡模板、价目表，再导入历史消费。<strong>提示不设硬门槛</strong>，未完成也可继续。</td>
-</tr>
-<tr>
-<td>底部</td>
-<td>仅「知道了」（主按钮，48px）；<strong>本版不再有「上传 Excel 表」按钮</strong>——关掉半屏即回到已选文件的合并页</td>
+<td>6 · 完成</td>
+<td><code>import-result</code>（导入完成）</td>
+<td>标题「历史消费已导入」、副文「只写进「历史订单」；订单流水、业绩与会员余额都不受影响。」；分档汇总换成两块（写入历史订单 / 仅存档）；<strong>隐藏</strong>「失败明细」「去导入历史消费记录」「删除本批数据」三个主链动作（§6.26）</td>
 </tr>
 </tbody>
 </table>
+<p><strong>模式隔离</strong>：流程页共用同一套 DOM，靠 <code>state.importMode</code>（<code>'main' | 'history'</code>）切换文案与分档；离开历史链路（回首页 / 从选择方式返回历史订单 / 核对页返回 / 进入迁移中心）时<strong>一律复位为 <code>main</code></strong>，避免主链被历史模式污染。</p>
+<p><strong>取消手动映射（v2.45）</strong>：「指定字段」整段（<code>#histMapArea</code>、<code>#histSampleArea</code>、四行 <code>.hs-row</code> 下拉、<code>#btnHistAdjust</code>、标准表头卡与「样例」表）<strong>全部删除</strong>，DOM 与 CSS 一并清理。<strong>口径</strong>：历史表列名不固定是常态，让用户逐个指定列反而把「AI 自动找列」的价值抵消；识别错的行由两层分档兜住（进识别摘要 / 原始存档），不做站内逐列重映射。</p>
 
-<h2>6.24 导入历史消费（选择文件 + 指定字段同页，v2.8 合并两屏）</h2>
+<h2>6.24 识别结果：只有两层（v2.45）</h2>
 <table>
 <thead>
 <tr>
-<th>区块</th>
+<th>档位</th>
 <th>规格</th>
-<th>行为</th>
+<th>口径</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>标题栏</td>
-<td>返回 → 历史订单；标题「导入历史消费」；右侧「说明」胶囊钮</td>
-<td>「说明」→ 说明半屏（§6.23）</td>
+<td>识别摘要（L2）</td>
+<td>白色 <code>.tier-mute-card</code>：标题「识别摘要」+ 右侧条数；说明「历史消费没有「可直接入库」这一档：核对完只写入「历史订单」，不进订单流水、不计业绩与会员余额。」；列表首行「共 <em class="num-em">N</em> 笔 · 合计 ¥X」+ 次行「日期 / 金额 / 顾客姓名已抽出，其余列原样保留」；若有识别失败行，追加一行「<em class="num-em">4</em> 行未识别 · 缺日期或缺金额，不会写入历史订单」</td>
+<td>可继续核对并写入历史订单</td>
 </tr>
 <tr>
-<td>第 1 段 · 选择文件</td>
-<td><strong>分区标题（v2.34）</strong>：24px 品牌色线描图标贴标题（<code>.hs-sec__ico</code>，无粉底方块）+ 标题「选择文件」（16px / 600）+ 说明「只接受 Excel；列名不必固定，系统会自己找日期、金额、顾客姓名，认错再手动指定。」（12px 次级灰）。内容区相对标题栏顶距 ≥12px。<br />选择卡（<code>.upload-drop</code>）：白底 + 1px 品牌浅色虚线 + 12px 圆角；<strong>40px 圆角方形浅品牌底（<code>--brand-soft</code>）内是 22px 品牌红「加号」</strong>；主文案「选择文件」（16px / 600）+ 次行「xls / xlsx / csv · 单表 ≤ 10MB」（12px 次级灰）</td>
-<td>点 → toast「已选择 历史消费 2023-2025.xlsx（演示）」，<strong>不跳页</strong>：选择卡原地换成已选文件卡</td>
+<td>原始存档（L1）</td>
+<td>同款白卡：「原始存档」+ 份数；说明「无法解析的整份文件已留原件，可在历史订单页 ··· →「原始存档」查看。」；文件名 + 原因（例「纸质流水本扫描.pdf · 扫描件无法识别，仅存档」）</td>
+<td>只留原件，不写入</td>
 </tr>
 <tr>
-<td>已选文件卡</td>
-<td>白卡：绿色 XLS 格式图标 + 文件名「历史消费 2023-2025.xlsx」+ 次行「128 行 · 7 列 · 首行已识别为表头」+ 右侧 × 重新选择</td>
-<td>× → 收起「指定字段」段、回到未选态，「下一步」重新变灰</td>
-</tr>
-<tr>
-<td>第 2 段 · 指定字段</td>
-<td><strong>分区标题（v2.34）</strong>：24px 品牌色线描「列表 + 定位点」贴标题 +「指定字段」+ 说明「系统已按列名猜好，点右侧可换；识别日期、金额、顾客姓名、支付方式。」。选文件后先出「AI 已经读出来了」（24px 星芒）+ 四格映射 + 样例，再可展开本段。<br /><strong>字段映射为 iOS 设置型行（<code>.hs-rows</code> / <code>.hs-row</code>）</strong>：左侧图标 + 字段名 + 必填红点 + 右侧列名 + chevron</td>
-<td><strong>未选文件时整段隐藏</strong>（含样例行、标准表头卡），避免用户在没有文件时先面对空下拉</td>
-</tr>
-<tr>
-<td>标准表头卡</td>
-<td><code>.hdr-card</code>（白卡 14×16px 内边距）：标题「标准表头」（16px / 600）+ 标签「识别更准」（<strong>v2.10 由蓝底蓝字改中性</strong> <code>--n-100</code> 底 + <code>--text-sec</code> 字，不与品牌红争主次）；引导语「建议首行用下面的列名；没用这些列名也能导入，指定字段时手工选一次即可。」（12px <code>--text-sec</code>）；单组「历史消费 / 7 列 · 后 4 列原样保留」，chips = 消费日期 / 实收金额 / 顾客姓名 / 项目 / 支付方式 / 门店 / 备注；示例行（前缀「示例」）<strong>常显</strong>；卡尾提示「前 3 列会被识别用于筛选与搜索，其余列整行原样保留。」<strong>上方加 0.5px 发丝线与正文分开</strong>，色值改 <code>--text-sec</code>（原 <code>#B8B8B8</code> 对比度不足）</td>
-<td>静态；<strong>不提供模板下载</strong></td>
-</tr>
-<tr>
-<td>底部</td>
-<td><strong>贴边提示条</strong>（<code>.v3-foot__note</code>，与迁移中心 / 导入概览同款：满宽出血、浅品牌底 <code>--brand-soft</code>、14px 品牌色图标 + 11px <code>--brand-ink</code> 文案）：「仅本店可见 · 只用于『历史订单』查看 · 可整批删除」。<strong>v2.10 起从正文末尾移入底栏</strong>——该行原先没有任何样式（渲染成 16px 纯黑，比正文还重），且与主按钮距离过远。<br />主按钮「下一步：核对」，<strong>未选文件时为禁用态</strong></td>
-<td>未选文件点按 → toast「请先选择文件」；已选但未指定日期 / 金额 → toast「请先指定日期与金额」；通过 → 核对历史数据（§6.26）</td>
+<td>没有的档位</td>
+<td><strong>不出现「这些可放心导入」（L3）</strong></td>
+<td>历史消费<strong>永远不直接写经营数据</strong>；与主链「原始存档 / 识别摘要 / 可入库」三档的差别就在此</td>
 </tr>
 </tbody>
 </table>
-<p><strong>合并口径（v2.8）</strong>：原「上传历史消费」与「指定字段」两屏合并为本页两段——上传动作只是选文件，不必单独占一屏；映射与文件在同一上下文里完成，返回时也不会丢掉已选文件与映射。</p>
+<p><strong>页头</strong>：标题「识别完成」；引导语「历史消费只有两层：能对上日期 / 金额 / 顾客姓名的进「识别摘要」，其余留原件存档。」；底部主按钮「去核对」。</p>
 
-<h2>6.25 指定字段（日期 / 金额 / 顾客姓名 · v2.8 已并入 §6.24 第 2 段）</h2>
-<p><strong>v2.8 变更</strong>：原独立「指定字段」屏已删除，字段映射改为在合并页（§6.24）选文件后就地展开。下列字段口径不变，只是载体从独立页变为合并页第 2 段。</p>
-<p><strong>v2.10 载体再改</strong>：三行由「标签 + 带边框下拉框」改为 <strong>iOS 设置型行</strong>——字段名 16px 主色（原来与列名同为 14px <code>#333</code>，主次不分）、所选列名 14px 次级灰 + 右对齐、无边框无底色、右侧 16px 浅灰 chevron，点整行展开。原生 <code>&lt;select&gt;</code> 仍在（<code>appearance: none</code> 去掉系统外观），<code>id</code> / 选项 / 校验逻辑<strong>全部不变</strong>。</p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>规格</th>
-<th>校验</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>日期</td>
-<td><strong>iOS 设置型行</strong>（<code>.hs-row</code>）：28px 日历图标块 + 「日期」16px + 6px 品牌红圆点（必填）+ 右侧列名（14px 次级灰、右对齐）+ chevron；列名选项 = 源表全部列；默认猜「消费日期」</td>
-<td><strong>必选</strong>；未选时「下一步」toast「请先指定日期与金额」</td>
-</tr>
-<tr>
-<td>金额</td>
-<td>同款行，图标为「圆币 ¥」；默认猜「实收金额」</td>
-<td><strong>必选</strong>；同上</td>
-</tr>
-<tr>
-<td>顾客姓名</td>
-<td>同款行，图标为人像；默认猜「顾客姓名」，首项为「（不指定）」；可空标记为 11px 灰字「可空」而非红点</td>
-<td>可空；不指定时列表显示「未留姓名」，姓名搜索不再命中该条</td>
-</tr>
-<tr>
-<td>其余列</td>
-<td>提示「其余列会原样保留，可在『历史订单』详情里查看」</td>
-<td>不参与校验</td>
-</tr>
-<tr>
-<td>样例行</td>
-<td>展示 3 行（表头 + 2 条样例），用于确认列对齐</td>
-<td>静态</td>
-</tr>
-</tbody>
-</table>
-<p><strong>识别失败口径</strong>：日期 / 金额无法解析的行<strong>不入库</strong>，进失败明细（§6.27），可下载后修正再传；<strong>不做站内逐条补录</strong>（与 P0 的失败补录不同）。</p>
-
-<h2>6.26 核对历史数据（唯一可导入）</h2>
+<h2>6.25 核对历史数据（按月卡片，行可点）</h2>
 <table>
 <thead>
 <tr>
@@ -4105,35 +4145,34 @@ flowchart LR
 </thead>
 <tbody>
 <tr>
-<td>标题栏</td>
-<td>返回 → 导入历史消费（合并页 §6.24）；标题「核对历史数据」</td>
-<td>返回不丢已选文件与映射</td>
+<td>汇总行</td>
+<td><code>.hist-check-sum</code>：左「<em class="num-em">16</em> 笔」（17px / 600），右「¥9,450 · 14 个月」（12px 次级灰，等宽数字）</td>
+<td>只读</td>
 </tr>
 <tr>
-<td>汇总卡（v2.10 新增）</td>
-<td><code>.hs-sum</code> 白卡：上行两格「<em class="num-em">16</em> 条待导入 / <em class="num-em">¥9,450</em> 合计金额」（24px / 600 数字 + 11px <code>--text-sec</code> 标签，两格间 0.5px 竖线）；下行「日期范围」+ 右对齐的 <code>2023-05-26 ~ 2025-12-28</code>（12px 次级灰、等宽数字），与上格以 0.5px 发丝线分隔。<strong>替代原来那行 11px 灰的 <code>共 N 条 · 起止日期 · 合计 ¥X</code></strong>——一句话里三个数值全同权重，等于没有重点</td>
-<td>按识别结果统计；条数为 0 时不出现空壳（整卡仍显示 0 / ¥0 / —）</td>
+<td>月份卡片</td>
+<td><code>.hist-month-card</code> 白卡（圆角 14、<code>0 0 0 .5px rgba(0,0,0,.05)</code>）：卡头整行可点——左「2025 年 12 月」（15px / 600），右「2 笔 · ¥1,448」（13px 次级灰，等宽数字）+ 16px 浅灰 chevron；卡间距 10px</td>
+<td>点卡头展开 / 收起该月明细，chevron 旋转 90°；<strong>同一时刻只展开一个月</strong></td>
 </tr>
 <tr>
-<td>抽样列表</td>
-<td>白卡内前 5 行（<code>.hist-prev-row</code>，行高 64px）：<strong>姓名 16px / 600（行首左对齐，v2.16 去掉首字头像）</strong> + 次行「日期 · 项目」12px <code>--text-sec</code> + 右侧金额 16px / 600；行间 0.5px 发丝线<strong>左右各缩进 16px</strong>（与行内文字对齐）</td>
-<td>只读；不做分类明细</td>
+<td>明细行</td>
+<td>展开后每行 <code>.hist-month__row</code>（整行按钮，高约 44px，行间 0.5px 发丝线）：左「姓名」（14px / 500）+ 次行「2025-12-28 · 微信 · 染发 + 护理」（12px 次级灰，超长省略）；右金额（14px / 600，等宽数字）+ 14px 浅灰 chevron</td>
+<td><strong>整行可点 → 订单详情</strong>（<code>history-detail</code>）；详情页返回按钮回到<strong>核对页</strong>（不丢已选月份展开态）</td>
 </tr>
 <tr>
-<td>失败提示</td>
-<td>浅红提示条：「<em class="num-em">4</em> 条无法识别，导入后可在失败明细下载」（错误图标 14px）</td>
-<td>条数 > 0 才显示</td>
+<td>未识别提示</td>
+<td>列表下方 12px 灰字：「另有 <em class="num-em">4</em> 行未识别（缺日期或金额），已留在识别摘要，不写入历史订单。」</td>
+<td>失败条数 > 0 才显示</td>
 </tr>
 <tr>
 <td>底部</td>
-<td><strong>贴边提示条</strong>（<code>.v3-foot__note</code>，同款）：「仅展示最近 5 条，导入后可在『历史订单』查看全部」——<strong>v2.10 从正文小字移入底栏</strong>。<br />唯一主按钮「确认无误，导入」</td>
-<td>→ 全屏进度层（§6.10.3：读取表格 → 识别日期 / 金额 / 顾客姓名 → 写入历史订单）→ 走满进结果页（<strong>本页是唯一可导入处</strong>）</td>
+<td>提示「只写入「历史订单」，不进订单流水、不计业绩与会员余额。」+ 主按钮「确认导入历史消费」</td>
+<td>→ 进度层（读取表格 → 识别日期 / 金额 / 顾客姓名 → 写入历史订单）→ 完成页</td>
 </tr>
 </tbody>
 </table>
 
-<h2>6.27 历史消费导入完成 / 失败明细</h2>
-<h3>结果页</h3>
+<h2>6.26 历史消费导入完成（复用完成页）</h2>
 <table>
 <thead>
 <tr>
@@ -4144,73 +4183,125 @@ flowchart LR
 </thead>
 <tbody>
 <tr>
-<td>成功区（v2.23）</td>
-<td>与数据导入完成页同款「清单 + 勾」插图完成块（<code>.v3-done--illust</code>）+「导入成功」+ 副文案「历史订单已入库…」</td>
-<td>静态；插图与 P0 结果页一致</td>
+<td>完成块</td>
+<td>与主链同款「清单 + 勾」插图；标题「历史消费已导入」，副文「只写进「历史订单」；订单流水、业绩与会员余额都不受影响。」</td>
+<td>静态</td>
 </tr>
 <tr>
-<td>入库清单（v2.23）</td>
-<td>白卡 <code>.result-tier-card</code> 单行：左「历史消费 / 已写入本店，只读核对」+ 中大号条数 + 右「去看」</td>
-<td>「去看」→ 历史订单列表</td>
+<td>来源行</td>
+<td>「本批来源：历史消费 2023-2025.xlsx · AI 识别」</td>
+<td>多份表时以「、」连接</td>
 </tr>
 <tr>
-<td>说明</td>
-<td><strong>v2.10 起移入底栏贴边提示条</strong>（<code>.v3-foot__note</code>）：「不进订单流水，仅用于查看核对；会员余额与业绩不受影响」。正文不再保留该小字，避免与底栏重复</td>
-<td>—</td>
+<td>分档汇总</td>
+<td><code>.result-tier-card</code> 两行：①「写入历史订单 / N 笔 · ¥X」+ 大号条数 + 「去看」→ 历史订单列表；②「仅存档 / 原件已留，可检索」+ 份数 + 「去看」→ 原始存档（域 <code>order</code>）</td>
+<td>两行均可点</td>
 </tr>
 <tr>
-<td>失败入口卡</td>
-<td>整块可点白卡：「<em class="num-em">4</em> 条失败」+「，下载后修正再传」+ 右侧「查看明细」+ 右箭头；计数为 0 时整卡转绿</td>
-<td>→ 失败明细</td>
-</tr>
-<tr>
-<td>次要操作</td>
-<td>40px 描边次按钮（浅红描边 + <code>--error-ink</code>）「删除本批历史消费」</td>
-<td>→ 删除确认（§6.28）</td>
+<td>隐藏项</td>
+<td>「失败明细」卡、「去导入历史消费记录」链接、「删除本批数据」按钮<strong>在本模式隐藏</strong></td>
+<td>失败信息改在核对页提示；回滚见 §6.29</td>
 </tr>
 <tr>
 <td>底部</td>
-<td>「返回工作台」</td>
-<td>→ 工作台</td>
+<td>「返回首页」（同时复位 <code>importMode</code>）</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<h3>失败明细</h3>
-<ul>
-<li>标题栏：返回 → 结果页；标题「失败明细 · <em class="num-em">4</em> 条」。  </li>
-<li>节标题：「这几行没能入库」+ 说明「只校验日期、金额、顾客姓名、支付方式；其余列原样保留。」（与其它页同款：30px 浅红图标块 + 标题 + 说明）。  </li>
-<li>行结构（与 P0 失败明细<strong>共用同一套组件</strong> <code>.import-fail-item</code>，<strong>v2.10 共享层一起改，两处同步生效</strong>）：首行「第 12 行」（<strong>14px / 600 主色</strong>，原 11px 灰）+ 右侧<strong>浅红底胶囊</strong>的原因（11px <code>--error-ink</code>，补录后转浅绿底 <code>--success-ink</code>），首行下 0.5px 发丝线与 diff 分隔；下方<strong>两列键值 diff</strong>——消费日期、金额、顾客姓名三行（标签列 64px、12px <code>--text-3</code>；值 12px / 500 <code>--text</code>），<strong>解析失败的字段值标红并加粗</strong>（如金额「—」、日期「12月31」），补录后回落到次级灰。  </li>
-<li><strong>条目之间必须留白</strong>：历史失败列表容器 <code>.check-list.history-fail-list</code> 取消白底与 <code>overflow: hidden</code>，让每张 <code>.import-fail-item</code> 卡之间露出 12px 页底灰——<strong>原来 4 张白卡贴成一片白</strong>，边界不可辨。  </li>
-<li><strong>无「手动补录」按钮</strong>：历史账单字段结构不固定，站内补录无法覆盖任意列；底部唯一按钮「下载失败行」→ toast「已生成 失败行.xls（演示）」，副链接「返回导入结果」（40px 描边）。  </li>
-</ul>
 
-<h2>6.28 整批删除历史消费</h2>
+<h2>6.27 顾客详情（示意占位）与「历史消费」入口</h2>
+<p><strong>定位</strong>：原型内新开 <code>member-detail</code>（<code>#screen-member-detail</code>），页顶带「示意占位 · 实际开发以线上系统真实页面为准」说明条。<strong>顾客详情本身不是本次交付重点</strong>，只用于承载「消费明细 → 历史消费」入口。</p>
 <table>
 <thead>
 <tr>
-<th>项</th>
+<th>元素</th>
 <th>规格</th>
+<th>行为</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>触发</td>
-<td>历史消费结果页「删除本批历史消费」</td>
+<td>入口</td>
+<td>会员列表（<code>members</code>）点任一行 → 顾客详情</td>
+<td>原来点行只弹「会员详情占位」toast，v2.45 改为进入本页</td>
 </tr>
 <tr>
-<td>标题 / 正文</td>
-<td>删除本批历史消费？ / 将删除本次导入的 <em class="num-em">16</em> 条历史消费。本店订单流水、会员余额与业绩都不受影响。</td>
+<td>档案卡</td>
+<td><code>.mp-card</code> 白卡：52px 圆形头像 + 姓名（17px / 600）+ 次行「手机号 · 卡名」（12px 次级灰）+ 右侧余额（16px / 600，等宽数字）</td>
+<td>只读</td>
 </tr>
 <tr>
-<td>按钮</td>
-<td>「先不删」（描边）/「确认删除」（实心红）；点遮罩等于取消</td>
+<td>消费明细</td>
+<td><code>.mp-sec</code> 白卡：节标题「消费明细」+ 右侧「共 N 笔 · ¥X」；下方入口行「历史消费」</td>
+<td>—</td>
 </tr>
 <tr>
-<td>结果</td>
-<td>条数归零、按钮隐藏、toast「已删除本批历史消费」；历史订单列表回到空态</td>
+<td>入口行</td>
+<td><code>.mp-entry</code> 整行按钮：32px 圆角浅绿底图标块（<code>#F1F7F4</code> / 图标 <code>#2BA471</code>）+ 主文案「历史消费」（14px / 600）+ 次行「2023–2025 · 3 笔 · ¥2,340」（12px 次级灰）+ 右侧 11px「只读」+ 16px chevron</td>
+<td>→ 会员历史消费（§6.28）；无匹配记录时次行写「暂无匹配到同名历史记录」，<strong>入口仍可点</strong>（进去看空态说明）</td>
+</tr>
+<tr>
+<td>页脚说明</td>
+<td>12px 灰字：「历史消费按<strong>顾客姓名</strong>自动匹配到会员，只用于查看核对，不参与开单、业绩与余额计算；匹配错了可在「历史消费」里逐条解除。」</td>
+<td>—</td>
+</tr>
+<tr>
+<td>同名提示</td>
+<td>店内存在同名会员（&gt; 1 位）时，档案卡下出现 <code>.mh-dup-tip</code> 浅黄提示条：「店内有 <em class="num-em">N</em> 位同名顾客，历史消费按姓名匹配，请先核对手机号再采信。」</td>
+<td>无同名则不显示</td>
 </tr>
 </tbody>
 </table>
+
+<h2>6.28 会员历史消费（年份卡片 + 解除匹配）</h2>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规格</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>匹配口径</td>
+<td>历史消费行<strong>「顾客姓名」与会员姓名完全相等</strong>即挂到该会员名下；<strong>不看手机号</strong>（消费记录里没有手机号）；姓名为空的行不匹配任何会员</td>
+<td>同名多位会员时<strong>每人都挂上</strong>，并各自提示「同名 N 人，请核对」</td>
+</tr>
+<tr>
+<td>页头</td>
+<td><code>.mh-head</code>：左姓名（15px / 600）+ 次行手机号（12px 次级灰）；右合计金额（19px / 600）+ 次行「N 笔 · 2023–2025」（12px 次级灰）</td>
+<td>返回 → 顾客详情</td>
+</tr>
+<tr>
+<td>年份卡片</td>
+<td><code>.mh-card</code> 白卡，卡头整行可点：<strong>左「年份」（17px / 600）</strong>、<strong>右「该年合计金额」（15px / 600，等宽数字）+ 笔数（12px 次级灰）+ chevron</strong>；年份降序；卡间距 10px</td>
+<td>点卡头展开 / 收起该年明细（chevron 旋转 90°）；<strong>默认全部收起</strong>，同一时刻只展开一年</td>
+</tr>
+<tr>
+<td>消费行</td>
+<td><code>.mh-row</code> 两段式（避免按钮嵌套）：可点区 <code>.mh-row__open</code> = 左「项目」（14px / 500）+ 次行「日期 · 支付方式」（12px 次级灰）；右金额（14px / 600，等宽数字）；行尾独立按钮「解除」（26px 高、圆角 13、浅灰底 <code>#F5F7F9</code> / 12px <code>#6B6B6B</code>）</td>
+<td>点可点区 → <strong>订单详情</strong>（<code>history-detail</code>），详情返回回到本页；点「解除」→ 解除匹配（下表）</td>
+</tr>
+<tr>
+<td>解除匹配</td>
+<td>把该行 id 记入 <code>state.historyUnmatched</code>；该行<strong>立即从本会员名下消失</strong>，合计与年份卡片同步重算（该年无记录则整卡消失）</td>
+<td>toast「已解除匹配，记录仍在历史订单」；<strong>记录本身不删除</strong>——历史订单里照旧可见，金额 / 日期 / 原始字段全不变</td>
+</tr>
+<tr>
+<td>页脚说明</td>
+<td>12px 灰字：「解除匹配只把该条从本会员名下移出，记录仍留在「历史订单」，不会被删除。」</td>
+<td>—</td>
+</tr>
+<tr>
+<td>空态</td>
+<td>标题「暂无历史消费」；说明「导入的历史记录里没有「姓名」的消费；同名记录被你解除匹配后也会回到这里。」</td>
+<td>不提供直接导入入口（走历史订单页）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>与订单详情的关系</strong>：会员历史消费 / 核对页 / 历史订单列表三处都能进 <code>history-detail</code>，详情页<strong>返回按钮按来源回退</strong>（<code>state.historyReturnFlow</code> = <code>member-history</code>｜<code>import-check</code>｜默认 <code>history-orders</code>），不再固定回历史订单。</p>
 
 <h2>6.29 历史消费的状态与边界</h2>
 <table>
@@ -4230,16 +4321,26 @@ flowchart LR
 <tr>
 <td>有数据</td>
 <td>本批已入库</td>
-<td>列表可搜 / 可筛 / 可看详情；结果页可整批删除</td>
+<td>列表可搜 / 可筛 / 可看详情；会员详情下按姓名自动挂上同名的历史记录</td>
+</tr>
+<tr>
+<td>已解除匹配</td>
+<td>该行 id 在 <code>state.historyUnmatched</code> 中</td>
+<td>从该会员「历史消费」下移除、合计重算（该年归零则整卡消失）；<strong>历史订单里照旧可见</strong>，金额与原始字段不变</td>
+</tr>
+<tr>
+<td>同名会员</td>
+<td>店内同名会员 &gt; 1 位</td>
+<td>每人各自挂上同一批记录，并在顾客详情与历史消费页顶部提示「同名 N 人，请核对手机号」；<strong>系统不做自动择一</strong></td>
 </tr>
 <tr>
 <td>已删除</td>
 <td><code>historyDeleted=true</code></td>
-<td>结果页条数 0、删除按钮隐藏；列表清空</td>
+<td>列表清空，回空态；完成页隐藏删除按钮（v2.45 完成页不再提供整批删除入口）</td>
 </tr>
 </tbody>
 </table>
-<p><strong>与 P0 的隔离</strong>：历史消费走独立存储（<code>LegacyOrder</code>），<strong>不写</strong>会员与持卡信息 / 会员卡模板 / 价目表与订单流水；导入批次不与 P0 的 <code>ImportBatch</code> 合并计数。<br /><strong>去重</strong>：本期<strong>不做自动去重</strong>——历史账单没有稳定主键，按行追加；重复导入需用户自行整批删除回滚。<br /><strong>不参与</strong>：开单、退款、业绩 / 提成、会员余额、经营分析、导出对账均不读取该存储。</p>
+<p><strong>与 P0 的隔离</strong>：历史消费走独立存储（<code>LegacyOrder</code>），<strong>不写</strong>会员与持卡信息 / 会员卡模板 / 价目表与订单流水；导入批次不与 P0 的 <code>ImportBatch</code> 合并计数。顾客详情里的「历史消费」<strong>只读投影</strong>——解除匹配只改挂靠关系，不改 <code>LegacyOrder</code> 数据。<br /><strong>去重</strong>：本期<strong>不做自动去重</strong>——历史账单没有稳定主键，按行追加；重复导入需用户自行整批删除回滚（入口仍在历史订单页）。<br /><strong>不参与</strong>：开单、退款、业绩 / 提成、会员余额、经营分析、导出对账均不读取该存储。</p>
 
 <hr />
 <h1>模块 7　数据模型与接口约定</h1>
@@ -5119,11 +5220,12 @@ sequenceDiagram
 <ul>
 <li><strong>不写入「订单流水」</strong>，写独立「历史消费」存储（<code>LegacyOrder</code>）；不参与开单 / 退款 / 改单 / 业绩 / 提成 / 会员余额 / 经营分析。  </li>
 <li><strong>不规定字段结构</strong>：整行原样保留（列名与列序不限）；只额外识别<strong>日期、金额、顾客姓名</strong>三项，供列表筛选与搜索。  </li>
-<li><strong>唯一入口是 Excel</strong>（含标准表头展示，无下载）：不上拍照 / OCR；理由见 §6.8 要点 ②。  </li>
-<li>日期与金额<strong>必须能解析</strong>才能入库；姓名可空。解析失败行<strong>不入库</strong>，进失败明细并支持下载，<strong>不做站内补录</strong>。  </li>
-<li>不做自动去重：历史账单无稳定主键，按行追加；列表已有数据再点「导入」时须半屏确认「追加」或「先整批删除再导入」。  </li>
-<li><strong>查看入口已定</strong>：工作台 → 店铺管理 →「历史订单」（列表 / 时间·金额·姓名筛选 / 独立详情）。  </li>
-<li>导入前在引导与说明页<strong>明确告知</strong>：历史消费需单独导入，建议先导会员与持卡信息 / 卡模板 / 价目表；<strong>不设硬门槛</strong>。  </li>
+<li><strong>唯一入口是 Excel</strong>：不上拍照 / OCR（§6.23）。  </li>
+<li>日期与金额<strong>必须能解析</strong>才能入库；姓名可空。解析失败行<strong>不入库</strong>，留在识别摘要计数里，<strong>不做站内补录</strong>。  </li>
+<li><strong>与会员的关联只按姓名</strong>：行里没有手机号，会员侧「历史消费」用 <code>r.name === member.name</code> 投影；同名多位会员<strong>各自都挂</strong>并提示核对；解除匹配只写 <code>state.historyUnmatched[rowId]</code>，<strong>不删记录、不改 <code>LegacyOrder</code></strong>。同名 / 解除态都是<strong>会员侧的展示口径</strong>，不反向改历史订单。  </li>
+<li>不做自动去重：历史账单无稳定主键，按行追加；列表已有数据再点「导入」时须半屏确认「追加导入」或「先整批删除再导入」。  </li>
+<li><strong>查看入口已定</strong>：工作台 → 店铺管理 →「历史订单」（列表 / 时间·金额·姓名筛选 / 独立详情）；会员侧为 会员列表 → 顾客详情 → 历史消费（年份卡片）。  </li>
+<li>导入前在选择导入方式页<strong>明确告知</strong>：只接受 Excel、按日期 / 金额 / 顾客姓名识别、不进订单流水；<strong>不设硬门槛</strong>。  </li>
 <li>会员与持卡信息、会员卡模板、价目表<strong>可选择不同来源</strong>（Excel 或拍照，逐类独立），混合批次先拍照、后上传，结果合并展示。  </li>
 </ul>
 <h2>8.11 分流与邀请</h2>
@@ -5220,7 +5322,7 @@ sequenceDiagram
 <p><strong>导入进度层（v2.1：正式传输 + 历史消费导入共用）</strong>：正在传输、共 N 条数据、校验数据、写入会员与持卡、写入卡模板与价目、完成、传输完成；正在导入历史消费、整行原样写入历史订单，只识别日期 / 金额 / 顾客姓名、读取表格、识别日期 / 金额 / 顾客姓名、写入历史订单、导入完成、0%–100%。<br /><strong>留档</strong>：AI 正在识别、正在导入、共 N 个 Excel 与 M 张照片，识别完会进入下一步、读取文件、识别列名与字段、生成预览、识别完成、校验数据、写入会员与持卡信息、写入卡模板与价目表、处理失败行 —— 识别的等待已由转换屏承载，正式传输已改为复用本层（§6.10.3 / §6.13.3）。</p>
 <p><strong>失败 / 补录</strong>：失败明细、手机号格式错误、卡余额无法解析、姓名：、原值、手动补录、补录完成、失败数据已全部补录、会员与持卡信息已写入本店，可回结果页继续操作。、下载失败明细、返回导入结果、保存并入库、取消、会员卡、尚未补录会员卡，可留空、会员可能没有持卡，性别、手机号、会员卡均可留空；同一卡种可补多张、修改、删除、添加卡、办理类型、办新卡、补录老卡、办理会员卡、补录老卡、修改会员卡、卡内信息、卡内余额、有效期限、充值剩余金额、赠送剩余金额、赠送项目、按补录时刻的余额填写即可，补录不产生收款单据。、确认补录、保存修改。</p>
 <p><strong>查看落点</strong>：会员列表、共 126 人、输入姓名或手机号、取消、未找到匹配的会员、会员卡模板、价目表、原型占位 · 会员卡模板列表以线上系统的真实页面为准、原型占位 · 价目表以线上系统的真实页面为准。</p>
-<p><strong>历史订单 / 历史消费</strong>：历史订单、搜索顾客姓名、筛选、共 16 条 · 合计 ¥9,450、仅用于查看核对，不进订单流水、没有符合条件的历史订单、换个时间或金额范围试试；也可以导入新的历史消费。、导入历史消费、订单详情、已识别、原始字段、未填、只读：历史订单不参与开单、业绩与会员余额计算、说明、把老账单带过来、只用于查看核对历史订单，不参与开单、业绩与会员资产计算。、不进订单流水、只支持 Excel、只认三项、建议先导入会员与持卡信息、会员卡模板、价目表，再导入历史消费。、知道了、选择文件、只接受 Excel；列名不必固定，下一步再指定哪列是日期、金额、顾客姓名。、选择文件、xls / xlsx / csv · 单表 ≤ 10MB、历史消费 2023-2025.xlsx、128 行 · 7 列 · 首行已识别为表头、指定字段、系统已按列名猜好，点右侧可换；只认日期、金额、顾客姓名三项。、标准表头、识别更准、建议首行用下面的列名；没用这些列名也能导入，指定字段时手工选一次即可。、历史消费、7 列 · 后 4 列原样保留、消费日期、实收金额、顾客姓名、项目、支付方式、门店、备注、示例、前 3 列会被识别用于筛选与搜索，其余列整行原样保留。、必填、可空、（不指定）、其余列会原样保留，可在「历史订单」详情里查看。、样例行、仅本店可见 · 只用于「历史订单」查看 · 可整批删除、下一步：核对、请先选择文件、请先指定日期与金额、消费时间、金额区间、最低、最高、至、只支持按已识别的日期、金额、顾客姓名筛选。、重置、查看结果、核对将导入的数据、条待导入、合计金额、日期范围、条无法识别，导入后可在失败明细下载、仅展示最近 5 条，导入后可在「历史订单」查看全部、确认无误，导入、导入成功、历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。、历史消费、已入库、条失败，下载后修正再传、查看明细、删除本批历史消费、返回工作台、失败明细、金额无法识别、日期格式无法识别、金额为 0 或负数、日期与金额都为空、下载失败行、删除本批历史消费？、将删除本次导入的 16 条历史消费。本店订单流水、会员余额与业绩都不受影响。、先不删、确认删除。</p>
+<p><strong>历史订单 / 历史消费</strong>：历史订单、搜索顾客姓名、筛选、共 16 条 · 合计 ¥9,450、仅用于查看核对，不进订单流水、没有符合条件的历史订单、换个时间或金额范围试试；也可以导入新的历史消费。、导入、订单详情、已识别、原始字段、未填、只读：历史订单不参与开单、业绩与会员余额计算、消费时间、金额区间、最低、最高、至、只支持按已识别的日期、金额、顾客姓名筛选。、重置、查看结果。<br /><strong>历史消费导入（复用通用流程 · v2.45）</strong>：历史消费只接受 Excel；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。、历史消费表：列名不必固定，系统会自己找这几列，无需手动指定。、历史消费一次只导一份表、历史消费 2023-2025.xlsx、正在读这批老账单、抽取日期、金额、顾客姓名，其余列原样保留、读取文件 / 抽取日期与金额 / 对齐顾客姓名、识别完成、历史消费只有两层：能对上日期 / 金额 / 顾客姓名的进「识别摘要」，其余留原件存档。、识别摘要、历史消费没有「可直接入库」这一档：核对完只写入「历史订单」，不进订单流水、不计业绩与会员余额。、共 N 笔 · 合计 ¥X、日期 / 金额 / 顾客姓名已抽出，其余列原样保留、N 行未识别、缺日期或缺金额，不会写入历史订单、原始存档、无法解析的整份文件已留原件，可在历史订单页 ··· →「原始存档」查看。、去核对、核对历史数据、确认导入历史消费、只写入「历史订单」，不进订单流水、不计业绩与会员余额。、本批没有可写入的历史消费、另有 N 行未识别（缺日期或金额），已留在识别摘要，不写入历史订单。、正在导入历史消费、按原样写入历史订单，只识别日期 / 金额 / 顾客姓名、写入历史订单、历史消费已导入、只写进「历史订单」；订单流水、业绩与会员余额都不受影响。、写入历史订单、仅存档、原件已留，可检索、去看、返回首页。<br /><strong>顾客详情 / 会员历史消费（v2.45）</strong>：示意占位 · 实际开发以线上系统真实页面为准、顾客详情、消费明细、共 N 笔 · ¥X、历史消费、只读、暂无匹配到同名历史记录、历史消费按<strong>顾客姓名</strong>自动匹配到会员，只用于查看核对，不参与开单、业绩与余额计算；匹配错了可在「历史消费」里逐条解除。、店内有 N 位同名顾客，历史消费按姓名匹配，请先核对手机号再采信。、店内有 N 位「姓名」，这些记录按姓名匹配，可能不全属于本顾客；不对的请解除。、N 笔 · YYYY–YYYY、解除、已解除匹配，记录仍在历史订单、解除匹配只把该条从本会员名下移出，记录仍留在「历史订单」，不会被删除。、暂无历史消费、导入的历史记录里没有「姓名」的消费；同名记录被你解除匹配后也会回到这里。</p>
 <p><strong>Toast 全量（36 条，逐字）</strong>：</p>
 <ol>
 <li>验证码登录（演示占位）</li>
@@ -6141,7 +6243,7 @@ sequenceDiagram
 <td>AC-49</td>
 <td>导入完成页</td>
 <td>点「去导入历史消费记录」</td>
-<td>进入历史消费导入<strong>合并页</strong>（选择文件 + 指定字段同页，独立链路，不进 P0 类型页）；本店已有历史消费时先弹「追加 / 整批替换」半屏</td>
+<td>进入<strong>通用「选择导入方式」</strong>（<code>importMode='history'</code>：只出 Excel 卡、上方带历史提示行），<strong>不再有专用导入页</strong>；本店已有历史订单时先弹「追加导入 / 先整批删除再导入」半屏</td>
 </tr>
 <tr>
 <td>AC-50</td>
@@ -6457,49 +6559,43 @@ sequenceDiagram
 <td>AC-H-07</td>
 <td>历史订单列表 / 导入完成页</td>
 <td>点「导入」/「去导入历史消费记录」</td>
-<td>进入<strong>导入历史消费合并页</strong>（不再有独立「说明页」）；页头「说明」拉起半屏，含「不进订单流水 / 只支持 Excel / 只认三项」与「建议先导会员、卡、价目」（不拦路），点遮罩或「知道了」关闭</td>
+<td>进入<strong>通用「选择导入方式」</strong>（历史模式）：<strong>只出 Excel 一张卡</strong>，拍照卡<strong>整卡隐藏</strong>；步骤条上方出现提示行「历史消费只接受 Excel；按日期 / 金额 / 顾客姓名识别，不进订单流水。」；<strong>不再有</strong>专用导入页与「说明」半屏；本店已有历史订单时先弹「追加导入 / 先整批删除再导入」半屏</td>
 </tr>
 <tr>
 <td>AC-H-08</td>
-<td>导入历史消费（合并页）</td>
-<td>页面打开（未选文件）</td>
-<td>只显示第 1 段「选择文件」与虚线选择卡；第 2 段「指定字段」（映射 / 样例行 / 标准表头卡 / 信任说明）<strong>整段隐藏</strong>；「下一步：核对」为<strong>禁用态</strong></td>
-</tr>
-<tr>
-<td>AC-H-08b</td>
-<td>导入历史消费（合并页）</td>
-<td>点「选择文件」</td>
-<td><strong>不跳页</strong>：虚线卡换成已选文件卡（XLS 图标 + 文件名 + 「128 行 · 7 列 · 首行已识别为表头」+ ×），第 2 段就地展开，「下一步：核对」启用；日期默认「消费日期」、金额默认「实收金额」、姓名默认「顾客姓名」；点 × 回到未选态并再次收起第 2 段</td>
+<td>上传 Excel（复用页）</td>
+<td>页面打开</td>
+<td>沿用通用上传页；<strong>官方模板下载卡整块隐藏</strong>、「最多 5 个文件」提示隐藏，说明文案改为「历史消费表：列名不必固定，系统会自己找这几列，无需手动指定。」；<strong>无</strong>「指定字段」段、<strong>无</strong>标准表头卡与样例行</td>
 </tr>
 <tr>
 <td>AC-H-09</td>
-<td>合并页</td>
-<td>日期或金额选为空后点「下一步：核对」</td>
-<td>toast「请先指定日期与金额」，不跳转；未选文件点按 → toast「请先选择文件」</td>
+<td>AI 识别中（复用页）</td>
+<td>—</td>
+<td>标题「正在读这批老账单」，三步为「读取文件 / 抽取日期与金额 / 对齐顾客姓名」；结束后<strong>直接生成两层分档</strong>（识别摘要 / 原始存档），<strong>不</strong>按会员 / 卡 / 价目四类归类</td>
 </tr>
 <tr>
 <td>AC-H-10</td>
-<td>核对页</td>
+<td>识别结果（复用页）</td>
 <td>—</td>
-<td>显示总条数、起止日期、合计金额；抽样 5 条；失败条数 > 0 时显示「N 条无法识别」</td>
+<td>只有两块：<strong>识别摘要（L2）</strong>「共 N 笔 · 合计 ¥X」+ 未识别行数、<strong>原始存档（L1）</strong>份数与原因；<strong>无</strong>「这些可放心导入」（L3）</td>
 </tr>
 <tr>
 <td>AC-H-11</td>
-<td>核对页</td>
-<td>点「确认无误，导入」</td>
-<td>进结果页；清单显示条数与「已入库」；<strong>无</strong>会员与持卡 / 卡模板 / 价目三行</td>
+<td>核对历史数据（复用页）</td>
+<td>—</td>
+<td>标题「核对历史数据」；<strong>隐藏</strong>指标卡、类别 tab、tab 汇总与上架提示；列表为<strong>按月卡片</strong>（卡头「2025 年 12 月」+「2 笔 · ¥1,448」+ chevron），同时只展开一个月；<strong>点明细行进历史订单详情</strong>，返回回到核对页且保留展开态；底栏提示「只写入「历史订单」，不进订单流水、不计业绩与会员余额。」</td>
 </tr>
 <tr>
 <td>AC-H-12</td>
-<td>结果页</td>
-<td>点失败条</td>
-<td>进失败明细：行号 + 原因 + <strong>三列键值 diff</strong>（解析失败字段标红）；<strong>无</strong>「手动补录」；「下载失败行」→ toast</td>
+<td>导入完成（复用页）</td>
+<td>点「确认导入历史消费」</td>
+<td>完成块「历史消费已导入」；分档汇总两块——「写入历史订单 / N 笔 · ¥X」与「仅存档 / 原件已留」，均可点；<strong>隐藏</strong>「失败明细」卡、「去导入历史消费记录」、「删除本批数据」</td>
 </tr>
 <tr>
 <td>AC-H-13</td>
-<td>结果页</td>
-<td>点「删除本批历史消费」→「确认删除」</td>
-<td>弹二次确认（文案注明不影响订单流水 / 会员 / 业绩）；确认后条数归零、删除入口隐藏，历史订单列表回到空态</td>
+<td>模式复位</td>
+<td>从完成页「返回首页」/ 核对页返回 / 进入迁移中心</td>
+<td><code>state.importMode</code> 复位为 <code>'main'</code>；随后进入主链时<strong>不应</strong>残留历史文案、单 Excel 限制或两层分档</td>
 </tr>
 <tr>
 <td>AC-H-14</td>
@@ -6684,7 +6780,7 @@ sequenceDiagram
 <tr>
 <td>1</td>
 <td>历史消费是否与会员 / 价目建立关联</td>
-<td>本期<strong>不关联</strong>：只存原始字段 + 日期 / 金额 / 姓名三项索引（见 §8.10）</td>
+<td>v2.45 已定：<strong>与会员建立只读投影</strong>——按「顾客姓名」完全相等挂靠，同名各挂一份，会员侧可逐条解除（<code>state.historyUnmatched</code>）；<strong>不</strong>回写 <code>LegacyOrder</code>，<strong>不</strong>与价目 / 卡 / 余额建立关联（见 §8.10）</td>
 </tr>
 <tr>
 <td>2</td>
@@ -6863,12 +6959,12 @@ sequenceDiagram
 <tr><td>Tab / 分段器</td><td>容器无描边、390 居中、单项等分、选中仅底部指示条；不得与内容卡叠压</td><td><code>.page-tabs</code> 去 1px 描边，选中态只保留指示条</td></tr>
 <tr><td>输入框</td><td>8px 圆角、1px <code>#D7D7D5</code>、聚焦品牌红</td><td><code>.field-input</code> / <code>.check-field input</code> / <code>.duration-input__num</code> 等统一</td></tr>
 <tr><td>图片占位</td><td><code>#EDEDED</code> 底 + 白色线性 <code>image</code> 图标，不留空、不用 emoji</td><td>沿用既有占位样式，不新增彩色占位</td></tr>
-<tr><td>进度条（4 步）</td><td>步骤可辨认、当前步突出、不以纯细线示意</td><td><code>.v3-step</code>：28px 面性图标胶囊 + 11px 文字双排，整条约 64px；已完成 <code>--success</code> 实心、当前步 <code>--brand</code> 实心 + 3px 浅底环、未到 <code>--n-100</code></td></tr>
+<tr><td>进度条（3 步，v2.42）</td><td>步骤可辨认、当前步突出，<strong>不用大圆环、不用勾图标、不用外发光</strong></td><td><code>.v3-step--slim</code>：小圆点 + 1px 连线，整条约 28px；未到达 7px 空心环 <code>--n-200</code>、已完成 6px 实心 <code>--brand</code>、当前步 8px 实心 <code>--brand</code> + 标签 600；文案 11px</td></tr>
 <tr><td>可点列表行</td><td>行内有明确「可点」信号：图标 + 尾箭头 + 按下反馈</td><td><code>.v3-stock__row</code>：18px 面性图标、行高 52px、右箭头 16px <code>--text-3</code>、<code>:active</code> 底色 <code>--n-50</code>；与「查看会员 / 查看卡模板 / 查看价目表」同一入口，不重复写两遍</td></tr>
 <tr><td>次级操作按钮</td><td>可点即有形：描边 + 图标 + ≥40px 热区，不用裸文字</td><td><code>.src-btn</code> / <code>.upload-links__btn</code>：40px 高、8px 圆角、1px <code>#D7D7D5</code>、白底、图标 16px；选中态品牌浅底 + 品牌描边 + 600 字重</td></tr>
 <tr><td>文件格式图标</td><td>按文件类型区分，同结构不同色</td><td><code>.fmt-ico</code>（30px / 22px 小号）：XLS 取 Excel 品牌绿 <code>#217346</code>（§13.6 E9），照片取信息蓝 <code>#0052D9</code>；浅底分别 <code>#E9F5EF</code> / <code>#ECF2FE</code></td></tr>
 <tr><td>底栏提示带</td><td>不占据内容区、与底栏同一表面</td><td><code>.v3-foot__note</code>：底栏内首行、左右 -16px 出血、无圆角、品牌浅底、11px 文案 + 14px 图标</td></tr>
-<tr><td>步骤条 Stepper</td><td>结构照 Figma Tailwind Stepper（node 2:372）：32px 正圆 + 2px 连线，垂直居中于圆心；状态靠圆内内容区分，不靠换图标</td><td>已完成：实心 <code>--brand</code> 圆 + 20px 白色 2px 勾（viewBox 32，勾形 <code>M10.1667 16.8333 13.5 20.1667 21.8333 11.8333</code>）；当前步：2px <code>--brand</code> 环 + 10px <code>--brand</code> 中心点（<strong>不用外发光</strong>；核对页当前步放大到 12px，见 AC-D30）；未到达：2px <code>--n-200</code> 环 + 10px <code>--n-200</code> 点；<strong>末位未到达只留环、不放点</strong>。连线 2px、<code>top: 15px</code>、两端各让 17px（圆半径 16 + 1 间隙），<strong>不得</strong>从圆点下方穿过</td></tr>
+<tr><td>步骤条 Stepper</td><td><strong>v2.42 现行（覆盖此前 Figma 32px 圆规格）：小圆点 + 1px 连线，整条 ≤ 30px</strong>；状态只靠点的<strong>实 / 空</strong>与文字的<strong>字重</strong>区分，不再用 22–32px 圆环、不用勾图标</td><td>已落地口径：<code>.v3-step--slim</code> 全宽三等分。点容器统一 8px（<code>.v3-step__ico</code>，透明无边框），状态在 <code>::after</code> 里画——<strong>未到达</strong>：7px 空心环（1px <code>--n-200</code>、透明底）；<strong>已完成</strong>：6px 实心 <code>--brand</code> 点；<strong>当前步</strong>：8px 实心 <code>--brand</code> 点（比已完成大一号）+ 文字 600 / <code>--text</code>。连线 1px、<code>top: 4px</code>、<code>left: calc(-50% + 7px)</code> / <code>right: calc(50% + 7px)</code>，两端各让 7px 不压圆点。文字 11px / 14px。整条实测高 <strong>28px</strong>（原约 40px）。三步文案仍为「提供 / 识别 / 核对」</td></tr>
 <tr><td>步骤连线着色</td><td>连接线是否着色应由<strong>两端</strong>状态共同决定</td><td><code>.is-done + .is-done::before</code> / <code>.is-done + .is-now::before</code> 取 <code>--brand</code>；其余取 <code>--n-200</code>。仅左端着色的写法会误染当前步右段</td></tr>
 <tr><td>筛选 chips</td><td>筛选控件为无描边胶囊，与描边矩形控件在形状上可区分</td><td><code>.check-chip</code>：无描边胶囊 999 / <code>--n-100</code> 底 / 选中品牌实心白字。<strong>数据核对页 v2.9 起不设搜索框</strong>（AC-D31），<code>.check-search</code> 已删除，不得回流</td></tr>
 <tr><td>文字型操作</td><td>正文 / 卡片内可点必须有形：图标 + 文字 + ≥28px 热区；<strong>标题栏例外</strong>见 E12</td><td><code>.check-ignore-all</code>（白卡列表头，<strong>v2.16 起 28px 高 1px 描边矩形按钮</strong>，无图标）、<code>.v3-foot__link</code> 40px、<code>.queue-file__act</code> 30px 胶囊、<code>.import-card__file-del</code> 28px 胶囊；标题栏动作用 <code>.nav-act</code>（纯文字，高 44px）</td></tr>
@@ -6919,7 +7015,7 @@ sequenceDiagram
 <tr><td>AC-D12</td><td>中文不竖排</td><td>单行标签 / 名称 / 按钮文案<strong>不应</strong>出现逐字竖排；空间不足时<strong>应</strong>单行省略（<code>nowrap + ellipsis</code>），不得靠换行降级</td></tr>
 <tr><td>AC-D13</td><td>可点即有形</td><td>可点的列表行<strong>应</strong>同时具备图标、尾箭头与按下态；次级按钮<strong>应为</strong> 40px 高描边按钮并带图标，<strong>不应</strong>以裸文字充当按钮</td></tr>
 <tr><td>AC-D14</td><td>底栏提示带</td><td>提示信息<strong>应</strong>位于底栏内、左右满宽出血、无圆角，与底栏同一白色表面；<strong>不应</strong>悬浮在内容区中部并带左右外边距</td></tr>
-<tr><td>AC-D21</td><td>步骤条结构对齐 Figma</td><td>圆点<strong>应为</strong> 32px 正圆；已完成态<strong>应为</strong>实心品牌圆 + 白色勾，且<strong>不应</strong>再显示该步原有语义图标；当前步<strong>应为</strong>品牌环 + 中心点且<strong>不应</strong>有外发光；末位未到达<strong>不应</strong>显示中心点（末位为已完成 / 当前时例外）</td></tr>
+<tr><td>AC-D21</td><td>步骤条结构（v2.42 现行）</td><td>步骤条<strong>应为</strong>「小圆点 + 1px 连线」：未到达 = 7px 空心环（1px <code>--n-200</code>）、已完成 = 6px 实心 <code>--brand</code> 点、当前步 = 8px 实心 <code>--brand</code> 点且标签 600；<strong>不应</strong>出现 22px 及以上圆环、圆内勾图标或外发光；<strong>末位未到达也应出环</strong>（不再沿用 Figma End 变体「只留环不放点」的省略逻辑，该口径随 v2.42 作废）</td></tr>
 <tr><td>AC-D22</td><td>转换页标题栏</td><td>标题栏右侧<strong>不应</strong>出现 AI 徽标；<code>.conv-badge</code> 标记与其样式<strong>不应</strong>残留</td></tr>
 <tr><td>AC-D23</td><td>问题导航已下线</td><td>核对页<strong>不应</strong>出现 <code>#checkProbNav</code> / <code>.check-probnav</code> 及其任何浮动条；<strong>不应</strong>残留 <code>checkProbIdx</code> 状态或 <code>jumpCheckProblem()</code>；「只看问题」筛选<strong>应</strong>可独立完成问题定位，点「确认传输」遇阻塞行<strong>应</strong>自动跳到第一条</td></tr>
 <tr><td>AC-D16</td><td>步骤连接线着色</td><td>连接线<strong>应</strong>在两端步骤点都已着色时为品牌红 <code>--brand</code>；任一端未着色时<strong>应</strong>为 <code>--n-200</code>；<strong>不应</strong>仅凭左端状态染色；<strong>不应</strong>从圆点下方穿过（须为圆缘到圆缘）</td></tr>
@@ -6931,23 +7027,17 @@ sequenceDiagram
 <tr><td>AC-D24</td><td>拍照页取景</td><td>取景区<strong>应</strong>只有 4 个品牌红直角与一条扫描线，<strong>不应</strong>再有整圈描边或九宫格；快门<strong>应为</strong> 64px（白环 + 白实心内圆），按下内圆缩至 0.94；底栏<strong>应为</strong>三等宽操作位（76px）；<code>prefers-reduced-motion</code> 下扫描线<strong>应</strong>静止</td></tr>
 <tr><td>AC-D25</td><td>结果页完成块</td><td>成功区<strong>应为</strong> 56px 浅绿圆 + 勾 + 18px 标题 + 14px 副文案，居中、无阴影无渐变；入库清单<strong>应为</strong>整行可点（图标 + 名称 + 状态词 + 数量 + 箭头，行高 ≥52px）；失败条<strong>应为</strong>整卡可点而非文字链</td></tr>
 <tr><td>AC-D26</td><td>历史订单分组</td><td>列表<strong>应</strong>按月分组、组头吸顶（「YYYY 年 M 月」+「N 条 · ¥X」），组间 12px；<strong>不应</strong>出现跨月连续无分组的流水</td></tr>
-<tr><td>AC-D27</td><td>历史消费合并页</td><td>未选文件时「指定字段」段<strong>应</strong>整段隐藏且「下一步：核对」为禁用态；选文件<strong>不应</strong>跳页，选后原地展开映射段；说明<strong>应为</strong>页头「说明」唤起的半屏，<strong>不应</strong>再占一整屏</td></tr>
-<tr><td>AC-D28</td><td>令牌化字号</td><td>字号<strong>应</strong>取自 <code>--fs-*</code> 令牌；等值字面量（32/24/18/16/14/12/11/10px）<strong>不应</strong>再以 px 写死；13px / 15px 现有写法见 §13.6 登记口径，新增样式<strong>不应</strong>再引入</td></tr>
-<tr><td>AC-D29</td><td>标题栏右侧动作统一</td><td>页面标题栏右侧的动作类元素（「标记说明」「导入」「说明」）<strong>应为</strong>纯文字：14px、<code>#929292</code>、无边框无底色、高 44px 热区、右内边距 12px；带图标时图标 14px、与文字间距 4px；信息型文字（「已拍 N 张」「共 126 人」）<strong>应为</strong> <code>--fs-caption</code> / <code>--fs-sub</code> 次级灰；状态徽标（「已锁定」）不受本条约束；<strong>不应</strong>再出现 28px / 30px 描边胶囊</td></tr>
-<tr><td>AC-D30</td><td>核对页当前步圆点</td><td>核对页（<code>#screen-import-check</code>）第 4 步为当前步时，中心点<strong>应为</strong> 12px 品牌实心点（其余页面当前步 10px）；末位未到达仍<strong>不应</strong>出点（AC-D21 的 End 变体不变）；<strong>不应</strong>借外发光 / 描边补足可见度</td></tr>
-<tr><td>AC-D31</td><td>数据核对页结构</td><td>本页<strong>不应</strong>出现搜索框（<code>#checkSearch</code> / <code>.check-search</code> 及其事件与 <code>state.checkQuery</code> 均<strong>不应</strong>残留）；「全部忽略」<strong>应</strong>位于数据列表白卡列表头（44px 行）右上角、随列表滚动、两步确认与置灰逻辑不变，<strong>应为 1px 描边次按钮</strong>（28px 高、<code>--n-200</code> 描边、白底、12px <code>--text-sec</code>，<strong>不带图标</strong>）；类别 tab <strong>应</strong>只显示全称类名（会员资料 / 卡模板 / 价目表 / 库存商品 / 店铺产品），<strong>不应</strong>显示行数，问题角标<strong>应</strong>在 tab 右上角；<strong>5 类并存时 tab 文字不应被截断或出现省略号</strong>（字号 12px + 左右 2px 内边距 + 1px 格间距，高度仍 40px）</td></tr>
-<tr><td>AC-D31b</td><td>展开编辑器表面与行内动作</td><td>行内编辑器<strong>应为白底</strong>（<code>var(--card)</code>），<strong>不应</strong>出现灰底「卡中卡」；与上方行主体<strong>应以</strong> 0.5px 发丝线分隔（左缩进 16px、右到卡边）；「忽略此行」<strong>应为</strong> tonal（<code>--n-100</code> 底、无描边、<code>--text</code> 字、高 40px）；「删除」<strong>应为</strong>仅线性垃圾桶图标（<code>fill: none</code> + <code>stroke: currentColor</code>）的 40 × 40 方按钮、<code>aria-label</code> 为「删除此行」，<strong>不应</strong>再显示「删除」字样或实心图标</td></tr>
-<tr><td>AC-D32</td><td>上传页类别名与「传到手机」</td><td><code>.upload-row__cat</code> <strong>应为</strong>单行（<code>white-space: nowrap</code> + 溢出发丝省略），<strong>不应</strong>再出现 62px 窄列导致的竖排换行；「传到手机」图标<strong>应为</strong>手机轮廓 + 底部指示条，<strong>不应</strong>再用电话听筒路径；尺寸 16px、<code>fill: currentColor</code> 与同排图标一致</td></tr>
-<tr><td>AC-D33</td><td>刷新回登录</td><td>在任意 <code>?flow=</code> 页面上<strong>刷新（含 Ctrl/Cmd+R、Ctrl+F5）后，页面应为</strong> <code>login</code>，且地址栏 <code>?flow=</code> 被改写为 <code>login</code>；<strong>正常打开 / 点击带参链接</strong>仍<strong>应</strong>直达该 flow（深链不得退化）；带 <code>?capture=</code> 的抓取路由<strong>应豁免</strong>，刷新后仍停在被抓取那一屏；无 Navigation Timing 的旧内核<strong>应</strong>按非刷新处理</td></tr>
-<tr><td>AC-H01</td><td>历史消费导入 · 选择文件图标</td><td><code>.upload-drop__ico</code> <strong>应为</strong> 40px 圆角方形浅品牌底（<code>--brand-soft</code>）+ <strong>22px 加号</strong>，语义为「添加」；<strong>不应</strong>再用 CSS 边框拼出的向上箭头（<code>::after</code> 应已删除）；虚线选择卡<strong>应为</strong>白底 + 1px <code>--brand-border</code> 虚线</td></tr>
-<tr><td>AC-H02</td><td>历史消费导入 · 字段行主次</td><td>三行映射<strong>应为</strong> iOS 设置型行：字段名 16px <code>--text</code>、所选列名 14px <code>--text-sec</code> 右对齐、无边框无底色、右侧 16px <code>--text-disabled</code> chevron、行高 56px；<strong>不应</strong>出现「字段名与列名同为 14px <code>#333</code>」的等权渲染；列名<strong>不应</strong>被截断到无法辨认（可用宽度 ≥ 190px）；必填<strong>应</strong>用 6px 品牌红圆点、可空<strong>应</strong>用 11px 灰字「可空」</td></tr>
-<tr><td>AC-H03</td><td>历史消费导入 · 底部提示条</td><td>合并页 / 核对页 / 结果页的说明文字<strong>应</strong>收进底栏 <code>.v3-foot__note</code>（满宽出血、<code>--brand-soft</code> 底、14px 图标 + 11px <code>--brand-ink</code>）；正文<strong>不应</strong>再保留同名小字；<strong>不应</strong>出现无任何样式定义的提示类（如原 <code>.import-trust-note</code>，曾渲染为 16px 纯黑）；正文底部留白<strong>应</strong>大于底栏高度，内容<strong>不应</strong>被压住</td></tr>
-<tr><td>AC-H04</td><td>历史消费核对 · 汇总与抽样</td><td>汇总<strong>应为</strong>白卡三段：条数与合计金额 24px / 600 各占一格（格间 0.5px 竖线），日期范围 12px 次级灰在下一行（上盖 0.5px 发丝线）；<strong>不应</strong>退回「共 N 条 · 起止日期 · 合计 ¥X」单行 11px 灰字；抽样行<strong>应</strong>为姓名 16px / 600（<strong>行首左对齐，v2.16 起不再有 36px 首字头像</strong>）、次行 12px <code>--text-sec</code>、金额 16px / 600，行高 64px、发丝线<strong>左右各缩进 16px</strong>；<code>.hist-prev-row__avt</code> <strong>不应</strong>再出现在 DOM 与样式中</td></tr>
-<tr><td>AC-H05</td><td>失败条目可分辨</td><td><code>.import-fail-item</code>（与 P0 失败明细共享）首行行号<strong>应为</strong> 14px / 600 <code>--text</code>，原因<strong>应为</strong>浅红底胶囊 11px <code>--error-ink</code>（补录后转浅绿）；首行下<strong>应有</strong> 0.5px 发丝线；diff 标签列 64px、字号 12px；<strong>历史页列表容器应为透明背景</strong>，相邻两张卡之间<strong>应有</strong> 12px 页底灰可见，<strong>不应</strong>出现多张白卡贴成一片白、边界不可辨</td></tr>
+<tr><td>AC-D27</td><td>历史消费复用通用导入流程（v2.45）</td><td>历史消费导入<strong>不应</strong>再有专用页：<code>#screen-history-import-upload</code> / <code>-preview</code> / <code>-result</code> / <code>-fail</code>、<code>#historyIntroSheet</code>、<code>#historyDelDialog</code> <strong>均应从 DOM 移除</strong>；入口「导入」后<strong>应</strong>进入通用「选择导入方式」且<strong>只出 Excel 一张卡</strong>（拍照卡不渲染或整卡隐藏）、步骤条上方<strong>应</strong>出现历史提示行；上传页<strong>不应</strong>出现官方模板下载卡与「最多 5 个文件」提示；完成核对后<strong>应</strong>回到通用完成页、分档只有两块；离开历史链路（回首页 / 返回历史订单 / 进入迁移中心）后 <code>state.importMode</code> <strong>应</strong>复位为 <code>'main'</code></td></tr>
+<tr><td>AC-H01</td><td>历史消费只有两档</td><td>识别结果<strong>应</strong>只出「识别摘要（L2）」与「原始存档（L1）」两块；<strong>不应</strong>出现「这些可放心导入」一档，也<strong>不应</strong>出现任何直接把历史消费写进订单流水 / 业绩 / 会员余额的文案或按钮</td></tr>
+<tr><td>AC-H02</td><td>取消人工映射</td><td>历史链路<strong>不应</strong>出现字段映射区（<code>#histMapArea</code>、<code>#histSampleArea</code>、四行字段下拉、<code>#btnHistAdjust</code>、「标准表头」卡与样例表）；DOM 与 CSS<strong>均不应</strong>残留上述类名 / id</td></tr>
+<tr><td>AC-H03</td><td>复用页底栏提示条</td><td>历史模式下的上传 / 核对 / 完成三屏说明文字<strong>应</strong>收进底栏 <code>.v3-foot__note</code>（满宽出血、<code>--brand-soft</code> 底、14px 图标 + 11px <code>--brand-ink</code>），正文<strong>不应</strong>重复同一句小字；三种模式文案<strong>应</strong>分别为「只写入「历史订单」，不进订单流水、不计业绩与会员余额。」（核对）与「不进订单流水，仅用于查看核对；会员余额与业绩不受影响」（完成）</td></tr>
+<tr><td>AC-H04</td><td>核对页按月卡片</td><td>历史模式核对页<strong>应</strong>隐藏指标卡、类别 tab、tab 汇总与上架提示；列表<strong>应为</strong>按月卡片（<code>.hist-month-card</code>）：卡头左「YYYY 年 M 月」15px / 600、右「N 笔 · ¥X」13px 次级灰 + 16px chevron，点卡头展开收起且<strong>同时只展开一个月</strong>；明细行<strong>应</strong>含姓名 14px / 500 + 次行「日期 · 支付方式 · 项目」12px、右侧金额 14px / 600，<strong>整行可点进 <code>history-detail</code></strong>，返回<strong>应</strong>回到核对页并保留展开态</td></tr>
+<tr><td>AC-H05</td><td>顾客详情入口与姓名匹配</td><td>会员列表点行<strong>应</strong>进入 <code>#screen-member-detail</code>（顶部「示意占位」说明条）；「消费明细」节内<strong>应有</strong>「历史消费」入口行（32px 浅绿图标块 + 主文案 14px / 600 + 次数与合计 12px + 右「只读」+ chevron）；匹配<strong>只按顾客姓名完全相等</strong>，<strong>不应</strong>读取手机号做匹配；店内存在同名会员时<strong>应</strong>出现「同名 N 人，请核对手机号」提示条；无匹配时入口<strong>仍可点</strong>且次行为「暂无匹配到同名历史记录」</td></tr>
+<tr><td>AC-H06</td><td>会员历史消费与解除匹配</td><td><code>#screen-member-history</code> <strong>应为</strong>年份卡片：卡头左年份 17px / 600、右该年合计 15px / 600 + 笔数 12px + chevron，年份降序、默认全收起、同时只展开一年；消费行<strong>应为</strong>两段式（可点区 + 独立「解除」按钮，26px 高 / 圆角 13 / <code>#F5F7F9</code> 底 / 12px <code>#6B6B6B</code>），<strong>不应</strong>把「解除」做成嵌套在整行按钮内部的按钮；点「解除」后该行<strong>应</strong>立即从本会员名下消失、合计与年份卡<strong>应</strong>同步重算（该年归零则整卡消失），历史订单里该条<strong>应</strong>照旧存在且字段不变；点可点区<strong>应</strong>进 <code>history-detail</code>，返回<strong>应</strong>回本页</td></tr>
 <tr><td>AC-D10</td><td>例外不外溢</td><td>开关橙 <code>#FF7043</code><strong>不得</strong>出现在按钮 / 标签 / 选中态；环形图 <code>conic-gradient</code> <strong>不得</strong>被复用到卡片或进度条</td></tr>
 </tbody>
 </table>
-<p><strong>说明</strong>：以上为<strong>规格</strong>（应当怎样），不是「已实测通过」。v2.10 含 JS 逻辑与 DOM 变更（<code>applyDeepLink()</code> 刷新分支、<code>renderHistoryPreview()</code> 三段渲染、<code>.map-*</code> → <code>.hs-*</code> 结构替换）；<strong>v2.16 含 JS DOM 变更</strong>（tab 密排类挂载、删除按钮图标化、历史抽样行去头像）、<strong>无校验与状态机改动</strong>；已做代码层自检与运行时走查，见 §13.8；如需断言式回归与截图，另起任务。</p>
+<p><strong>说明</strong>：以上为<strong>规格</strong>（应当怎样），不是「已实测通过」。<strong>v2.45 含 JS 逻辑与 DOM 变更</strong>（双模式导入链路 <code>state.importMode</code>、<code>#screen-member-detail</code> / <code>#screen-member-history</code> 新增、专用历史导入四屏与说明半屏 / 删除弹层移除、按月核对卡片渲染、<code>HISTORY_ROWS</code> 与会员按姓名挂靠及解除匹配状态 <code>state.historyUnmatched</code>）；v2.10 含 <code>applyDeepLink()</code> 刷新分支与 <code>renderHistoryPreview()</code> 三段渲染；v2.16 含 tab 密排类挂载、删除按钮图标化、历史抽样行去头像。<strong>本轮仅做代码层自检（<code>node --check app.js</code> + 标签闭合），未跑断言脚本、未截图、未提交</strong>——AC-H01～H06 为待验证规格，需另起回归任务。</p>
 
 <h2>13.8 改动文件与自查口径</h2>
 <table>
@@ -6963,6 +7053,8 @@ sequenceDiagram
 </tbody>
 </table>
 <p><strong>已做</strong>：<code>node --check app.js</code> 通过（v2.10 / v2.16 复跑）；<strong>v2.16 自检</strong>：CDP 运行时走查 5 类数据核对页——<code>#checkTabs</code> 挂上 <code>is-dense</code>、容器 <code>scrollWidth == clientWidth == 341px</code>、5 格各 67px、4 字全称文字盒 48px 与需求宽度 48px 相等且<strong>未出现省略号</strong>（改动前可用 54px &lt; 需求 56px）；「全部忽略」三态实测——常态 <code>28px / 0 10px / 1px rgb(215,215,213) / 白底 / rgb(107,107,107) / 12px</code>，武装态 <code>rgb(255,242,242)</code> 底 + <code>rgb(196,30,43)</code> 字 + <code>rgb(255,213,217)</code> 描边 + 600，无效态 <code>rgb(247,247,247)</code> 底 + <code>rgb(184,184,184)</code> 字；展开编辑器 <code>background rgb(255,255,255)</code>、<code>::before</code> 为 16px→右 0 的 1px 线经 <code>scaleY(.5)</code>；「忽略此行」<code>40px / 0 14px / 0px 描边 / rgb(237,237,237) 底</code>；删除按钮 <code>40 × 40</code>、内含 <code>svg</code> 且无文本、<code>aria-label</code> =「删除此行」；历史核对页 <code>.hist-prev-row__avt</code> 节点计数 0、姓名距行左边 16px、行间发丝线 <code>left/right 16px</code>；两屏控制台均无报错。全仓检索 <code>hist-prev-row__avt</code> / <code>check-ignore-all svg</code> 在 <code>index.html</code> / <code>app.css</code> / <code>app.js</code> 中残留计数为 0（仅 PRD 旧修订记录与 <code>_backup_spec</code> 旧稿保留）；<code>node --check app.js</code> 通过。<strong>v2.10 自检</strong>：新增的小号文字（字段行列名 14px、样例行 / 汇总标签 / 抽样次行 / 表头卡引导语与卡尾提示 11–12px）<strong>统一用 <code>--text-sec</code>（5.33:1）而非 <code>--text-3</code>（3.36:1）</strong>——按 <code>base.css</code> 注释的口径，<code>--text-3</code> 仅限 ≥16px 或非文本使用，小字用它不达标；chevron 图标用 <code>--text-disabled</code>（非文本，不受此限）。全仓检索 <code>.map-row</code> / <code>.map-rows</code> / <code>historyPreviewLead</code> / <code>hist-preview-more</code> / <code>history-result-note</code> / <code>import-trust-note</code> / <code>upload-drop__ico::after</code> 残留计数为 0（仅 <code>_backup_spec</code> 旧稿保留）；HTML 使用的 <code>.hs-sec</code> / <code>.hs-row*</code> / <code>.hs-sum*</code> / <code>.history-fail-list</code> / <code>.import-body--note</code> 均有对应样式定义；<code>.hs-row__chev</code> 定位在 <code>.hs-row</code>（<code>position: relative</code>）内，右内边距与 <code>.hs-row__val</code> 的 20px 让位一致，不与列名重叠；<code>&lt;select&gt;</code> 保留原生元素（仅 <code>appearance: none</code>），<code>#historyMapDate</code> / <code>#historyMapAmount</code> / <code>#historyMapName</code> 三个 id 未改，<code>renderHistoryMap()</code> 与校验逻辑零改动；<code>index.html</code> 与 PRD 标签配平全通过、<code>app.css</code> 大括号 1403/1403 配平。<strong>运行时走查</strong>（本地静态服务 + 浏览器实测）：① 刷新——在 <code>?flow=history-orders</code> 上 <code>location.reload()</code> 落 <code>screen-login</code>、地址栏被改写为 <code>?flow=login</code>；在 <code>?capture=claim&amp;flow=claim</code> 上刷新仍停 <code>screen-claim</code>（豁免成立）；正常导航进 <code>?flow=history-import-upload</code> 直达该屏（深链未退化）。② 合并页——选择卡图标 40×40 浅品牌底、色值 <code>rgb(243,47,65)</code> 加号；字段行 56px，字段名 16px <code>rgb(51,51,51)</code>、列名 14px <code>rgb(107,107,107)</code> 宽 201px 不截断，chevron 在 <code>x=956</code> 未压字；底栏提示条宽 389px（满宽出血）、正文 <code>padding-bottom: 170px</code> &gt; 底栏 142px，未压内容。③ 核对页——汇总卡显示 16 / ¥9,450 / 2023-05-26 ~ 2025-12-28，抽样 5 行、行高 64px（v2.16 已无头像）。④ 结果页——正文说明小字已删、底栏提示条在位。⑤ 失败明细——容器背景 <code>rgba(0,0,0,0)</code>，相邻两张卡间距 12px（原来贴成一片白），行号 14px/600、原因胶囊 11px 浅红底。控制台无报错。<br />v2.9 自检：全仓检索确认 <code>checkSearch</code> / <code>check-tab &gt; span</code> / <code>.check-search</code> / <code>.check-tools__row</code> / <code>.history-import-btn</code> / <code>.check-help</code> 残留计数为 0；HTML 中 <code>.nav-act</code> / <code>.check-card</code> / <code>.check-card__hd</code> / <code>.check-tab__badge</code> 均有对应样式；运行时走查：核对页无搜索框、列表头 44px 且「全部忽略」在卡内、tab 全名（最长 98px / 列 112px）不截断、当前步中心点 12px、上传页 <code>.upload-row__cat</code> 高 30px 单行、「传到手机」为 <code>rect</code> 手机轮廓、三处 <code>.nav-act</code> 边框 0px 且色值 <code>rgb(146,146,146)</code>；控制台无报错。v2.5 额外校验：标签配平 div 451/451 · span 433/433 · button 231/231 · svg 89/89 · label 16/16，CSS 大括号 2052/2052；v2.4 额外校验：<code>index.html</code> 全文档标签配平、JS 引用的关键 <code>id</code> 全部存在、HTML 使用到的 <code>v3-*</code> 类在 CSS 均有定义、已下线旧类残留计数为 0。</p>
+<p><strong>v2.45 改动文件</strong>：<code>index.html</code>（新增 <code>#screen-member-detail</code> / <code>#screen-member-history</code> 与侧栏入口；删除 <code>#screen-history-import-upload</code> / <code>-preview</code> / <code>-result</code> / <code>-fail</code>、<code>#historyIntroSheet</code> / <code>#historyIntroMask</code>、<code>#historyDelDialog</code> / <code>#historyDelMask</code>、<code>#histMapArea</code> / <code>#histSampleArea</code> / <code>#btnHistAdjust</code>；新增 <code>#importHistoryNote</code> / <code>#sourceHistoryNote</code> / <code>#checkTitle</code> / <code>#checkFootNote</code> / <code>#importResultTitle</code> / <code>#importResultLead</code> 等模式钩子）、<code>app.js</code>（新增 <code>state.importMode</code> / <code>historyUnmatched</code> / <code>historyTier</code> / <code>memberDetailId</code> / <code>historyReturnFlow</code> / <code>mhOpenYear</code> / <code>histMonthOpen</code>；新增 <code>goHistoryImportStart()</code> / <code>exitHistoryMode()</code> / <code>commitHistoryAnalysis()</code> / <code>buildHistoryTier()</code> / <code>historyTierOverviewHtml()</code> / <code>renderHistoryCheck()</code> / <code>submitHistoryImport()</code> / <code>renderHistoryResultSummary()</code> / <code>syncImportSourceModeUI()</code> / <code>syncCheckModeUI()</code> / <code>findMemberById()</code> / <code>sameNameMembers()</code> / <code>memberHistoryRows()</code> / <code>historyYearKey()</code> / <code>memberHistorySummary()</code> / <code>renderMemberDetail()</code> / <code>renderMemberHistory()</code>；删除专用合并页 / 核对页 / 结果页 / 失败明细的渲染与事件绑定）、<code>tier.css</code>（新增 <code>.mp-card</code> / <code>.mp-sec</code> / <code>.mp-entry</code> / <code>.mp-entry__txt</code> / <code>.mp-note</code> / <code>.mh-head</code> / <code>.mh-card</code> / <code>.mh-card__hd</code> / <code>.mh-row</code> / <code>.mh-row__open</code> / <code>.mh-row__unmatch</code> / <code>.mh-dup-tip</code> / <code>.mh-foot</code> / <code>.hist-check-sum</code> / <code>.hist-month-card</code> / <code>.hist-month</code> / <code>.hist-month__row</code> / <code>.hist-check-fail</code>）、<code>app.css</code>（删除 <code>.hs-*</code> / <code>history-sample</code> / <code>hist-recog</code> / <code>hist-adjust</code> / <code>hist-prev-row</code> / <code>hist-fail-row</code> / <code>hist-intro-lead</code> 等随页面一并下线的规则）、本 PRD（版本 v2.45、修订记录、§3.2 / §3.3、§6.23–§6.29、§8.10、§10.11、§12.3、§13.7、§13.8、§15.1 / §15.8 / AC-N11）。</p>
+<p><strong>v2.45 自检</strong>：<code>node --check app.js</code> 通过；<code>index.html</code> 与 PRD 的 <code>table / thead / tbody / tr / td / div / p / ul</code> 标签配平（PRD：118 / 118 / 118 / 1230 / 3619 / 9 / 149 / 45 全对齐）；五个改动文件均为 <strong>LF 行尾</strong>（CRLF 计数 0）；<code>history-import-upload</code> / <code>historyIntroSheet</code> / <code>historyDelDialog</code> / <code>histMapArea</code> / <code>histSampleArea</code> / <code>btnHistAdjust</code> 在 <code>index.html</code> / <code>app.css</code> / <code>tier.css</code> 中<strong>已无残留</strong>，<code>app.js</code> 中仅剩 <code>?capture=</code> 的<strong>旧抓取路由映射</strong>（<code>history-import-upload*</code> / <code>history-import-preview*</code> / <code>history-import-intro</code> → 分别落到「选择导入方式 · 历史模式」/「核对页」/「两层识别结果」，为 Figma 既有抓取链接保留，不再引用任何已删元素）；新增类名均有对应样式。</p>
 <p><strong>未做</strong>：未跑 <code>_tmp_verify_*.mjs</code> 形式的断言脚本、未出截图比对、未做线上复测（v2.9 / v2.10 同口径） —— 改完仅自检代码层 + 浏览器运行时走查，由人工目视验收。</p>
 <p><strong>本地查看</strong>：打开 <code>RTA开店流程与数据导入/index.html</code>（390×844），左侧导航逐屏切换；本页右上「打开交互原型」亦可直达。</p>
 
@@ -7096,13 +7188,13 @@ sequenceDiagram
 </thead>
 <tbody>
 <tr><td>第一步</td><td>「这次要导入什么」：逐类勾选 + 每类两枚按钮选 Excel / 拍照</td><td>「导入数据」：只问来源，两枚大入口（Excel / 拍照），<strong>不出现类别</strong></td></tr>
-<tr><td>类别数</td><td>3 类（会员与持卡 / 卡模板 / 价目表）</td><td><strong>5 类</strong>（会员资料 / 卡模板 / 价目表 / <strong>库存商品</strong> / <strong>店铺产品</strong>）</td></tr>
+<tr><td>类别数</td><td>3 类（会员与持卡 / 卡模板 / 价目表）</td><td><strong>4 类</strong>（会员资料 / 卡模板 / 价目表·项目 / 价目表·产品）——v2.36 起<strong>库存品类不再进导入</strong>，原「库存商品」并入价目表·产品口径</td></tr>
 <tr><td>类别由谁定</td><td>用户勾选</td><td><strong>AI 判断</strong>，认出哪类显示哪类；卡片<strong>只展示、不可编辑</strong></td></tr>
 <tr><td>字段映射</td><td><code>import-map</code> 屏 + 确认锁；<code>import-tpl-gen</code>；<code>import-preview</code> / <code>-detail</code></td><td><strong>四屏全部删除</strong>，AI 自动对齐；用户只在「核对」里改具体行</td></tr>
 <tr><td>Excel 与照片</td><td>按类别二选一，同类不能混</td><td><strong>可混批</strong>：同一批里既有 Excel 又有照片，AI 统一识别后归类</td></tr>
 <tr><td>进度条</td><td>4 步（选择 → 提供 → 转换 → 核对）</td><td><strong>3 步</strong>（提供 → 识别 → 核对）</td></tr>
 <tr><td>真实模式</td><td>侧栏「演示 / 真实」开关 + <code>ai-bridge.js</code> + <code>ai-server/</code></td><td><strong>下线</strong>：无开关、无桥接调用，全部演示数据；<code>ai-server/</code> 目录保留</td></tr>
-<tr><td>历史消费</td><td>选文件后就地展开「指定字段」三项映射</td><td><strong>样例优先</strong>：先给识别结果 + 6 行样例，点「数值不对？」才展开映射</td></tr>
+<tr><td>历史消费</td><td>专用四屏（上传+指定字段合并页 / 核对 / 完成 / 失败明细）+ 人工指定日期·金额·姓名三列</td><td><strong>v2.45 起复用通用流程</strong>：<code>importMode='history'</code> 下只出 Excel、隐藏模板下载；<strong>取消人工映射</strong>；分档只有识别摘要 / 原始存档两层；核对页按月卡片，行可点进详情</td></tr>
 </tbody>
 </table>
 <p><strong>随之失效的旧章节</strong>：§6.8（类型页 · 每类含来源）、§6.10.2（确认待识别内容）、§6.11 中「页面结构」下的映射 tab 与「确认锁」部分、§3.2 中 <code>import-queue</code> / <code>import-map</code> / <code>import-tpl-gen</code> / <code>import-preview</code> / <code>import-preview-detail</code> 各行的「进入 / 出边」列、以及 §14 全章（真实模式）。这些章节<strong>仅供追溯</strong>，规格以本章为准。</p>
@@ -7123,10 +7215,10 @@ sequenceDiagram
 <tr><th>区块</th><th>规格（应为）</th></tr>
 </thead>
 <tbody>
-<tr><td>标题栏</td><td>返回 + 标题「导入数据」</td></tr>
+<tr><td>标题栏</td><td>返回 + 标题「选择导入方式」</td></tr>
 <tr><td>进度条</td><td>3 步：<strong>提供</strong>（当前）→ 识别 → 核对</td></tr>
 <tr><td>分区标题</td><td>「这次要导入什么」+ 说明「文件和照片都行；不用先选类别，AI 会自己认。」</td></tr>
-<tr><td>两枚大入口</td><td>①「<strong>我有 Excel 表格</strong>」副标「会员表、价目表、库存表都能传」，右侧动作文字「去上传」；②「<strong>只有手机能拍照</strong>」副标「纸质价目表、手写会员本，拍下来就行」，右侧「去拍照」</td></tr>
+<tr><td>两枚大入口</td><td>按 Figma <code>node-id=410-619</code> 落地：两枚<strong>大卡</strong>纵向排列，<strong>每枚高 182px</strong>、圆角 12、白底、<strong>2px 描边</strong>（Excel <code>#E8F8F2</code> / 拍照 <code>#EEF5FC</code>）、无阴影；内距 <code>10 / 14 / 10 / 10</code>、图文间距 14、两卡间距 10。左为 <strong>96×84</strong> 圆角 10 的插图（Excel：淡绿底 + 绿色表格页；拍照：淡蓝底 + 蓝色纸质表 + 手机取景），右为两行文案——主标「<strong>Excel 导入</strong> / <strong>拍照导入</strong>」（16px / 700 / <code>#333</code> / 行高 24），副标「表格文件 · xls / xlsx / csv」「纸质价目表、手写本，对准拍」（12px / 400 / <code>#6B6B6B</code> / 行高 18）。</td></tr>
 <tr><td>已拿到清单</td><td>分区标题「已经拿到 <em>N</em> 份」+「还能继续加，Excel 与照片可以混着来。」；每行左侧格式图标（Excel / 照片缩略图）、主文案文件名或「照片 N」、副行「大小 · 待识别」或「拍照 · 待识别」、右侧「移除」；0 份时显示空态「还没有添加任何数据。点上面的入口开始。」</td></tr>
 <tr><td>底栏</td><td>提示条「不用挑类别，也不用整理表头：AI 会判断这批数据是会员、卡模板、价目表、库存商品还是店铺产品。」+ 主按钮「开始识别（N 份）」；0 份时禁用且文案「先添加数据」</td></tr>
 <tr><td>交互</td><td>点「我有 Excel 表格」→ 进上传页，<strong>进页不自动落文件</strong>（空列表或保留已选）；点「选择文件」才追加演示文件（原型不调系统选择器）。点「只有手机能拍照」→ 直接进拍照页；清单里「移除」即从待识别池删掉（Excel 与照片共用一个 <code>data-pending-del</code>，按 id 归属分流）。<strong>线上</strong>须进页后点选并唤起系统文件选择器上传真实文件</td></tr>
@@ -7136,16 +7228,16 @@ sequenceDiagram
 <h3>15.4 上传 Excel（<code>import-source</code>）与拍照（<code>import-camera</code>）</h3>
 <ul>
 <li><strong>上传页</strong>：标题「上传 Excel」；分区「选择 Excel 文件」+「一次可以选多个。表头不标准、有合并单元格都没关系，AI 会读。」；白卡「选择文件」（xls / xlsx / csv · 单个 ≤ 10MB）；下方复用「已拿到清单」的行样式；提示「最多 5 个文件；传错了在列表里直接删。」；底栏「完成」→ 回导入数据页。不再按类别逐屏上传，不再出现「AI 转换 / 按标准模板填写」开关。<strong>原型（v2.27）</strong>：从选源进本页<strong>不预落文件</strong>；仅点「选择文件」才按预设名轮换追加演示文件并 toast「已添加演示文件」（不调系统选择器）。<strong>线上</strong>：必须唤起系统选择器，接受真实 <code>.xls/.xlsx/.csv</code> 多选上传。</li>
-<li><strong>拍照页</strong>：顶部「拍什么都行 · 对准表格四角，可连拍」；取景区四角框 + 扫描线；下方缩略图条（已拍 N 张，可单张删除）；底部「照片 / 快门 / 完成」。<strong>照片落进统一待识别池</strong>，不绑类别；「完成」→ 回导入数据页。</li>
+<li><strong>拍照页</strong>：标题栏只有返回 + 「拍照」（<strong>不再有右侧「已拍 N 张」</strong>）；取景区为四角框（2px 品牌红、22×22）+ <strong>扫描线</strong>（2.6s 往复、压在取景水印之上）；水印<strong>只有一行表头 + 从表头两侧向下延伸的开口线框</strong>（无表体、无内部网格）、不透明度约 <strong>0.3</strong>；下方缩略图条（可单张删除）；底部「相片叠图 / 快门 / 提交」。<strong>照片落进统一待识别池</strong>，不绑类别；相册选中的照片同样进入左侧叠图（顶层为最新一张）；「提交」→ 回导入数据页。</li>
 <li><strong>相机取景</strong>：<code>getUserMedia</code> 不可用（http 非 localhost / 未授权）时切演示态并提示「这里拿不到相机取景，可用左下角「照片」从相册选，或点重试」；不可用时按快门落<strong>演示样张</strong>（文案「演示照片 · 仅用于展示识别流程」）。「照片」入口用 <code>input[type=file][accept=image/*]</code> 读成 dataURL 后同样进待识别池。</li>
 </ul>
 
 <h3>15.5 AI 识别中（<code>import-analyze</code>）</h3>
 <ul>
 <li>标题「AI 识别中」；均衡器动效 +「正在看这批数据」+「读取表头、比对字段，判断属于哪几类」。</li>
-<li>三步进度：<strong>读取文件</strong>（表头 / 列名）→ <strong>判断类别</strong>（会员 / 卡模板 / 价目表 / 库存 / 产品）→ <strong>对齐字段</strong>（自动映射，无需手动指定）。</li>
+<li>三步进度：<strong>读取文件</strong>（表头 / 列名）→ <strong>判断类别</strong>（会员 / 卡模板 / 价目项目 / 价目产品）→ <strong>对齐字段</strong>（自动映射，无需手动指定）。</li>
 <li>底栏提示「识别完成后会直接告诉你读出了哪几类，不用你做任何选择。」——<strong>本页不设可点动作</strong>，走完自动进识别结果。</li>
-<li>演示剧本（固定可复现）：只有 Excel → 会员资料 / 卡模板 / 价目表；只有照片 → 价目表 / 库存商品；两者都有 → 五类全出。</li>
+<li>演示剧本（固定可复现）：只有 Excel → 会员资料 / 卡模板 / 价目表·项目；只有照片 → 价目表·项目 / 价目表·产品；两者都有 → 四类全出。</li>
 </ul>
 
 <h3>15.6 识别结果（<code>import-cards</code>，v2.19 通俗化 / v2.34 文案）</h3>
@@ -7156,33 +7248,36 @@ sequenceDiagram
 <li>关首页 banner 且从未点过工作台「数据导入」→ 聚光灯引导「更多 → 数据导入」。</li>
 </ul>
 
-<h3>15.7 下游对 5 类的支持</h3>
+<h3>15.7 下游对 4 类的支持（v2.36 起，原「5 类」含库存商品的口径作废）</h3>
 <table>
 <thead>
 <tr><th>页面</th><th>规格（应为）</th></tr>
 </thead>
 <tbody>
 <tr><td>标准表转换</td><td>按 <code>checkCats()</code> 逐类出结果卡（类别名 + 「N 行 / N 项」+ 问题角标 + 对齐进度条）；按钮「去核对 N 行」</td></tr>
-<tr><td>数据概览</td><td>环形图（可传输占比）+「N 行已识别 / N 类」+ 三张计数卡（可直接导入 / 建议确认 / 需修正）+ 分类 tab（类别全称 + 问题角标）按<strong>五类</strong>逐类列出；<code>stock</code> / <code>product</code> 行内编辑器各 8 字段（见下）；「新增一行」按当前 tab 给默认值（库存：单位「件」、数量 0；产品：上架、可售 0）</td></tr>
+<tr><td>数据概览</td><td>环形图（可传输占比）+「N 行已识别 / N 类」+ 三张计数卡（可直接导入 / 建议确认 / 需修正）+ 分类 tab（类别名 + 问题角标）按<strong>四类</strong>逐类列出；<code>price</code> / <code>product</code> 行内只改价格（名称只读），<code>product</code> 行内编辑器 8 字段（见下）；「新增一行」按当前 tab 给默认值（产品：上架、可售 0）。<strong>库存品类已下线，不得再出现第 5 个 tab 或库存编辑器</strong></td></tr>
 <tr><td>可入库总则（v2.25 / v2.26）</td><td><strong>必填齐全即可导</strong>（选填可空）；任一已填字段出现乱码占位（<code>???</code> / <code>□</code> / 「无法识别」等）或金额/数字列解析失败 → 该行<strong>需修正、不可入库</strong>。按行判定。<strong>整表</strong>：一份 Excel 内「可识别的已填入内容」占比 &lt; <strong>30%</strong> → 整份归<strong>原始存档</strong>（不进可入库 / 不按行拆进核对写入）。原型用 <code>readablePct</code> 演示；线上按实识别单元格统计。</td></tr>
 <tr><td>校验规则 · 会员资料</td><td>入库必填仅<strong>会员姓名</strong>（模板列 <code>会员姓名</code>）。会员卡号 / 手机号 / 充值余额 / 来源渠道等均可空；有值则须可识别（手机号须 11 位、金额可解析、卡类型须落在 5 类）。卡名称不在店内仅警告。</td></tr>
 <tr><td>校验规则 · 卡模板</td><td>必填：<strong>卡名</strong> + <strong>充值余额</strong>（储值 sheet）或 <strong>购买价格</strong>（计次/折扣/套餐/周期）+ <strong>权益列至少一项</strong>（折扣 / 次数 / 适用大类·项目·包含项目 / 赠送项目 / 会员价项目等，见模板各 sheet）。金额无法解析 → 不可导。</td></tr>
 <tr><td>校验规则 · 价目表</td><td>必填：<strong>项目名</strong> + <strong>价格</strong>；项目组等选填；价格无法解析或为负 → 需修正。</td></tr>
-<tr><td>校验规则 · 库存商品</td><td>对齐模板必填：<strong>商品名</strong> / <strong>商品规格</strong> / <strong>单位</strong> / <strong>数量</strong>；采购价可空但不可解析即错误；数量非非负整数 → 无法识别；为 0 仅警告；条码非 8–14 位仅警告</td></tr>
-<tr><td>校验规则 · 店铺产品</td><td>入库必填：<strong>产品名称</strong> + <strong>产品售价</strong>；产品分类等选填（空则警告归「未分类」）；售价无法解析或为负 → 需修正；会员价可空但不可解析即错误；上架状态非「上架 / 下架」仅警告</td></tr>
-<tr><td>导入完成</td><td>三档摘要「去看」+ 存量行逐类渲染；点「去看」/ 入库行进入业务列表或存档/摘要后，返回应回本页（首页 / 出壳除外）。摘要详情 → 摘要列表 → 本页。库存商品 / 店铺产品无独立列表时为<strong>原型占位 toast</strong></td></tr>
-<tr><td>失败明细</td><td>仍以会员行示例（手机号格式 / 卡名不在店内等），库存与产品的失败行沿用同一套 <code>.import-fail-item</code> 组件</td></tr>
-<tr><td>再导模式 / 整批删除</td><td>合并与清空二选一按<strong>五类</strong>各自判断；整批删除对话框按五类动态列出将删除的数量（不再写死「126 条会员 + 4 张卡 + 42 项价目」）</td></tr>
+<tr><td>校验规则 · 库存商品（已下线）</td><td><strong>v2.36 起库存品类不再进导入</strong>：原「商品名 / 商品规格 / 单位 / 数量」四项必填校验、<code>checkProblemsStock()</code> 与库存行内编辑器<strong>已整体删除</strong>，本条仅作历史记录，不应再在原型中复活</td></tr>
+<tr><td>校验规则 · 店铺产品</td><td>入库必填：<strong>产品名称</strong> + <strong>产品售价</strong>；产品分类等选填（空则警告归「未分类」）；售价无法解析或为负 → 需修正；会员价可空但不可解析即错误；上架状态非「上架 / 下架」仅警告；可售数量（<code>stockQty</code>）可空但不可解析即错误</td></tr>
+<tr><td>导入完成</td><td>三档摘要「去看」+ 存量行逐类渲染；点「去看」/ 入库行进入业务列表或存档/摘要后，返回应回本页（首页 / 出壳除外）。摘要详情 → 摘要列表 → 本页。店铺产品无独立列表时为<strong>原型占位 toast</strong></td></tr>
+<tr><td>失败明细</td><td>仍以会员行示例（手机号格式 / 卡名不在店内等），产品的失败行沿用同一套 <code>.import-fail-item</code> 组件</td></tr>
+<tr><td>再导模式 / 整批删除</td><td>合并与清空二选一按<strong>四类</strong>各自判断；整批删除对话框按四类动态列出将删除的数量（不再写死「126 条会员 + 4 张卡 + 42 项价目」）</td></tr>
 </tbody>
 </table>
 
-<h3>15.8 历史消费：样例优先，字段映射按需展开</h3>
+<h3>15.8 历史消费：复用通用流程，只有两层（v2.45）</h3>
 <ul>
-<li>进页只有「选择文件」；选完文件<strong>默认不显示「指定字段」</strong>。</li>
-<li>先给识别结果卡：三列「日期 / 金额 / 顾客姓名」各显示识别到的源列名（如 消费日期 / 实收金额 / 顾客姓名）。</li>
-<li>其下是<strong>样例表</strong>（日期 / 金额 / 顾客 / 支付 / 项目），标题区 24px 星芒 +「AI 已经读出来了」+「日期、金额、顾客姓名、支付方式都认到了。先看样例对不对。」</li>
-<li>样例下方一行文字按钮「<strong>数值不对？手动指定字段</strong>」→ 展开原「指定字段」区（三行 iOS 设置型下拉），选择变化时同步刷新样例与识别结果卡。</li>
-<li>重新选文件会收起映射区并复位识别态；「下一步：核对」未选文件时禁用。</li>
+<li><strong>不再有专用页</strong>：历史消费走与主链同一套页面（选择导入方式 → 上传 Excel → AI 识别中 → 识别结果 → 核对 → 完成），由 <code>state.importMode = 'history'</code> 切换文案与分档；进入方式为历史订单页「导入」或完成页「去导入历史消费记录」。</li>
+<li><strong>只接受 Excel</strong>：选择导入方式页<strong>只出 Excel 一张卡</strong>（拍照卡整卡隐藏），上传页隐藏官方模板下载卡与「最多 5 个文件」提示——历史账单没有官方模板，一次一份。</li>
+<li><strong>取消人工映射</strong>：<code>#histMapArea</code> / <code>#histSampleArea</code> / <code>#btnHistAdjust</code> / 标准表头卡全部删除。列名不固定是历史表的常态，逐列手选反而抵消「AI 自动找列」；识别错的行由两层分档兜住。</li>
+<li><strong>只有两层</strong>：识别结果 = 识别摘要（L2，可核对写入历史订单）+ 原始存档（L1，只留原件）；<strong>没有「可放心导入」</strong>——历史消费永远不直接写订单流水、业绩与会员余额。</li>
+<li><strong>核对按月卡片</strong>：标题「核对历史数据」，隐藏指标卡 / 类别 tab / tab 汇总 / 上架提示；按月可折叠卡片（卡头「YYYY 年 M 月」+「N 笔 · ¥X」+ chevron），<strong>点明细行进订单详情</strong>，返回保留展开态。</li>
+<li><strong>完成页</strong>：两块（写入历史订单 / 仅存档），隐藏「失败明细」「去导入历史消费记录」「删除本批数据」；<strong>回滚入口</strong>移到历史订单页 ···。</li>
+<li><strong>与会员的挂靠</strong>：历史行只有「顾客姓名」，<strong>按姓名完全相等</strong>挂到会员名下（同名多人各挂一份并提示核对）；顾客详情 → 历史消费里可<strong>逐条「解除」</strong>，只解除挂靠、不删记录（§6.27 / §6.28）。</li>
+<li><strong>复位</strong>：离开历史链路时 <code>importMode</code> 一律回 <code>'main'</code>，主链不应残留单 Excel 限制或两层分档。</li>
 </ul>
 
 <h3>15.9 真实模式下线</h3>
@@ -7204,19 +7299,35 @@ sequenceDiagram
 <tr><td>AC-N18</td><td>导入完成页点「已入库 / 识别摘要 / 仅存档」去看或点入库清单行进入下级页后，标题栏返回应回到导入完成页；识别摘要详情返回摘要列表，再返回导入完成页。点「返回首页」或标题栏出壳应回首页 / 工作台，不应卡在完成页。</td></tr>
 <tr><td>AC-N03</td><td>点「只有手机能拍照」应进入拍照页；按快门后该页「已拍 N 张」与缩略图条应同步增加，「完成」后照片应出现在「导入数据」页的已拿到清单。</td></tr>
 <tr><td>AC-N04</td><td>同一批里既有 Excel 又有照片时，「开始识别」应可用，且识别结果应同时包含来源为 Excel 与来源为拍照的类别；两类徽标应分别显示「Excel N 个」「拍照 N 张」。</td></tr>
-<tr><td>AC-N05</td><td>只有 Excel 时识别结果应为会员资料 / 卡模板 / 价目表 3 类；只有照片时应为价目表 / 库存商品 2 类；两者都有时应为 5 类。</td></tr>
+<tr><td>AC-N05</td><td>只有 Excel 时识别结果应为会员资料 / 卡模板 / 价目表·项目 3 类；只有照片时应为价目表·项目 / 价目表·产品 2 类；两者都有时应为 <strong>4 类</strong>。<strong>不应</strong>再出现「库存商品」类（v2.36 起下线）。</td></tr>
 <tr><td>AC-N06</td><td>识别结果卡片上<strong>不应有任何可编辑控件</strong>（无输入框、无下拉、无勾选框），点击卡片不应改变其状态。</td></tr>
 <tr><td>AC-N07</td><td>「下一步：核对」应先进标准表转换，再由「去核对 N 行」进数据概览；全链路<strong>不应出现任何「指定字段 / 字段映射」页面</strong>。</td></tr>
-<tr><td>AC-N08</td><td>数据概览的分类 tab 与总计应覆盖本次识别出的全部类别（最多 5 类）；库存商品与店铺产品的行内编辑器应分别提供 8 个字段。</td></tr>
+<tr><td>AC-N08</td><td>数据概览的分类 tab 与总计应覆盖本次识别出的全部类别（<strong>最多 4 类</strong>）；<code>product</code> 的行内编辑器应提供 8 个字段；<strong>不应</strong>存在库存品类的第 5 个 tab 与其编辑器。</td></tr>
 <tr><td>AC-N09</td><td>库存商品：商品名 / 规格 / 单位 / 数量任一为空或数量非非负整数应判「需修正」；数量为 0 应为「建议确认」。店铺产品：产品名称或产品售价为空 / 售价无法解析或为负应判「需修正」；上架状态非「上架 / 下架」应为「建议确认」；仅缺产品分类不应判需修正（可为建议确认）。</td></tr>
 <tr><td>AC-N14</td><td>会员资料仅缺手机号 / 卡号 / 渠道等选填、但会员姓名齐全且无无法识别字段时，该行<strong>应</strong>计为可导入。任一选填字段值为乱码或金额列解析失败时，该行<strong>应</strong>为需修正。</td></tr>
 <tr><td>AC-N15</td><td>卡模板缺卡名、或缺充值余额/购买价格、或权益列全空时<strong>应</strong>为需修正；卡名 + 价格齐全且至少一项权益有值、且无无法识别字段时<strong>应</strong>可导入。</td></tr>
 <tr><td>AC-N16</td><td>识别结果页「这些可放心导入」仅含达门槛类别；未达门槛行应出现在「识别摘要」；可识别已填 &lt;30% 的 Excel（演示如「库存盘点表」）应出现在「原始存档」且不进入即将导入条数。</td></tr>
-<tr><td>AC-N17</td><td>核对页顶卡「即将导入」应为可导入条数；确认导入进度应只统计可导入行；未达门槛行不应写入存量。</td></tr>
+<tr><td>AC-N17</td><td>核对页顶卡应为「分段对比条 + 图例 + 分项网格」的数据预览卡，<strong>不应</strong>再显示「N 即将导入」总数文案与「另有 N 条未达入库门槛…不会写入」提示；确认导入进度应只统计可导入行；未达门槛行不应写入存量。</td></tr>
 <tr><td>AC-N10</td><td>整批删除确认对话框应<strong>按本次已有数据的类别动态列出数量</strong>，缺数据的类别不应出现 0 值条目。</td></tr>
-<tr><td>AC-N11</td><td>历史消费导入页选完文件后，<strong>默认不应显示「指定字段」三行下拉</strong>，应显示识别结果三项 + 至少 5 行样例；点「数值不对？手动指定字段」后才展开映射区。</td></tr>
+<tr><td>AC-N11</td><td>历史消费导入应<strong>复用通用流程</strong>：进入后只出 Excel 一张来源卡、上传页无模板下载；全链路<strong>不应出现任何「指定字段 / 字段映射 / 标准表头」页面或区块</strong>；识别结果<strong>只有识别摘要与原始存档两层</strong>，核对页为按月折叠卡片且行可点进订单详情。</td></tr>
 <tr><td>AC-N12</td><td>左侧导航<strong>不应出现「演示 / 真实」切换控件</strong>；页面不应加载 <code>ai-bridge.js</code>；任何入口都不应发起 AI 桥请求。</td></tr>
 <tr><td>AC-N13</td><td>导入链路进度条应为 3 步（提供 / 识别 / 核对），不应再出现「选择」或「转换」步骤名。</td></tr>
+<tr><td>AC-N19</td><td>选择导入方式页两枚入口应为 Figma <code>410-619</code> 规格：每卡高 182px、圆角 12、2px 描边（Excel <code>#E8F8F2</code> / 拍照 <code>#EEF5FC</code>）、左 96×84 插图、右主标 16px/700、副标 12px/<code>#6B6B6B</code>；不应再出现 21px 主标或无描边白卡。</td></tr>
+<tr><td>AC-N20</td><td>拍照页水印<strong>只应有线框与一行表头</strong>，不应出现任何示例数值与类别小标题；不透明度约 0.3。取景区应同时可见四角括号与扫描线，且二者压在水印之上。</td></tr>
+<tr><td>AC-N21</td><td>按快门后白色闪光应在 0.28s 内结束，<strong>结束 500ms 后取景区不应残留任何白色遮罩</strong>（闪光类应已摘除）。标题栏右侧不应出现「已拍 N 张」。</td></tr>
+<tr><td>AC-N22</td><td>从相册勾选或预览里「选择这张」后，快门左侧叠图顶层应为该张照片（46×46、白描边），且已选栏自动展开；取消勾选后叠图应回到上一张或空态。</td></tr>
+<tr><td>AC-N23</td><td>核对页：会员列表<strong>不应出现按卡类型 / 卡名分组的分组头</strong>，应为平铺；卡模板每个卡类型大卡内每张卡应为独立卡片且保留上架开关；分项卡的大数值与数值条应取与该分项分段条、图例一致的同一颜色（不应全部为绿色）。</td></tr>
+<tr><td>AC-N24</td><td>识别摘要详情<strong>不应再出现顶部带「复制」的原文卡</strong>，页面首个区块应为「已识别字段」。</td></tr>
+<tr><td>AC-N25</td><td>批次完成后（结果页 → 返回首页 → 再进「数据导入」）应从头开始：待识别清单为 0、不回到结果页；有存量进「本店概况」，无存量进「选择导入方式」。</td></tr>
+<tr><td>AC-N26</td><td>卡模板卡砖右上角的类型角标应按类型分色：储值卡蓝、计次卡粉、折扣卡紫、套餐卡黄、周期卡橙；仅有角标着色，卡类型分组标题文字保持中性色。</td></tr>
+<tr><td>AC-N27</td><td>核对页价目表·项目 / 价目表·产品行内<strong>不应再出现「可开单 · 点按可改」「上架 · 点按可改」小字</strong>，点行也<strong>不应展开任何详细字段编辑器</strong>；<strong>v2.42 起只应能改价格</strong>——名称是只读文本（<code>&lt;span class="verify-row__name is-static"&gt;</code>，无 <code>data-inline-start</code>、按下无底色、光标为默认箭头），点名称不应有任何反应。</td></tr>
+<tr><td>AC-N28</td><td>点价目行的<strong>价格</strong>应<strong>在原地</strong>把该格变成编辑态并聚焦价格输入框：价格<strong>同尺寸、同位置</strong>换成输入框（名称位置与观感不变，仍是纯文本），<strong>行高与右侧上架 / 下架开关位置不得变化</strong>（不得出现整行灰底重排、不得把开关隐藏）；「取消 / 确定」应<strong>在该行下方另起一行展开</strong>。<strong>点「确定」才写入</strong>，点「取消」、按 Esc 或点编辑行以外均不写入；价格非数字时应提示并保持编辑态。<strong>编辑态内名称不得出现输入框</strong>，提交<strong>只写 <code>price</code></strong>、不改 <code>name</code>（不得提示「名称不能为空」）。</td></tr>
+<tr><td>AC-N29</td><td>拍照页水印应<strong>只有一行表头</strong>（五列等宽、居中、白字），<strong>表头以下不得有任何表格行 / 格线 / 内部网格</strong>；表头两侧应向下延伸出<strong>左右两条竖线 + 一条上沿</strong>的开口框体（无底边），框体内无任何格子，不应出现被挤压变形的网格；<strong>表头应落在取景框内、距取景框上沿约 12%（约 73px），不应贴顶</strong>；<strong>表头相邻两格之间应有 4 条列间竖线</strong>（<code>rgba(255,255,255,.5)</code>），表头整行<strong>不加外框</strong>；字号大于 13px；表体框体可向下渐隐，表头本身应保持清晰、不透明度约 <code>.3</code>。</td></tr>
+<tr><td>AC-N30</td><td>点拍照页左侧叠图时，动效对象应为<strong>叠图与点开后出现在上一行的已选照片</strong>：展开时照片应<strong>从叠图位置飞向上一行各自的格位</strong>（含尺寸由 46px 过渡到 48px），收起时应<strong>从各格位飞回叠图</strong>并缩小淡出；动效期间不应拦截点击，结束后不应残留节点；<code>prefers-reduced-motion</code> 下不播。</td></tr>
+<tr><td>AC-N31</td><td>核对页顶部类型卡（<code>.verify-stat</code>）应<strong>可点</strong>：点某类型卡应<strong>切到该类别 tab</strong>（筛选、展开态、编辑态一并复位）并<strong>平滑滚到下方数据列表顶部</strong>；卡片应为 <code>button</code> 语义、带 <code>aria-label="查看&lt;类别&gt;数据列表"</code>，按下有底色反馈。</td></tr>
+<tr><td>AC-N32</td><td>导入链路各屏步骤条应为<strong>小圆点 + 1px 连线</strong>：未到达 7px 空心环、已完成 6px 实心品牌点、当前步 8px 实心品牌点（更大一号）且标签 600；连线 1px、两端各让 7px，只连接已完成 / 当前相邻两段时着品牌色；整条高度 <strong>≤ 30px</strong>；<strong>不应</strong>再出现 22px 及以上圆环、圆内勾图标或 3px 外发光。</td></tr>
+<tr><td>AC-N33</td><td>价目表·项目 / 价目表·产品的数据卡片应有<strong>明确文字层级</strong>：大类名（分组标题）<strong>应为</strong> 12px / 500 / <code>#8E8E8E</code> 的组眉标、右侧条数 11px / <code>#B0B0B0</code>；项目名与产品名<strong>应为</strong> 15px / 600 / <code>#1A1A1A</code>（主信息，字号与字重均高于大类名）；价格<strong>应为</strong> 15px / 600；三者行高 <code>21px</code>，行高恒 52px。卡模板 / 会员列表的分组标题<strong>不应</strong>被改动（仍为 13px / 600 / <code>#1A1A1A</code>）。</td></tr>
+<tr><td>AC-N34</td><td>导入链路<strong>不应</strong>再出现「库存品类」第 5 类：核对页 tab 与顶部类型卡<strong>最多 4 个</strong>（会员 / 卡模板 / 价目表·项目 / 价目表·产品）；<code>ensureCheckData()</code> <strong>不应</strong>再构建库存行；识别摘要里的 <code>stock</code> 域应<strong>落回价目表·产品</strong>而非新建第 5 类；<code>buildStockRows</code> / <code>checkProblemsStock</code> / <code>CHECK_FIELDS.stock</code> 等<strong>不应</strong>残留。工作台「库存管理」占位页与价目表·产品的可售数量字段<strong>不属于</strong>本项，应保留。</td></tr>
 </tbody>
 </table>
 
@@ -7226,15 +7337,20 @@ sequenceDiagram
 <tr><th>文件</th><th>改动</th></tr>
 </thead>
 <tbody>
-<tr><td><code>index.html</code></td><td>导航：删 <code>#navMode</code> 段与 <code>ai-bridge.js</code> 引用，<code>import-select</code> / <code>import-source</code> / <code>import-camera</code> / <code>import-analyze</code> / <code>import-cards</code> / <code>import-convert</code> / <code>import-check</code> / <code>import-result</code> / <code>import-fail</code> 九个导航项；删 <code>#screen-import-queue</code> / <code>-map</code> / <code>-tpl-gen</code> / <code>-preview</code> / <code>-preview-detail</code> 五屏；重写 <code>#screen-import-select</code>（两枚来源入口 + 已拿到清单）；新增 <code>#screen-import-analyze</code> / <code>#screen-import-cards</code>；<code>#screen-import-result</code> 存量行宿主改 <code>#resultStockList</code>；进度条统一 3 步；<code>#screen-history-import-upload</code> 新增 <code>#histSampleArea</code>（识别结果 + 6 行样例 + 「数值不对？」），<code>#histMapArea</code> 默认 <code>hidden</code>；整批删除文案改动态 <code>#delBatchBody</code></td></tr>
-<tr><td><code>app.js</code></td><td>新增 <code>state.pending.{excel,photo}</code> / <code>analysisCats</code> / <code>analyzing</code> / <code>analyzeTimers</code>；新增 <code>pendingTotal()</code> / <code>blankReimportMode()</code> / <code>addPendingExcel()</code> / <code>addPendingPhotos()</code> / <code>removePendingExcel()</code> / <code>removePendingPhoto()</code> / <code>renderExcelPick()</code> / <code>renderImportSelect()</code> / <code>startAnalysis()</code> / <code>skipAnalysis()</code> / <code>resetAnalysisProgress()</code> / <code>analysisScript()</code> / <code>commitAnalysis()</code> / <code>cardListHtml()</code> / <code>renderCards()</code> / <code>blankReimportMode()</code>；<code>renderCamera()</code> / <code>captureShot()</code> / <code>deleteShot()</code> 改读 <code>state.pending.photo</code>；<code>pickPhotoFor()</code> 改为读系统图片文件进待识别池；<code>CHECK_FIELDS</code> 增 <code>stock</code> / <code>product</code>；新增 <code>buildStockRows()</code> / <code>buildProductRows()</code> / <code>checkProblemsStock()</code> / <code>checkProblemsProduct()</code>；<code>checkCats()</code> / <code>ensureCheckData()</code> / <code>recomputeCheck()</code> / <code>checkRowTitle()</code> / <code>checkRowSub()</code> / <code>checkRowTag()</code> / <code>addCheckRow()</code> / <code>checkCtx()</code> 扩到 5 类；<code>hasP0Stock()</code> / <code>applyBatchToStock()</code> / <code>renderResultStockLines()</code> / <code>showDelBatchDialog()</code> 改按 5 类；<code>isRealMode()</code> 恒 <code>false</code>，删 <code>MODE_KEY</code> / <code>loadMode()</code> / 模式切换绑定；<code>renderHistorySample()</code> 新增、<code>renderHistoryImport()</code> 改样例优先；<code>go()</code> 增 <code>import-analyze</code> / <code>import-cards</code> 分支并去掉已删页分支；<code>bindImport()</code> 重绑来源入口 / 开始识别 / 卡片下一步 / 待识别清单移除 / 拍照完成与返回</td></tr>
-<tr><td><code>app.css</code></td><td>新增 <code>.hist-recog</code>（三列识别结果卡）、<code>.hist-adjust</code>（文字按钮）、<code>.history-sample--4</code>（四列样例含表头行）；其余复用既有 <code>.src-entry</code> / <code>.pending-list</code> / <code>.cat-card</code> / <code>.v3-step</code></td></tr>
+<tr><td><code>index.html</code></td><td>导航：删 <code>#navMode</code> 段与 <code>ai-bridge.js</code> 引用，<code>import-select</code> / <code>import-source</code> / <code>import-camera</code> / <code>import-analyze</code> / <code>import-cards</code> / <code>import-convert</code> / <code>import-check</code> / <code>import-result</code> / <code>import-fail</code> 九个导航项；删 <code>#screen-import-queue</code> / <code>-map</code> / <code>-tpl-gen</code> / <code>-preview</code> / <code>-preview-detail</code> 五屏；重写 <code>#screen-import-select</code>（两枚来源入口 + 已拿到清单）；新增 <code>#screen-import-analyze</code> / <code>#screen-import-cards</code>；<code>#screen-import-result</code> 存量行宿主改 <code>#resultStockList</code>；进度条统一 3 步；<code>#screen-history-import-upload</code> 新增 <code>#histSampleArea</code>（识别结果 + 6 行样例 + 「数值不对？」），<code>#histMapArea</code> 默认 <code>hidden</code>；整批删除文案改动态 <code>#delBatchBody</code>；<strong>v2.42</strong>：侧栏「文档」链接版本字样 <code>PRD v2.26</code> → <code>PRD v2.42</code>（仅文案，无结构改动）</td></tr>
+<tr><td><code>app.js</code></td><td>新增 <code>resetImportBatch()</code> / <code>importBatchClosed()</code>（v2.39：批次完成态重进先清本批）；新增 <code>cardTileHtml()</code>（v2.39：卡模板改卡片）；<strong>v2.40</strong>：新增 <code>cardTypeClass()</code>（卡类型角标分色）、<code>tappableEditRowHtml()</code> / <code>focusInlineInput()</code> / <code>commitInlineEdit()</code> / <code>cancelInlineEdit()</code>（价目表行内只改名称与价格，点「确定」才落库）、<code>camMotionOff()</code> / <code>camStackTopRect()</code> / <code>camFlyPhoto()</code> / <code>camStackPulse()</code> / <code>camRailItems()</code> / <code>camRailItemRects()</code> / <code>camRailOpenFly()</code> / <code>camRailCollapseFly()</code>（叠图 ⇄ 已选照片行的共享元素过渡），新增 <code>state.inlineEdit</code> 并接上点击 / keydown 委托；<code>renderCheckList()</code> 去掉价目 / 产品的展开编辑器分支；<code>paintCamWatermark()</code> 改为只渲染表头 + 空表体格（<code>&lt;td&gt;</code> 无文本）；<code>paintCamWatermark()</code> 表体格不再写 <code>&amp;nbsp;</code>；<strong>v2.41</strong>：<code>paintCamWatermark()</code> 只输出 <code>&lt;thead&gt;</code> 一行五列、<strong>不再输出任何 <code>&lt;tbody&gt;</code></strong>；<code>tappableEditRowHtml()</code> 编辑态改为 <code>.verify-row-wrap</code> + 原行（名称 / 价格原地变输入框、上架开关保留）+ 下方 <code>.inline-acts</code>；<code>flashShutter()</code> 增加 320ms 摘类；<code>renderCamera()</code> 去掉「已拍 N 张」；<code>toggleAlbumPick()</code> 选完自动展开已选栏；<code>renderCheckStats()</code> 分项卡加 <code>is-cN</code>；<code>renderCheckList()</code> 会员平铺、卡模板出卡砖；<code>renderDigestDetail()</code> 去掉复制卡；新增 <code>state.pending.{excel,photo}</code> / <code>analysisCats</code> / <code>analyzing</code> / <code>analyzeTimers</code>；新增 <code>pendingTotal()</code> / <code>blankReimportMode()</code> / <code>addPendingExcel()</code> / <code>addPendingPhotos()</code> / <code>removePendingExcel()</code> / <code>removePendingPhoto()</code> / <code>renderExcelPick()</code> / <code>renderImportSelect()</code> / <code>startAnalysis()</code> / <code>skipAnalysis()</code> / <code>resetAnalysisProgress()</code> / <code>analysisScript()</code> / <code>commitAnalysis()</code> / <code>cardListHtml()</code> / <code>renderCards()</code> / <code>blankReimportMode()</code>；<code>renderCamera()</code> / <code>captureShot()</code> / <code>deleteShot()</code> 改读 <code>state.pending.photo</code>；<code>pickPhotoFor()</code> 改为读系统图片文件进待识别池；<code>CHECK_FIELDS</code> 增 <code>stock</code> / <code>product</code>；新增 <code>buildStockRows()</code> / <code>buildProductRows()</code> / <code>checkProblemsStock()</code> / <code>checkProblemsProduct()</code>；<code>checkCats()</code> / <code>ensureCheckData()</code> / <code>recomputeCheck()</code> / <code>checkRowTitle()</code> / <code>checkRowSub()</code> / <code>checkRowTag()</code> / <code>addCheckRow()</code> / <code>checkCtx()</code> 扩到 5 类；<code>hasP0Stock()</code> / <code>applyBatchToStock()</code> / <code>renderResultStockLines()</code> / <code>showDelBatchDialog()</code> 改按 5 类；<code>isRealMode()</code> 恒 <code>false</code>，删 <code>MODE_KEY</code> / <code>loadMode()</code> / 模式切换绑定；<code>renderHistorySample()</code> 新增、<code>renderHistoryImport()</code> 改样例优先；<code>go()</code> 增 <code>import-analyze</code> / <code>import-cards</code> 分支并去掉已删页分支；<code>bindImport()</code> 重绑来源入口 / 开始识别 / 卡片下一步 / 待识别清单移除 / 拍照完成与返回；<strong>v2.42</strong>：<code>tappableEditRowHtml()</code> 名称改 <code>&lt;span class="verify-row__name is-static"&gt;</code>（只读、无 <code>data-inline-start</code>），编辑态只有价格输入框；<code>focusInlineInput()</code> 去掉 <code>field</code> 参数、恒聚焦 <code>[data-inline-input="price"]</code>；<code>commitInlineEdit()</code> 只校验并写回 <code>price</code>（删「名称不能为空」分支、不再写 <code>name</code>）；<code>renderCheckStats()</code> 顶部类型卡改 <code>&lt;button data-check-jump&gt;</code>，核对页点击委托新增 <code>[data-check-jump]</code> 分支（切 tab + <code>#checkList.scrollIntoView</code>）；<strong>v2.43</strong>：<code>renderCheckList()</code> 按当前 tab 给 <code>#checkList</code> 切 <code>is-price-cat</code> 类；<code>promoteDigestToCheck()</code> 的 <code>d.domain === 'stock'</code> 由映射成 <code>'stock'</code> 改为<strong>落回 <code>'product'</code></strong>，并删除只为库存服务的 <code>spec / unit / qty / cost</code> 字段（<code>stockQty</code> 改从 <code>f.stockQty || f.qty || 可售数量…</code> 取）；删除 <code>buildStockRows()</code> / <code>checkProblemsStock()</code> / <code>CHECK_FIELDS.stock</code> / <code>CHECK_UNIT.stock</code> 及 <code>checkRowTitle·Sub·Tag</code>、<code>verifyGroupKey</code>、<code>verifyTabMetrics</code>、<code>verifyBoardLabel</code>、<code>verifyBoardItems</code>、<code>addCheckRow</code>、<code>checkCtx</code>、<code>verifyRowHtml</code> 的 stock 分支；六个状态对象移除 <code>stock</code> 键，<code>?capture=import-check</code> / <code>check-help</code> 演示造数去掉 <code>stock: true</code></td></tr>
+<tr><td><code>app.css</code></td><td>新增 <code>.hist-recog</code>（三列识别结果卡）、<code>.hist-adjust</code>（文字按钮）、<code>.history-sample--4</code>（四列样例含表头行）；<strong>v2.40</strong>：<code>.cam-wm__table</code> 表头与表体行高统一 34px、表体格 <code>line-height: 0</code>；<code>.cam-wm__table-card</code> 加向下渐隐 <code>mask-image</code>；新增 <code>.cam-stack__fly</code> 与 <code>@keyframes camStackFly</code>（含 <code>prefers-reduced-motion</code> 降级）；<strong>v2.41</strong>：从 <code>.cam-wm__general</code> 的 <code>display: flex</code> 规则里<strong>摘掉 <code>.cam-wm__table</code></strong>（这是水印五列被挤压变形的根因），删除 <code>tbody td</code> / <code>thead th</code> 的 34px 行高与格线样式；水印区改 <code>inset: 5% 7% 22%</code>、表头 15px、五列 <code>table-layout: fixed</code> 等宽；新增 <code>.cam-wm__rails</code>（上 + 左 + 右三边、无底边、自带向下渐隐蒙版）；其余复用既有 <code>.src-entry</code> / <code>.pending-list</code> / <code>.cat-card</code> / <code>.v3-step</code>；<strong>v2.42</strong>：水印区改 <code>inset: 12% 7% 20%</code>、新增 <code>.cam-wm__table th + th { border-left: 1px solid rgba(255,255,255,.5) }</code>（表头 4 条列间竖线，无整行外框）；<code>.v3-step--slim</code> 整块重写为方案 C（8px 点容器 + <code>::after</code> 状态点 7 空 / 6 实 / 8 实、连线 1px / <code>top: 4px</code> / 两端让 7px、隐藏勾图标、整条 28px）；<code>.verify-stat</code> 改按钮重置（<code>display:block / width:100% / border:0 / font:inherit / text-align:left / cursor:pointer</code> + <code>:active</code> 底色 <code>#EFEFEF</code>）</td></tr>
+<tr><td><code>tier.css</code></td><td><strong>v2.40</strong>：新增 <code>.tpl-tile__type.is-saving / is-count / is-discount / is-package / is-period</code> 五色；新增 <code>.verify-row.is-inline-tappable</code>、<code>__name</code> / <code>__price</code>。<strong>v2.41</strong>：删除 <code>.verify-row.is-inline-editing</code> 与 <code>.inline-edit*</code> 整套「灰底表单」；新增 <code>.verify-row__name.is-input</code> / <code>.verify-row__price.is-input</code>（原地输入框，与文字同字号同内距同高 31px）、<code>.verify-row__cny</code>、<code>.verify-row-wrap.is-editing</code>、<code>.inline-acts</code> 与 <code>@keyframes inlineActsIn</code>（下方 30px 按钮条）；<code>.verify-row__price</code> 改为固定宽 <code>76px</code> 右对齐，保证进入编辑态不挤压名称列；<strong>v2.42</strong>：新增 <code>.verify-row__name.is-static</code>（名称只读：<code>cursor:default</code>、无按下底色）；删除 <code>.verify-row__name.is-input</code> 与其 placeholder 规则（名称不再进入编辑态）；<strong>v2.43</strong>：新增 <code>#checkList.is-price-cat</code> 作用域——组头 <code>.verify-group__hd</code> 内距 <code>12px 0 8px</code>、<code>b</code> 改 12px / 500 / <code>#8E8E8E</code>、条数 11px / <code>#B0B0B0</code>；<code>.verify-row__name</code> 15px / 600 / <code>line-height: 21px</code>、<code>.verify-row__price</code> 15px / <code>line-height: 21px</code>、编辑态输入框 15px（层级：项目名 &gt; 价格 &gt; 大类名）</td></tr>
 </tbody>
 </table>
 
 <h3>15.12 自查口径</h3>
 <p><strong>已做（代码层 + 运行时走查）</strong>：<code>node --check app.js</code> 通过；本地静态服务逐屏切换（27 屏）无脚本报错；三条链路各走一遍——① 仅 Excel：识别出 3 类 → 转换「去核对 1,472 行」→ 概览 3 个 tab；② 仅照片（2 张）：识别出 2 类 → 概览 2 个 tab（价目表 / 库存商品）；③ Excel + 照片混批：识别出 5 类 → 概览 5 个 tab（1,541 行），库存与产品的行内编辑器字段齐全、校验提示按上述规则出现；④ 历史消费：选文件后 <code>#histSampleArea</code> 可见、<code>#histMapArea</code> 隐藏，点「数值不对？」后映射区展开、样例与识别结果同步刷新，可进核对页。<br />
 <strong>未做</strong>：未跑 <code>_tmp_verify_*.mjs</code> 形式的断言脚本、未出截图比对、未做线上复测、未提交。以上验收项为<strong>规格</strong>描述，不是「已实测通过」。</p>
+<p><strong>v2.40 补充</strong>：除 <code>node --check app.js</code> 外，在本地静态服务上做了 DOM 量测走查——水印 6 行行高 34–35px、25 个表体格无文本、<code>mask-image</code> 与 <code>opacity .3</code> 生效、取景框 / 扫描线层级仍为 2 / 3；价目表两类的行内均无「点按可改」小字且无展开编辑器，点名称聚焦名称、点价格聚焦价格，非法价格保持编辑态、点外部取消不落库、点确定写入并重算；五种卡类型角标色值分别为蓝 / 粉 / 紫 / 黄 / 橙；叠图动效为共享元素过渡（实测展开时飞行图起点 = 叠图实图 741,724 / 46px，终点 = 上一行各格位 723,640 与 779,640 / 48px；收起时反向并淡出，动画结束节点数归 0）。<strong>仍未跑断言脚本、未截图、未提交。</strong></p>
+<p><strong>v2.43 补充</strong>：<code>node --check app.js</code> 通过；本地静态服务上做 DOM 量测（无断言脚本、无截图）——<code>#checkList</code> 在价目 / 产品 tab 挂上 <code>is-price-cat</code>，组头 <strong>12px / 500 / rgb(142,142,142)</strong>、条数 <strong>11px / rgb(176,176,176)</strong>，项目名 <strong>15px / 600 / rgb(26,26,26)</strong> 高 31px、价格 <strong>15px / 600</strong> 高 31px、行高 <strong>52px</strong>；编辑态只有 <strong>1 个输入框</strong>且已聚焦、字号 15px、价格块 31px、行高仍 52px、名称为 <code>SPAN.verify-row__name.is-static</code>；切到卡模板 tab 时 <code>is-price-cat</code> 移除、组头回到 <strong>13px / 600 / rgb(26,26,26)</strong>；核对页 tab 与顶部类型卡均为 <strong>member / card / price / product 四个</strong>，页面上无库存行。<strong>仍未跑断言脚本、未截图、未提交。</strong></p>
+<p><strong>v2.42 补充</strong>：<code>node --check app.js</code> 通过；本地静态服务上做了 DOM 量测（无断言脚本、无截图）——拍照页水印表头距取景框上沿 <strong>73px</strong>（取景框高 606px 的 12%），表头 <strong>4 条列间竖线</strong>（0.67px / <code>rgba(255,255,255,.5)</code>，首格无左线）、五列各 <strong>67px</strong>，<code>.cam-wm__rails</code> 仍为上 + 左 + 右三边、与表头底边贴合；步骤条整条高 <strong>28px</strong>，当前步 8px 实心、已完成 6px 实心、未到达 7px 空心环，连线 1px（已完成相邻段为品牌色、未达段 <code>#D7D7D5</code>），标签 11px；价目行名称为 <code>SPAN.is-static</code>、无 <code>data-inline-start</code>，点价格后编辑态只有 <strong>1 个输入框</strong>且已聚焦、行高仍 <strong>52px</strong>，填 <code>299</code> 点「确定」后显示 <code>¥299</code> 且名称不变；点顶部「价目表·产品」卡后 tab 切换、<code>#checkBody.scrollTop</code> 从 0 到 <strong>591</strong>、列表顶与滚动容器顶对齐（<code>listRel 0</code>）。<strong>仍未跑断言脚本、未截图、未提交。</strong></p>
+<p><strong>v2.41 补充</strong>：<code>node --check app.js</code> 通过；本地静态服务上做了一轮 DOM 量测（无断言脚本、无截图）——水印 <code>#camWmGrid</code> 的 <code>tbody tr</code> 计数 <strong>0</strong>、<code>display: table</code>、五列各 <strong>67px</strong> 等宽、无文字溢出，表头 15px / 高 31px / 距取景框顶 30px，<code>.cam-wm__rails</code> 仅上 + 左 + 右三边（底边 0）、左右与表头两侧对齐（735 / 1069）；价目行进入编辑态前后行首 <code>737</code>、行高 <code>52</code>、名称 <code>737,748,176,31</code>、价格 <code>921,748,76,31</code> <strong>完全一致</strong>，下方动作条 42px，填 <code>128.5</code> 点「确定」后显示 <code>¥128.5</code> 且退出编辑态。<strong>仍未跑断言脚本、未截图、未提交。</strong></p>
 
 <hr />
 <p class="foot-note">本文档与 <code>RTA开店流程与数据导入/index.html</code> 同步维护。文案、状态、数量以原型为准；本文与原型冲突时，先改本文再改原型，避免双向漂移。</p>
