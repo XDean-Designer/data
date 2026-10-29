@@ -65,6 +65,7 @@
     /* 再导模式：merge | replace；首次导入为 null */
     reimportMode: { member: null, card: null, price: null, product: null },
     historyReimportIntent: null, /* append | replace */
+    historyAppended: false, /* 本批是否为追加导入（成功页文案用） */
     viewReturn: null,
     pendingStockApply: false,
     /* 标准表转换 + 数据核对 */
@@ -398,21 +399,22 @@
   };
 
   // 历史消费：只识别日期 / 金额 / 顾客姓名，其余列原样保留（v2.45 起不再提供手动指定字段）
+  /* 历史订单演示：项目文案区分「充值类」与「消费类」（可重叠，见 historyRowFlags） */
   var HISTORY_ROWS = [
-    { id: 'h01', date: '2025-12-28', amount: 1280, name: '李女士', raw: { 项目: '染发 + 护理', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '办卡前消费' } },
+    { id: 'h01', date: '2025-12-28', amount: 1280, name: '李女士', raw: { 项目: '染发 + 护理', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '项目消费' } },
     { id: 'h02', date: '2025-12-19', amount: 168, name: '王先生', raw: { 项目: '洗剪吹', 支付方式: '现金', 门店: '悦己美发沙龙', 备注: '' } },
     { id: 'h03', date: '2025-11-30', amount: 680, name: '张女士', raw: { 项目: '烫发', 支付方式: '支付宝', 门店: '悦己美发沙龙', 备注: '老客' } },
     { id: 'h04', date: '2025-11-09', amount: 268, name: '陈先生', raw: { 项目: '头皮护理', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '' } },
-    { id: 'h05', date: '2025-10-21', amount: 398, name: '刘女士', raw: { 项目: '染发', 支付方式: '储值卡', 门店: '悦己美发沙龙', 备注: '旧卡余额' } },
+    { id: 'h05', date: '2025-10-21', amount: 398, name: '刘女士', raw: { 项目: '染发', 支付方式: '储值卡', 门店: '悦己美发沙龙', 备注: '卡扣消费' } },
     { id: 'h06', date: '2025-09-15', amount: 88, name: '赵先生', raw: { 项目: '洗剪吹', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '' } },
-    { id: 'h07', date: '2025-08-02', amount: 1580, name: '孙女士', raw: { 项目: '烫染套餐', 支付方式: '银行卡', 门店: '悦己美发沙龙', 备注: '含护理' } },
+    { id: 'h07', date: '2025-08-02', amount: 1580, name: '孙女士', raw: { 项目: '办卡·黄金储值卡', 支付方式: '银行卡', 门店: '悦己美发沙龙', 备注: '开卡' } },
     { id: 'h08', date: '2025-06-18', amount: 128, name: '', raw: { 项目: '洗剪吹', 支付方式: '现金', 门店: '悦己美发沙龙', 备注: '未留姓名' } },
-    { id: 'h09', date: '2025-04-06', amount: 520, name: '周女士', raw: { 项目: '护理年卡首付', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '' } },
+    { id: 'h09', date: '2025-04-06', amount: 520, name: '周女士', raw: { 项目: '续费·护理年卡', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '' } },
     { id: 'h10', date: '2025-01-12', amount: 240, name: '吴先生', raw: { 项目: '造型', 支付方式: '支付宝', 门店: '悦己美发沙龙', 备注: '' } },
-    { id: 'h11', date: '2024-12-24', amount: 960, name: '郑女士', raw: { 项目: '染发 + 造型', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '节日套餐' } },
+    { id: 'h11', date: '2024-12-24', amount: 960, name: '郑女士', raw: { 项目: '充卡·储值 1000', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '' } },
     { id: 'h12', date: '2024-10-03', amount: 180, name: '冯先生', raw: { 项目: '洗剪吹', 支付方式: '现金', 门店: '悦己美发沙龙', 备注: '' } },
-    { id: 'h13', date: '2024-07-19', amount: 760, name: '李女士', raw: { 项目: '烫发 + 护理', 支付方式: '银行卡', 门店: '悦己美发沙龙', 备注: '' } },
-    { id: 'h14', date: '2024-03-08', amount: 1280, name: '许女士', raw: { 项目: '护理年卡', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '妇女节活动' } },
+    { id: 'h13', date: '2024-07-19', amount: 760, name: '李女士', raw: { 项目: '续次·剪发次卡', 支付方式: '银行卡', 门店: '悦己美发沙龙', 备注: '' } },
+    { id: 'h14', date: '2024-03-08', amount: 1280, name: '许女士', raw: { 项目: '办卡·护理年卡', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '妇女节活动' } },
     { id: 'h15', date: '2023-11-11', amount: 620, name: '何先生', raw: { 项目: '染发', 支付方式: '支付宝', 门店: '悦己美发沙龙', 备注: '' } },
     { id: 'h16', date: '2023-05-26', amount: 300, name: '王先生', raw: { 项目: '头皮护理', 支付方式: '现金', 门店: '悦己美发沙龙', 备注: '' } }
   ];
@@ -556,7 +558,8 @@
   var WB_IMPORT_HIT_KEY = 'rtb_import_wb_hit';
   var POST_AI_FLOWS = [
     'import-analyze', 'import-cards', 'import-confirm',
-    'import-check', 'import-result', 'import-fail'
+    'import-check', 'import-result', 'import-fail',
+    'history-import-preview', 'history-import-result', 'history-import-fail'
   ];
   var DOMAIN_FLOWS = {
     member: 'members',
@@ -711,6 +714,7 @@
   /* 历史消费导入：v2.45 起复用通用导入流程（选择来源 → 上传 → 识别 → 分档 → 核对 → 完成） */
   function goHistoryImportStart() {
     state.importMode = 'history';
+    state.historyAppended = false;
     state.pending.excel = [];
     state.pending.photo = [];
     state.analysisCats = [];
@@ -1744,9 +1748,12 @@
     }
     if (state.importTask.started && POST_AI_FLOWS.indexOf(flow) >= 0) {
       state.importTask.resumeFlow = flow;
-      if (flow === 'import-check' || flow === 'import-fail') state.importTask.stage = 'check';
-      else if (flow === 'import-result') state.importTask.stage = 'done';
-      else if (flow === 'import-analyze' || flow === 'import-cards' || flow === 'import-confirm') {
+      if (flow === 'import-check' || flow === 'import-fail' ||
+          flow === 'history-import-preview' || flow === 'history-import-fail') {
+        state.importTask.stage = 'check';
+      } else if (flow === 'import-result' || flow === 'history-import-result') {
+        state.importTask.stage = 'done';
+      } else if (flow === 'import-analyze' || flow === 'import-cards' || flow === 'import-confirm') {
         state.importTask.stage = flow === 'import-confirm' ? 'check' : 'analyzing';
       }
       renderImportBanner();
@@ -1792,6 +1799,9 @@
     if (flow === 'import-check') {
       renderCheck();
     }
+    if (flow === 'history-import-preview') renderHistoryPreview();
+    if (flow === 'history-import-result') renderHistoryResult();
+    if (flow === 'history-import-fail') renderHistoryFail();
     if (flow === 'members') renderMembersOnce();
     if (flow === 'member-detail') renderMemberDetail();
     if (flow === 'member-history') renderMemberHistory();
@@ -1813,7 +1823,7 @@
       if (state.importTask.started && el.classList.contains('back')) {
         var sc = el.closest('.screen');
         var flow = sc && sc.getAttribute('data-flow');
-        if (flow && flow !== 'import-fail' && POST_AI_FLOWS.indexOf(flow) >= 0) {
+        if (flow && flow !== 'import-fail' && flow !== 'history-import-fail' && POST_AI_FLOWS.indexOf(flow) >= 0) {
           e.preventDefault();
           state.emptyPreview = null;
           leaveImportShell();
@@ -2119,6 +2129,14 @@
     { name: '店铺产品清单.xlsx', size: '0.5 MB', readablePct: 79 },
     { name: '会员资料补表.xlsx', size: '0.7 MB', readablePct: 22 }
   ];
+  // 历史消费没有官方模板：演示数据用老系统 / 收银机导出的消费流水，不复用会员与价目表
+  var HISTORY_DEMO_EXCEL_FILES = [
+    { name: '收银机_消费流水 2025.xlsx', size: '0.8 MB', readablePct: 93 },
+    { name: '老系统_账单导出 2024.xlsx', size: '1.1 MB', readablePct: 88 },
+    { name: '手抄流水_转录 2023.xlsx', size: '0.3 MB', readablePct: 76 },
+    { name: '会员消费明细_补充.xlsx', size: '0.5 MB', readablePct: 68 },
+    { name: '历史账单_扫描转录.xlsx', size: '2.2 MB', readablePct: 24 }
+  ];
 
   function excelReadablePct(f) {
     if (!f) return 90;
@@ -2140,13 +2158,22 @@
     return DEMO_EXCEL_FILES[state.pending.excel.length % DEMO_EXCEL_FILES.length];
   }
 
+  function nextHistoryDemoExcel() {
+    var used = {};
+    state.pending.excel.forEach(function (f) { used[f.name] = true; });
+    var i;
+    for (i = 0; i < HISTORY_DEMO_EXCEL_FILES.length; i++) {
+      if (!used[HISTORY_DEMO_EXCEL_FILES[i].name]) return HISTORY_DEMO_EXCEL_FILES[i];
+    }
+    return HISTORY_DEMO_EXCEL_FILES[state.pending.excel.length % HISTORY_DEMO_EXCEL_FILES.length];
+  }
+
   function addPendingExcel() {
-    var isHist = state.importMode === 'history';
-    if (state.pending.excel.length >= (isHist ? 1 : 5)) {
-      showToast(isHist ? '历史消费一次只导一份表' : '最多 5 个文件');
+    if (state.pending.excel.length >= 5) {
+      showToast('最多 5 个文件');
       return;
     }
-    var demo = isHist ? { name: '历史消费 2023-2025.xlsx', size: '0.9 MB', readablePct: 92 } : nextDemoExcel();
+    var demo = state.importMode === 'history' ? nextHistoryDemoExcel() : nextDemoExcel();
     state.pending.excel.push({
       id: pendingKey(),
       name: demo.name,
@@ -2258,16 +2285,33 @@
   function renderImportSelect() {
     var total = pendingTotal();
     var isHist = state.importMode === 'history';
-    /* 历史消费只接受 Excel：拍照入口与多文件提示按模式收起 */
+    /* 消费记录没有模板：Excel 与拍照都开放，两种来源可混在一批 */
     var histNote = $('#importHistoryNote');
     if (histNote) histNote.classList.toggle('hidden', !isHist);
     var photoBtn = $('#btnEnterPhoto');
     if (photoBtn) {
-      photoBtn.classList.toggle('hidden', isHist);
-      photoBtn.disabled = isHist;
+      photoBtn.classList.remove('hidden');
+      photoBtn.disabled = false;
+    }
+    var excelSub = $('#srcExcelSub');
+    if (excelSub) {
+      excelSub.textContent = isHist
+        ? '老系统 / 收银机导出 · xls / xlsx / csv'
+        : '表格文件 · xls / xlsx / csv';
+    }
+    var photoSub = $('#srcPhotoSub');
+    if (photoSub) {
+      photoSub.textContent = isHist
+        ? '纸质流水本、收银小票，对准拍'
+        : '纸质价目表、手写本，对准拍';
     }
     var multiNote = $('#sourceMultiNote');
-    if (multiNote) multiNote.classList.toggle('hidden', isHist);
+    if (multiNote) {
+      multiNote.classList.remove('hidden');
+      multiNote.textContent = isHist
+        ? '最多 5 份表 + 5 张照片；也可回上一步混着传，传错了在列表里直接删。'
+        : '最多 5 个文件；传错了在列表里直接删。';
+    }
     var cnt = $('#pendingCount');
     if (cnt) cnt.textContent = total;
     var empty = $('#pendingEmpty');
@@ -2301,7 +2345,7 @@
     var btn = $('#btnImportAnalyze');
     if (btn) {
       btn.disabled = total === 0;
-      btn.textContent = total === 0 ? '先添加数据' : (isHist ? '开始识别' : '开始识别（' + total + ' 份）');
+      btn.textContent = total === 0 ? '先添加数据' : '开始识别（' + total + ' 份）';
     }
     var scw = $('#selectClearWarn');
     if (isHist) {
@@ -2532,39 +2576,56 @@
     state.historyTier = buildHistoryTier();
     state.histMonthOpen = null;
     renderCards();
-    setImportStage('check', 'import-check');
-    go('import-check');
+    setImportStage('check', 'history-import-preview');
+    go('history-import-preview');
   }
 
   function buildHistoryTier() {
     var rows = historyRows();
     var archive = [];
+    var files = [];
     (state.pending.excel || []).forEach(function (f) {
+      files.push(f.name);
       if (excelReadablePct(f) < EXCEL_ARCHIVE_PCT) {
         archive.push({ name: f.name, note: '可识别内容不足 ' + EXCEL_ARCHIVE_PCT + '%，整份仅存档备查' });
       }
     });
-    archive.push({ name: '纸质流水本扫描.pdf', note: '扫描件无法识别，仅存档' });
+    var photos = state.pending.photo || [];
+    photos.forEach(function (p, i) {
+      files.push('照片 ' + (i + 1));
+    });
+    /* 演示：多张照片时留一张「字迹模糊」进原始存档 */
+    if (photos.length > 1) {
+      archive.push({ name: '照片 ' + photos.length + ' · 字迹模糊', note: '整张无法识别，仅存档备查' });
+    }
+    if (!photos.length) {
+      archive.push({ name: '纸质流水本扫描.pdf', note: '扫描件无法识别，仅存档' });
+    }
     return {
       digest: rows.length,
       total: rows.reduce(function (s, r) { return s + Number(r.amount || 0); }, 0),
       fail: HISTORY_FAIL_ROWS.length,
       archive: archive,
-      files: (state.pending.excel || []).map(function (f) { return f.name; })
+      excelCount: (state.pending.excel || []).length,
+      photoCount: photos.length,
+      files: files
     };
   }
 
-  /* 核对页「确认导入历史消费」：走同一套进度，写入历史订单 */
+  /* 核对页「确认导入」：走同一套进度，写入历史订单 */
   function submitHistoryImport() {
     if (state.historyImporting) return;
     state.historyImporting = true;
-    var btn = $('#btnCheckSubmit');
+    var btn = $('#btnHistoryPreviewConfirm');
     if (btn) btn.disabled = true;
+    var hasPhotos = (state.pending.photo || []).length > 0;
     runImportProgress({
       title: '正在导入历史消费',
-      sub: '按原样写入历史订单，只识别日期 / 金额 / 顾客姓名',
+      sub: hasPhotos
+        ? '按原样写入历史订单，只识别日期 / 金额 / 顾客姓名'
+        : '按原样写入历史订单，只识别日期 / 金额 / 顾客姓名',
       stages: [
-        { at: 0, label: '读取表格' },
+        { at: 0, label: '读取本批数据' },
         { at: 34, label: '识别日期 / 金额 / 顾客姓名' },
         { at: 72, label: '写入历史订单' }
       ],
@@ -2576,14 +2637,16 @@
         state.historyDeleted = false;
         state.historyImported = true;
         var batchN = HISTORY_ROWS.length;
-        if (state.historyReimportIntent === 'append' && (state.storeStock.history || 0) > 0) {
+        var append = state.historyReimportIntent === 'append' && (state.storeStock.history || 0) > 0;
+        if (append) {
           state.storeStock.history += batchN;
         } else {
           state.storeStock.history = batchN;
         }
+        state.historyAppended = append;
         state.historyReimportIntent = null;
-        setImportStage('done', 'import-result');
-        go('import-result');
+        setImportStage('done', 'history-import-result');
+        go('history-import-result');
       }
     });
   }
@@ -2591,8 +2654,9 @@
   /* 状态补拍用：直接给出「已识别、待核对」的历史批次 */
   function seedHistoryDemoBatch() {
     state.importMode = 'history';
+    state.historyAppended = false;
     state.pending.photo = [];
-    state.pending.excel = [{ id: 'hist-demo-xlsx', name: '历史消费 2023-2025.xlsx', size: '0.9 MB', readablePct: 92, demo: true }];
+    state.pending.excel = [{ id: 'hist-demo-xlsx', name: '收银机_消费流水 2025.xlsx', size: '0.8 MB', readablePct: 93, demo: true }];
     state.importSelection = { member: false, card: false, price: false, product: false };
     state.importSources = { member: null, card: null, price: null, product: null };
     state.importFiles = { member: [], card: [], price: [], product: [] };
@@ -2600,13 +2664,13 @@
     state.analysisCats = ['history'];
     state.historyTier = buildHistoryTier();
     state.histMonthOpen = null;
-    state.importTask = { started: true, stage: 'check', resumeFlow: 'import-check', entry: 'home' };
+    state.importTask = { started: true, stage: 'check', resumeFlow: 'history-import-preview', entry: 'home' };
     renderImportBanner();
   }
 
   function addHistoryDemoFile() {
     if ((state.pending.excel || []).length) return;
-    state.pending.excel = [{ id: 'hist-demo-xlsx', name: '历史消费 2023-2025.xlsx', size: '0.9 MB', readablePct: 92, demo: true }];
+    state.pending.excel = [{ id: 'hist-demo-xlsx', name: '收银机_消费流水 2025.xlsx', size: '0.8 MB', readablePct: 93, demo: true }];
     renderExcelPick();
   }
 
@@ -2933,7 +2997,7 @@
       if (next) {
         next.disabled = false;
         next.textContent = '去核对';
-        next.setAttribute('data-go', 'import-check');
+        next.setAttribute('data-go', 'history-import-preview');
       }
       return;
     }
@@ -3356,7 +3420,81 @@
       });
   }
 
+  /* 历史消费样张：老店流水本 / 收银小票转录，只含日期 / 顾客 / 项目 / 金额 / 支付方式 */
+  var HISTORY_SHOT_ROWS = [
+    ['2025-12-28', '李女士', '染发 + 护理', '¥1,280', '微信'],
+    ['2025-12-19', '王先生', '洗剪吹', '¥168', '现金'],
+    ['2025-11-30', '张女士', '烫发', '¥680', '支付宝'],
+    ['2025-11-09', '陈先生', '头皮护理', '¥268', '微信'],
+    ['2025-10-21', '刘女士', '染发', '¥398', '储值卡'],
+    ['2025-09-15', '赵先生', '洗剪吹', '¥88', '微信'],
+    ['2025-08-02', '孙女士', '烫染套餐', '¥1,580', '银行卡'],
+    ['2025-06-18', '（未留名）', '洗剪吹', '¥128', '现金'],
+    ['2025-04-06', '周女士', '护理年卡首付', '¥520', '微信'],
+    ['2025-01-12', '吴先生', '造型', '¥240', '支付宝']
+  ];
+
+  function makeHistoryDemoShot(idx) {
+    var W = 520;
+    var H = 680;
+    var c = document.createElement('canvas');
+    c.width = W;
+    c.height = H;
+    var g = c.getContext('2d');
+    /* 纸张：略偏黄的信笺底，模拟手写流水本拍照 */
+    g.fillStyle = '#e6dfd2';
+    g.fillRect(0, 0, W, H);
+    g.fillStyle = '#fffdf7';
+    g.fillRect(22, 22, W - 44, H - 44);
+    g.fillStyle = '#8a7a63';
+    g.fillRect(22, 22, W - 44, 3);
+    g.fillStyle = '#1b1b1b';
+    g.font = 'bold 22px "Microsoft YaHei",sans-serif';
+    g.fillText('老店流水本', 44, 76);
+    g.fillStyle = '#9b9b9b';
+    g.font = '13px "Microsoft YaHei",sans-serif';
+    g.fillText('第 ' + idx + ' 页 · 手抄转录 · 演示照片', 44, 100);
+    var heads = ['日期', '顾客', '项目', '金额', '支付'];
+    var xs = [44, 132, 200, 372, 428];
+    var top = 124;
+    var rh = 46;
+    var rows = 10;
+    g.fillStyle = '#f4efe6';
+    g.fillRect(36, top, W - 72, 36);
+    g.fillStyle = '#5c5245';
+    g.font = 'bold 13px "Microsoft YaHei",sans-serif';
+    heads.forEach(function (h, i) { g.fillText(h, xs[i], top + 23); });
+    /* 手写本的横线 */
+    g.strokeStyle = '#e6ded0';
+    g.lineWidth = 1;
+    for (var i = 0; i <= rows; i += 1) {
+      var y = top + 36 + i * rh;
+      g.beginPath();
+      g.moveTo(36, y + 0.5);
+      g.lineTo(W - 36, y + 0.5);
+      g.stroke();
+    }
+    g.font = '13px "Microsoft YaHei",sans-serif';
+    g.fillStyle = '#3a3a3a';
+    for (i = 0; i < rows; i += 1) {
+      var r = HISTORY_SHOT_ROWS[(idx * 3 + i) % HISTORY_SHOT_ROWS.length];
+      var yy = top + 36 + i * rh + 28;
+      g.fillText(r[0], xs[0], yy);
+      g.fillText(r[1], xs[1], yy);
+      g.fillText(r[2], xs[2], yy);
+      g.fillStyle = '#1b1b1b';
+      g.fillText(r[3], xs[3], yy);
+      g.fillStyle = '#3a3a3a';
+      g.fillText(r[4], xs[4], yy);
+    }
+    g.fillStyle = '#a09585';
+    g.font = '12px "Microsoft YaHei",sans-serif';
+    g.fillText('以上为演示数据，仅用于展示识别流程', 44, H - 46);
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+
   function makeDemoShot(idx) {
+    if (state.importMode === 'history') return makeHistoryDemoShot(idx);
     var W = 520;
     var H = 680;
     var c = document.createElement('canvas');
@@ -3423,11 +3561,19 @@
     { heads: ['项目名', '项目组', '价格', '可开单', '时长'] },
     { heads: ['产品名', '分类', '售价', '上架', '库存'] }
   ];
+  // 历史消费：只认日期 / 顾客 / 金额，取景水印固定为流水本表头
+  var CAM_WM_TEMPLATES_HISTORY = [
+    { heads: ['消费日期', '顾客姓名', '项目', '金额', '支付方式'] }
+  ];
+  function camWmTemplates() {
+    return state.importMode === 'history' ? CAM_WM_TEMPLATES_HISTORY : CAM_WM_TEMPLATES;
+  }
   var camWmTimer = null;
   var camWmIdx = 0;
 
   function paintCamWatermark() {
-    var tpl = CAM_WM_TEMPLATES[camWmIdx % CAM_WM_TEMPLATES.length];
+    var tpls = camWmTemplates();
+    var tpl = tpls[camWmIdx % tpls.length];
     var grid = $('#camWmGrid');
     if (grid) {
       /* 只画表头：下方不再有表体线框，避免五列在窄屏被挤压成变形网格 */
@@ -3441,10 +3587,12 @@
     stopCamWatermarkRotate();
     camWmIdx = 0;
     paintCamWatermark();
+    /* 历史消费只有一套流水本表头，不轮换 */
+    if (camWmTemplates().length < 2) return;
     camWmTimer = setInterval(function () {
-      camWmIdx = (camWmIdx + 1) % CAM_WM_TEMPLATES.length;
+      camWmIdx = (camWmIdx + 1) % camWmTemplates().length;
       paintCamWatermark();
-    }, 3000);
+    }, 2000);
   }
 
   function stopCamWatermarkRotate() {
@@ -3456,13 +3604,14 @@
     paintCamWatermark();
   }
 
-  var DEMO_ALBUM = null;
+  var DEMO_ALBUMS = {};
   function demoAlbumShots() {
-    if (DEMO_ALBUM) return DEMO_ALBUM;
-    DEMO_ALBUM = [1, 2, 3, 4, 5, 6, 7, 8].map(function (i) {
-      return { id: 'album-' + i, src: makeDemoShot(100 + i) };
+    var mode = state.importMode === 'history' ? 'history' : 'main';
+    if (DEMO_ALBUMS[mode]) return DEMO_ALBUMS[mode];
+    DEMO_ALBUMS[mode] = [1, 2, 3, 4, 5, 6, 7, 8].map(function (i) {
+      return { id: 'album-' + mode + '-' + i, src: makeDemoShot(100 + i) };
     });
-    return DEMO_ALBUM;
+    return DEMO_ALBUMS[mode];
   }
 
   function camPhotoIndexBySrc(src) {
@@ -3640,8 +3789,9 @@
     }
     var grid = $('#camAlbumGrid');
     var shots = demoAlbumShots();
-    if (grid && !grid.dataset.ready) {
-      grid.dataset.ready = '1';
+    var albumMode = state.importMode === 'history' ? 'history' : 'main';
+    if (grid && grid.dataset.mode !== albumMode) {
+      grid.dataset.mode = albumMode;
       grid.innerHTML = shots.map(function (p, i) {
         return '<button type="button" class="cam-album" data-album-idx="' + i + '">' +
           '<img src="' + p.src + '" alt="">' +
@@ -3672,8 +3822,6 @@
     if (!shot) return;
     var img = $('#camPreviewImg');
     if (img) img.src = shot.src;
-    var num = $('#camPreviewIdx');
-    if (num) num.textContent = (idx + 1) + ' / ' + shots.length;
     var on = camPhotoIndexBySrc(shot.src) >= 0;
     var pick = $('#btnCamPreviewPick');
     if (pick) {
@@ -3682,18 +3830,70 @@
     }
   }
 
+  function camAlbumThumbRect(idx) {
+    var btn = document.querySelector('#camAlbumGrid [data-album-idx="' + idx + '"]');
+    if (!btn) return null;
+    var img = btn.querySelector('img') || btn;
+    return img.getBoundingClientRect();
+  }
+
+  function camPreviewImgTargetRect() {
+    var vf = $('#importCameraVf') || $('#screen-import-camera');
+    if (!vf) return { left: 40, top: 120, width: 310, height: 420 };
+    var r = vf.getBoundingClientRect();
+    var w = Math.min(r.width * 0.86, 320);
+    var h = Math.min(r.height * 0.62, 440);
+    return {
+      left: r.left + (r.width - w) / 2,
+      top: r.top + (r.height - h) / 2,
+      width: w,
+      height: h
+    };
+  }
+
   function openCamPreview(idx) {
     state.camPreviewOpen = true;
     state.camPreviewIdx = idx;
-    var el = $('#camPreview');
-    if (el) el.classList.remove('hidden');
     syncCamPreview();
+    var el = $('#camPreview');
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.classList.add('is-open');
+    var shot = demoAlbumShots()[idx];
+    var from = camAlbumThumbRect(idx);
+    var to = camPreviewImgTargetRect();
+    var img = $('#camPreviewImg');
+    if (img) {
+      img.style.opacity = '0';
+      window.setTimeout(function () { img.style.opacity = ''; }, camMotionOff() ? 0 : 280);
+    }
+    if (shot && from && !camMotionOff()) {
+      camFlyPhoto(shot.src, from, to, { duration: 360 });
+    }
   }
 
-  function closeCamPreview() {
-    state.camPreviewOpen = false;
+  function closeCamPreview(opts) {
+    if (!state.camPreviewOpen && !($('#camPreview') && !$('#camPreview').classList.contains('hidden'))) {
+      state.camPreviewOpen = false;
+      return;
+    }
+    var o = opts || {};
+    var idx = state.camPreviewIdx;
+    var shot = demoAlbumShots()[idx];
     var el = $('#camPreview');
-    if (el) el.classList.add('hidden');
+    var img = $('#camPreviewImg');
+    var from = img ? img.getBoundingClientRect() : null;
+    var to = camAlbumThumbRect(idx);
+    state.camPreviewOpen = false;
+    if (shot && from && to && from.width && !camMotionOff() && !o.skipFly) {
+      if (img) img.style.opacity = '0';
+      camFlyPhoto(shot.src, from, to, { duration: 320, fadeOut: true });
+    }
+    if (el) {
+      el.classList.remove('is-open');
+      el.classList.add('hidden');
+    }
+    if (img) img.style.opacity = '';
   }
 
   function captureShot() {
@@ -4670,7 +4870,83 @@
 
   /* v2.25 可入库门槛：必填齐全即可导；任一字段（含选填）文字无法识别或金额/数字解析失败 → 不可导。
      列名对齐 excel模板/ 官方表头（见 PRD §15.7）。 */
-  var CARD_BENEFIT_KEYS = ['discount', 'times', 'scope', 'gift', 'memberPrice'];
+  /* 卡模板权益列：按官方 5 sheet 区分（见 CARD_FIELDS_BY_TYPE） */
+  var CARD_BENEFIT_KEYS = ['discount', 'rechargeDiscount', 'bonus', 'bonusDiscount', 'times', 'scope', 'scopeItems', 'gift', 'memberPrice', 'pkgMode', 'pkgItems', 'pkgScopeTimes', 'pkgScopeItems', 'pkgCommonTimes', 'includeItems'];
+
+  /* 官方 RTB店铺卡模板导入文档模版-v2 · 按卡类型字段（不含序号） */
+  var CARD_FIELDS_BY_TYPE = {
+    '储值卡': [
+      { key: 'name', label: '卡名', req: true },
+      { key: 'price', label: '充值余额', type: 'money', req: true },
+      { key: 'rechargeDiscount', label: '充值金额享受折扣', ph: '如 8.5' },
+      { key: 'bonus', label: '赠送金额', type: 'money' },
+      { key: 'bonusDiscount', label: '赠送金额享受折扣', ph: '如 8.5' },
+      { key: 'gift', label: '赠送项目', ph: '小气泡:1;基础护理:2' },
+      { key: 'memberPrice', label: '会员价项目', ph: '理发:打折,9.9' },
+      { key: 'validity', label: '有效期限（月）', ph: '留空永久' },
+      { key: 'desc', label: '卡项说明' },
+      { key: 'shopCode', label: '连锁店编码', more: true }
+    ],
+    '计次卡': [
+      { key: 'name', label: '卡名', req: true },
+      { key: 'price', label: '购买价格', type: 'money', req: true },
+      { key: 'times', label: '次数', type: 'number', req: true },
+      { key: 'scope', label: '适用大类' },
+      { key: 'scopeItems', label: '适用项目' },
+      { key: 'gift', label: '赠送项目' },
+      { key: 'validity', label: '有效期限（月）' },
+      { key: 'desc', label: '卡项说明' },
+      { key: 'shopCode', label: '连锁店编码', more: true }
+    ],
+    '折扣卡': [
+      { key: 'name', label: '卡名', req: true },
+      { key: 'price', label: '购买价格', type: 'money', req: true },
+      { key: 'discount', label: '享受折扣', ph: '如 8.5', req: true },
+      { key: 'gift', label: '赠送项目' },
+      { key: 'memberPrice', label: '会员价项目' },
+      { key: 'validity', label: '有效期限（月）' },
+      { key: 'desc', label: '卡项说明' },
+      { key: 'shopCode', label: '连锁店编码', more: true }
+    ],
+    '套餐卡': [
+      { key: 'name', label: '卡名', req: true },
+      { key: 'price', label: '购买价格', type: 'money', req: true },
+      { key: 'pkgMode', label: '套餐卡项目模式', ph: '项目明细 / 范围 / 通用' },
+      { key: 'pkgItems', label: '适用项目-项目明细清单', ph: '小气泡:1;基础护理:2' },
+      { key: 'pkgScopeTimes', label: '适用项目范围-次数', type: 'number' },
+      { key: 'pkgScopeItems', label: '适用项目范围-项目清单' },
+      { key: 'pkgCommonTimes', label: '项目通用-次数', type: 'number' },
+      { key: 'gift', label: '赠送项目' },
+      { key: 'validity', label: '有效期限（月）' },
+      { key: 'desc', label: '卡项说明' },
+      { key: 'shopCode', label: '连锁店编码', more: true }
+    ],
+    '周期卡': [
+      { key: 'name', label: '卡名', req: true },
+      { key: 'price', label: '购买价格', type: 'money', req: true },
+      { key: 'includeItems', label: '包含项目', ph: '小气泡;基础护理' },
+      { key: 'gift', label: '赠送项目' },
+      { key: 'validity', label: '有效期限（月）' },
+      { key: 'desc', label: '卡项说明' },
+      { key: 'shopCode', label: '连锁店编码', more: true }
+    ]
+  };
+
+  function cardFieldsForType(type) {
+    return CARD_FIELDS_BY_TYPE[type] || CARD_FIELDS_BY_TYPE['储值卡'];
+  }
+
+  function cardHasBenefit(f) {
+    var type = f.type || '储值卡';
+    var keys = {
+      '储值卡': ['rechargeDiscount', 'bonus', 'bonusDiscount', 'gift', 'memberPrice'],
+      '计次卡': ['times', 'scope', 'scopeItems', 'gift'],
+      '折扣卡': ['discount', 'gift', 'memberPrice'],
+      '套餐卡': ['pkgMode', 'pkgItems', 'pkgScopeTimes', 'pkgScopeItems', 'pkgCommonTimes', 'gift'],
+      '周期卡': ['includeItems', 'gift']
+    }[type] || CARD_BENEFIT_KEYS;
+    return keys.some(function (k) { return !fieldEmpty(f[k]); });
+  }
 
   // 字段定义：more=true 的收进「更多字段」，不占默认编辑区高度
   var CHECK_FIELDS = {
@@ -4694,17 +4970,29 @@
       { key: 'shopCode', label: '开卡店铺编码', ph: '单店可不填', more: true },
       { key: 'note', label: '备注', more: true, wide: true }
     ],
+    /* 卡模板：校验与展示按 CARD_FIELDS_BY_TYPE；此处保留并集供兼容 */
     card: [
       { key: 'type', label: '卡类型', type: 'select', opts: CHECK_CARD_TYPES.map(function (t) { return { v: t, label: t }; }) },
       { key: 'name', label: '卡名', ph: '必填，店内唯一', req: true },
       { key: 'price', label: '充值余额 / 购买价格', type: 'money', req: true },
-      { key: 'discount', label: '享受折扣', ph: '如 8.5，留空不打折' },
+      { key: 'rechargeDiscount', label: '充值金额享受折扣', ph: '如 8.5' },
+      { key: 'bonus', label: '赠送金额', type: 'money' },
+      { key: 'bonusDiscount', label: '赠送金额享受折扣', ph: '如 8.5' },
+      { key: 'discount', label: '享受折扣', ph: '如 8.5' },
       { key: 'times', label: '次数', type: 'number' },
-      { key: 'scope', label: '适用大类 / 范围', ph: '权益：大类、项目或包含项目' },
+      { key: 'scope', label: '适用大类', ph: '剪发 / 护理' },
+      { key: 'scopeItems', label: '适用项目' },
+      { key: 'pkgMode', label: '套餐卡项目模式' },
+      { key: 'pkgItems', label: '适用项目-项目明细清单', more: true, wide: true },
+      { key: 'pkgScopeTimes', label: '适用项目范围-次数', type: 'number' },
+      { key: 'pkgScopeItems', label: '适用项目范围-项目清单', more: true, wide: true },
+      { key: 'pkgCommonTimes', label: '项目通用-次数', type: 'number' },
+      { key: 'includeItems', label: '包含项目' },
       { key: 'validity', label: '有效期限（月）', ph: '留空为永久' },
       { key: 'gift', label: '赠送项目', ph: '小气泡:1;基础护理:2', more: true, wide: true },
       { key: 'memberPrice', label: '会员价项目', ph: '理发:打折,9.9', more: true, wide: true },
-      { key: 'desc', label: '卡项说明', more: true, wide: true }
+      { key: 'desc', label: '卡项说明', more: true, wide: true },
+      { key: 'shopCode', label: '连锁店编码', more: true }
     ],
     price: [
       { key: 'name', label: '项目名', ph: '必填，导入后唯一', req: true },
@@ -4905,25 +5193,44 @@
   }
 
   function buildCardRows() {
+    /* 严格按官方 Excel 5 类 sheet 字段造数（RTB店铺卡模板导入文档模版-v2） */
     var seed = [
-      { type: '储值卡', name: '八折银卡', price: '500.00', discount: '8.5', gift: '小气泡:1;基础护理:2', memberPrice: '理发:打折,9.9;洗吹:固定金额,50', validity: '', desc: '老顾客主推' },
-      { type: '储值卡', name: '黄金卡', price: '1000.00', discount: '9', gift: '', memberPrice: '', validity: '12', desc: '' },
-      { type: '计次卡', name: '剪发5次卡', price: '500.00', times: '5', scope: '剪发', validity: '', desc: '' },
-      { type: '计次卡', name: '头皮护理次卡', price: '680.00', times: '6', scope: '头皮护理', validity: '12', desc: '' },
-      { type: '折扣卡', name: '尊享折扣卡', price: '300.00', discount: '5.5', validity: '6', desc: '' },
-      { type: '折扣卡', name: '员工亲友卡', price: '0.00', discount: '8', validity: '', desc: '仅限亲友' },
-      { type: '套餐卡', name: '护理套餐卡', price: '310.00', scope: '全场通用:4', validity: '3', desc: '' },
-      { type: '套餐卡', name: '烫染护套餐', price: '688.00', scope: '小气泡:1;基础护理:2', validity: '6', desc: '' },
-      { type: '周期卡', name: '季卡', price: '510.00', scope: '小气泡;基础护理', validity: '3', desc: '' },
-      { type: '周期卡', name: '年卡', price: '1980.00', scope: '全场通用', validity: '12', desc: '' },
-      { type: '储值卡', name: '体验卡', price: '100.00', gift: '剪发:1', validity: '', desc: '新客体验' },
-      { type: '计次卡', name: '洗吹次卡', price: '200.00', times: '10', scope: '洗吹', validity: '', desc: '' }
+      { type: '储值卡', name: '八折银卡', price: '500.00', rechargeDiscount: '8.5', bonus: '50.00', bonusDiscount: '8.5', gift: '小气泡:1;基础护理:2', memberPrice: '理发:打折,9.9;洗吹:固定金额,50', validity: '', desc: '老顾客主推' },
+      { type: '储值卡', name: '黄金卡', price: '1000.00', rechargeDiscount: '9', bonus: '100.00', bonusDiscount: '', gift: '', memberPrice: '', validity: '12', desc: '' },
+      { type: '计次卡', name: '剪发5次卡', price: '500.00', times: '5', scope: '剪发', scopeItems: '剪发', gift: '', validity: '', desc: '' },
+      { type: '计次卡', name: '头皮护理次卡', price: '680.00', times: '6', scope: '护理', scopeItems: '头皮护理', gift: '', validity: '12', desc: '' },
+      { type: '折扣卡', name: '尊享折扣卡', price: '300.00', discount: '5.5', gift: '', memberPrice: '烫发:打折,8', validity: '6', desc: '' },
+      { type: '折扣卡', name: '员工亲友卡', price: '0.00', discount: '8', gift: '', memberPrice: '', validity: '', desc: '仅限亲友' },
+      { type: '套餐卡', name: '护理套餐卡', price: '310.00', pkgMode: '项目明细', pkgItems: '小气泡:1;基础护理:2', pkgScopeTimes: '', pkgScopeItems: '', pkgCommonTimes: '', gift: '', validity: '3', desc: '' },
+      { type: '套餐卡', name: '烫染护套餐', price: '688.00', pkgMode: '项目明细', pkgItems: '烫发:1;染发:1;护理:1', pkgScopeTimes: '', pkgScopeItems: '', pkgCommonTimes: '', gift: '造型:1', validity: '6', desc: '' },
+      { type: '周期卡', name: '季卡', price: '510.00', includeItems: '小气泡;基础护理', gift: '', validity: '3', desc: '' },
+      { type: '周期卡', name: '年卡', price: '1980.00', includeItems: '全场通用', gift: '', validity: '12', desc: '' },
+      { type: '储值卡', name: '体验卡', price: '100.00', rechargeDiscount: '', bonus: '', bonusDiscount: '', gift: '剪发:1', memberPrice: '', validity: '', desc: '新客体验' },
+      { type: '计次卡', name: '洗吹次卡', price: '200.00', times: '10', scope: '洗吹', scopeItems: '洗吹', gift: '', validity: '', desc: '' }
     ];
     var list = seed.map(function (s, i) {
       var f = {
-        type: s.type, name: s.name, price: s.price, discount: s.discount || '',
-        times: s.times || '', scope: s.scope || '', validity: s.validity || '',
-        gift: s.gift || '', memberPrice: s.memberPrice || '', desc: s.desc || '',
+        type: s.type,
+        name: s.name,
+        price: s.price,
+        rechargeDiscount: s.rechargeDiscount || '',
+        bonus: s.bonus || '',
+        bonusDiscount: s.bonusDiscount || '',
+        discount: s.discount || '',
+        times: s.times || '',
+        scope: s.scope || '',
+        scopeItems: s.scopeItems || '',
+        pkgMode: s.pkgMode || '',
+        pkgItems: s.pkgItems || '',
+        pkgScopeTimes: s.pkgScopeTimes || '',
+        pkgScopeItems: s.pkgScopeItems || '',
+        pkgCommonTimes: s.pkgCommonTimes || '',
+        includeItems: s.includeItems || '',
+        validity: s.validity || '',
+        gift: s.gift || '',
+        memberPrice: s.memberPrice || '',
+        desc: s.desc || '',
+        shopCode: '',
         onShelf: i === 5 || i === 10 ? '下架' : '上架'
       };
       return { id: 'c' + i, f: f, problems: [], ignored: false, aiFields: [] };
@@ -4931,11 +5238,8 @@
     // 预置问题：折扣越界 / 有效期无法识别 / 无权益 / 卡名重复 / 金额无法识别
     list[5].f.discount = '12';
     list[7].f.validity = '半年';
-    list[9].f.scope = '';
+    list[9].f.includeItems = '';
     list[9].f.gift = '';
-    list[9].f.discount = '';
-    list[9].f.times = '';
-    list[9].f.memberPrice = '';
     list[10].f.name = '八折银卡';
     list[11].f.price = '两百';
     return list;
@@ -5109,31 +5413,40 @@
     }
 
     if (cat === 'card') {
-      /* 必填：卡名 + 充值余额/购买价格；权益列至少一项 */
+      /* 按官方 5 sheet：卡名 + 充值余额/购买价格；权益列按类型至少一项 */
+      var priceLabel = f.type === '储值卡' ? '充值余额' : '购买价格';
       if (fieldEmpty(f.name)) add('name', 'error', '卡名为空');
       else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '卡名');
       else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名卡，导入会跳过后者');
 
-      if (fieldEmpty(f.price)) add('price', 'error', '充值余额 / 购买价格为空');
-      else if (moneyUnreadable(f.price)) markUnreadable(add, 'price', '充值余额 / 购买价格');
+      if (fieldEmpty(f.price)) add('price', 'error', priceLabel + '为空');
+      else if (moneyUnreadable(f.price)) markUnreadable(add, 'price', priceLabel);
 
       if (!fieldEmpty(f.type)) {
         if (isUnreadableText(f.type)) markUnreadable(add, 'type', '卡类型');
         else if (CHECK_CARD_TYPES.indexOf(f.type) === -1) markUnreadable(add, 'type', '卡类型');
       }
 
-      var hasBenefit = CARD_BENEFIT_KEYS.some(function (k) { return !fieldEmpty(f[k]); });
-      if (!hasBenefit) add('scope', 'error', '权益至少填一项');
-
-      if (!fieldEmpty(f.discount)) {
-        if (moneyUnreadable(f.discount)) markUnreadable(add, 'discount', '享受折扣');
-        else {
-          var d = parseMoney(f.discount);
-          if (d !== '' && (d <= 0 || d > 10)) add('discount', 'error', '折扣须在 0–10 之间');
-        }
+      if (!cardHasBenefit(f)) {
+        var benefitKey = f.type === '计次卡' ? 'times' : (f.type === '折扣卡' ? 'discount' : (f.type === '周期卡' ? 'includeItems' : (f.type === '套餐卡' ? 'pkgItems' : 'gift')));
+        add(benefitKey, 'error', '本类型权益至少填一项');
       }
+
+      if (f.type === '计次卡' && fieldEmpty(f.times)) add('times', 'error', '次数为空');
+      if (f.type === '折扣卡' && fieldEmpty(f.discount)) add('discount', 'error', '享受折扣为空');
+
+      ['discount', 'rechargeDiscount', 'bonusDiscount'].forEach(function (dk) {
+        if (fieldEmpty(f[dk])) return;
+        if (moneyUnreadable(f[dk])) markUnreadable(add, dk, '折扣');
+        else {
+          var dv = parseMoney(f[dk]);
+          if (dv !== '' && (dv <= 0 || dv > 10)) add(dk, 'error', '折扣须在 0–10 之间');
+        }
+      });
       if (intUnreadable(f.times)) markUnreadable(add, 'times', '次数');
-      if (!fieldEmpty(f.scope) && isUnreadableText(f.scope)) markUnreadable(add, 'scope', '适用大类 / 范围');
+      if (!fieldEmpty(f.scope) && isUnreadableText(f.scope)) markUnreadable(add, 'scope', '适用大类');
+      if (!fieldEmpty(f.scopeItems) && isUnreadableText(f.scopeItems)) markUnreadable(add, 'scopeItems', '适用项目');
+      if (!fieldEmpty(f.includeItems) && isUnreadableText(f.includeItems)) markUnreadable(add, 'includeItems', '包含项目');
       if (intUnreadable(f.validity)) markUnreadable(add, 'validity', '有效期限');
       if (!fieldEmpty(f.gift)) {
         if (isUnreadableText(f.gift)) markUnreadable(add, 'gift', '赠送项目');
@@ -5422,27 +5735,75 @@
       (on ? '上架' : '下架') + '</button>';
   }
 
-  function cardTileHtml(row) {
-    var f = row.f || {};
-    var validity = f.validity || f.expiry || '';
+  function cardTileKv(f) {
+    var validity = f.validity || '';
     if (validity && /^\d+$/.test(String(validity))) validity += ' 个月';
     if (!validity) validity = '永久';
-    var value = f.price ? fmtMoney(moneyOf(f.price)) : '—';
-    var discount = f.discount ? (f.discount + ' 折') : (f.times ? (f.times + ' 次') : '—');
-    var holders = cardHoldersCount(f.name);
+    var priceLab = f.type === '储值卡' ? '充值余额' : '购买价格';
+    var price = f.price ? fmtMoney(moneyOf(f.price)) : '—';
+    var cells;
+    if (f.type === '储值卡') {
+      cells = [
+        [priceLab, price],
+        ['充值折扣', f.rechargeDiscount ? (f.rechargeDiscount + ' 折') : '—'],
+        ['赠送金额', f.bonus ? fmtMoney(moneyOf(f.bonus)) : '—'],
+        ['有效期', validity]
+      ];
+    } else if (f.type === '计次卡') {
+      cells = [
+        [priceLab, price],
+        ['次数', f.times ? (f.times + ' 次') : '—'],
+        ['适用大类', f.scope || '—'],
+        ['有效期', validity]
+      ];
+    } else if (f.type === '折扣卡') {
+      cells = [
+        [priceLab, price],
+        ['享受折扣', f.discount ? (f.discount + ' 折') : '—'],
+        ['会员价', f.memberPrice ? '有' : '—'],
+        ['有效期', validity]
+      ];
+    } else if (f.type === '套餐卡') {
+      cells = [
+        [priceLab, price],
+        ['项目模式', f.pkgMode || '—'],
+        ['明细', f.pkgItems || '—'],
+        ['有效期', validity]
+      ];
+    } else if (f.type === '周期卡') {
+      cells = [
+        [priceLab, price],
+        ['包含项目', f.includeItems || '—'],
+        ['赠送', f.gift || '—'],
+        ['有效期', validity]
+      ];
+    } else {
+      cells = [[priceLab, price], ['有效期', validity], ['持卡', String(cardHoldersCount(f.name))], ['说明', f.desc || '—']];
+    }
+    return cells.map(function (c) {
+      return '<div><dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1]) + '</dd></div>';
+    }).join('');
+  }
+
+  function cardTileFoot(f) {
+    if (f.type === '储值卡') return f.gift || f.memberPrice || f.desc || '储值权益';
+    if (f.type === '计次卡') return f.scopeItems || f.scope || '计次权益';
+    if (f.type === '折扣卡') return f.memberPrice || f.gift || '折扣权益';
+    if (f.type === '套餐卡') return f.pkgItems || f.pkgScopeItems || '套餐权益';
+    if (f.type === '周期卡') return f.includeItems || '周期权益';
+    return f.desc || '—';
+  }
+
+  function cardTileHtml(row) {
+    var f = row.f || {};
     return '<article class="tpl-tile">' +
       '<div class="tpl-tile__hd">' +
         '<b>' + esc(f.name || '未命名卡') + '</b>' +
         '<span class="tpl-tile__type' + cardTypeClass(f.type) + '">' + esc(f.type || '未分类') + '</span>' +
       '</div>' +
-      '<dl class="tpl-tile__kv">' +
-        '<div><dt>充值</dt><dd>' + value + '</dd></div>' +
-        '<div><dt>折扣</dt><dd>' + esc(discount) + '</dd></div>' +
-        '<div><dt>有效期</dt><dd>' + esc(validity) + '</dd></div>' +
-        '<div><dt>持卡</dt><dd>' + esc(String(holders)) + '</dd></div>' +
-      '</dl>' +
+      '<dl class="tpl-tile__kv">' + cardTileKv(f) + '</dl>' +
       '<div class="tpl-tile__ft">' +
-        '<span>' + esc(f.scope || '全场通用') + '</span>' +
+        '<span>' + esc(cardTileFoot(f)) + '</span>' +
         shelfChipHtml('card', row) +
       '</div>' +
     '</article>';
@@ -5778,7 +6139,6 @@
   }
 
   function renderCheck() {
-    if (state.importMode === 'history') { renderHistoryCheck(); return; }
     syncCheckModeUI(false);
     ensureCheckData();
     applyForcedReplaceModes();
@@ -5790,18 +6150,23 @@
     renderCheckList();
   }
 
-  /* 上传页按模式切换文案：历史消费不推官方模板、无多文件 */
+  /* 上传页按模式切换文案：历史消费不推官方模板，但允许表 + 照片混着传 */
   function syncImportSourceModeUI(isHist) {
     var tpl = $('#sourceTplPromo');
     if (tpl) tpl.classList.toggle('hidden', !!isHist);
     var note = $('#sourceHistoryNote');
     if (note) note.classList.toggle('hidden', !isHist);
     var multi = $('#sourceMultiNote');
-    if (multi) multi.classList.toggle('hidden', !!isHist);
+    if (multi) {
+      multi.classList.remove('hidden');
+      multi.textContent = isHist
+        ? '最多 5 份表 + 5 张照片；也可回上一步混着传，传错了在列表里直接删。'
+        : '最多 5 个文件；传错了在列表里直接删。';
+    }
     var lead = $('#sourceLead');
     if (lead) {
       lead.textContent = isHist
-        ? '历史消费表：列名不必固定，系统会自己找这几列，无需手动指定。'
+        ? '消费记录表：列名不必固定，系统会自己找这几列，无需手动指定。'
         : '推荐按官方标准模板填写，可完美识别。其它表也能识别，可能要多核对几行。';
     }
   }
@@ -5822,56 +6187,113 @@
     if (submit) submit.textContent = isHist ? '确认导入历史消费' : '确认导入';
   }
 
-  /* v2.45：历史核对按月卡片，卡片内每行都能点进详情 */
-  function renderHistoryCheck() {
-    syncCheckModeUI(true);
-    var host = $('#checkList');
-    var emptyEl = $('#checkEmpty');
-    if (!host) return;
+  /* v2.46：历史核对恢复独立屏（Figma 6-09），按月看样例后再导 */
+  function renderHistoryPreview() {
+    var list = $('#historyPreviewList');
+    if (!list) return;
     var rows = historyRows();
-    if (!rows.length) {
-      host.innerHTML = '';
-      if (emptyEl) {
-        emptyEl.classList.remove('hidden');
-        emptyEl.textContent = '本批没有可写入的历史消费';
-      }
-      return;
+    var t = state.historyTier || buildHistoryTier();
+    var total = rows.reduce(function (s, r) { return s + Number(r.amount || 0); }, 0);
+    var dates = rows.map(function (r) { return r.date; }).filter(Boolean).sort();
+    var countEl = $('#historyPreviewCount');
+    var rangeEl = $('#historyPreviewRange');
+    var totalEl = $('#historyPreviewTotal');
+    if (countEl) countEl.textContent = rows.length;
+    if (rangeEl) {
+      rangeEl.textContent = dates.length ? (dates[0] + ' ~ ' + dates[dates.length - 1]) : '—';
     }
-    if (emptyEl) emptyEl.classList.add('hidden');
-    var groups = {};
+    if (totalEl) totalEl.textContent = fmtMoney(total);
+
+    var months = {};
     var order = [];
     rows.forEach(function (r) {
       var mk = historyMonthKey(r.date);
-      if (!groups[mk]) { groups[mk] = { key: mk, rows: [], sum: 0 }; order.push(mk); }
-      groups[mk].rows.push(r);
-      groups[mk].sum += Number(r.amount || 0);
+      if (!months[mk]) { months[mk] = { key: mk, rows: [], sum: 0 }; order.push(mk); }
+      months[mk].rows.push(r);
+      months[mk].sum += Number(r.amount || 0);
     });
     order.sort().reverse();
+    list.innerHTML = order.map(function (mk) {
+      var g = months[mk];
+      var open = state.histMonthOpen === mk;
+      var samples = g.rows.slice(0, 4).map(function (r) {
+        return '<div class="hist-month__sample">' +
+          '<span>' + esc(r.name || '未留姓名') + '</span>' +
+          '<span>' + esc(r.raw['支付方式'] || '—') + '</span>' +
+          '<b>' + fmtMoney(r.amount) + '</b></div>';
+      }).join('');
+      return '<button type="button" class="hist-month' + (open ? ' is-open' : '') + '" data-hist-month="' + mk + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+        '<span class="hist-month__hd"><b>' + (mk === '未知' ? '日期未识别' : mk) + '</b><span>' + g.rows.length + ' 笔 · ' + fmtMoney(g.sum) + '</span></span>' +
+        (open ? '<span class="hist-month__body">' + samples + '</span>' : '') +
+      '</button>';
+    }).join('');
+
+    var warn = $('#historyPreviewWarn');
+    if (warn) warn.classList.toggle('hidden', !t.fail);
+    var cnt = $('#historyPreviewFailCount');
+    if (cnt) cnt.textContent = t.fail;
+    var confirm = $('#btnHistoryPreviewConfirm');
+    if (confirm) {
+      confirm.disabled = !!state.historyImporting;
+      confirm.textContent = '确认导入';
+    }
+  }
+
+  /* v2.46：历史成功页恢复独立屏（Figma 6-10） */
+  function renderHistoryResult() {
     var t = state.historyTier || buildHistoryTier();
-    var html = '<div class="hist-check-sum">' +
-        '<b>' + rows.length + ' 笔</b><span>' + fmtMoney(t.total) + ' · ' + order.length + ' 个月</span>' +
-      '</div>' +
-      '<div class="hist-month-list">' + order.map(function (mk) {
-        var g = groups[mk];
-        var open = state.histMonthOpen === mk;
-        var label = mk === '未知' ? '日期未识别' : mk.replace('-', ' 年 ') + ' 月';
-        return '<div class="hist-month-card' + (open ? ' is-open' : '') + '">' +
-          '<button type="button" class="hist-month" data-hist-month="' + mk + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
-            '<span class="hist-month__hd"><b>' + label + '</b><span>' + g.rows.length + ' 笔 · ' + fmtMoney(g.sum) + '</span></span>' +
-            '<span class="hist-month__chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>' +
-          '</button>' +
-          (open ? '<div class="hist-month__body">' + g.rows.map(function (r) {
-            return '<button type="button" class="hist-month__row" data-hist-open="' + esc(r.id) + '">' +
-              '<span class="hist-month__row-main"><b>' + esc(r.name || '未留姓名') + '</b>' +
-                '<i>' + esc(r.date) + ' · ' + esc(r.raw['支付方式'] || '—') + (r.raw['项目'] ? ' · ' + esc(r.raw['项目']) : '') + '</i></span>' +
-              '<span class="hist-month__row-amt">' + fmtMoney(r.amount) + '</span>' +
-              '<span class="hist-month__row-chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>' +
-            '</button>';
-          }).join('') + '</div>' : '') +
-        '</div>';
-      }).join('') + '</div>' +
-      (t.fail ? '<p class="hist-check-fail">另有 <b>' + t.fail + '</b> 行未识别（缺日期或金额），已留在识别摘要，不写入历史订单。</p>' : '');
-    host.innerHTML = html;
+    var batchN = HISTORY_ROWS.length;
+    var total = state.historyDeleted ? 0 : (state.storeStock.history || batchN);
+    var count = $('#historyResultCount');
+    if (count) count.textContent = total;
+    var failCount = $('#historyFailCount');
+    if (failCount) failCount.textContent = HISTORY_FAIL_ROWS.length;
+    var failRow = $('#btnHistoryFailRow');
+    if (failRow) failRow.classList.toggle('hidden', !HISTORY_FAIL_ROWS.length);
+    var lead = $('#historyResultLead');
+    if (lead) {
+      if (state.historyDeleted) {
+        lead.textContent = '本批历史消费已删除，可重新导入。';
+      } else if (state.historyAppended && total > batchN) {
+        lead.textContent = '已追加 ' + batchN + ' 条，合计现有 ' + total + ' 条。可在「工作台 · 店铺管理 · 历史订单」查看。';
+      } else {
+        lead.textContent = '历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。';
+      }
+    }
+    var src = $('#historyResultSource');
+    if (src) {
+      var srcBody = t.photoCount
+        ? '表 ' + t.excelCount + ' 份 + 照片 ' + t.photoCount + ' 张'
+        : '';
+      if (state.historyDeleted) {
+        src.textContent = '已删除本批' + (srcBody ? ' · ' + srcBody : ' · 只读核对');
+      } else {
+        src.textContent = srcBody ? '已写入本店 · ' + srcBody : '已写入本店，只读核对';
+      }
+    }
+    var del = $('#btnHistoryDeleteBatch');
+    if (del) del.classList.toggle('hidden', !!state.historyDeleted);
+    var delCount = $('#historyDelCount');
+    if (delCount) delCount.textContent = total || batchN;
+  }
+
+  function renderHistoryFail() {
+    var list = $('#historyFailList');
+    var cnt = $('#historyFailScreenCount');
+    if (cnt) cnt.textContent = HISTORY_FAIL_ROWS.length;
+    if (!list) return;
+    list.innerHTML = HISTORY_FAIL_ROWS.map(function (f, i) {
+      var diff = (f.diff || []).map(function (p) {
+        return '<dt>' + p[0] + '</dt><dd' + (p[2] ? ' class="is-bad"' : '') + '>' + p[1] + '</dd>';
+      }).join('');
+      return '<div class="import-fail-item" data-history-fail="' + i + '">' +
+        '<div class="import-fail-item__row">' +
+          '<strong class="v3-num">第 ' + f.line + ' 行</strong>' +
+          '<span class="import-fail-item__reason">' + f.reason + '</span>' +
+        '</div>' +
+        '<dl class="import-fail-item__diff">' + diff + '</dl>' +
+      '</div>';
+    }).join('') || '<div class="empty-hero" style="padding:36px 20px"><p class="empty-hero__title">暂无失败行</p><p class="empty-hero__hint">本批都识别成功了。</p></div>';
   }
 
   function saveCheckRow(cat, id) {
@@ -6567,18 +6989,35 @@
     return m ? m[1] : '';
   }
 
+  /* 累计充值：办卡 / 充卡 / 续次 / 续费；累计消费：项目与产品消费；两者可重叠计入 */
+  function historyRowFlags(r) {
+    var t = String((r.raw && (r.raw['项目'] || '')) || '') + ' ' + String((r.raw && (r.raw['备注'] || '')) || '');
+    var recharge = /办卡|开卡|充卡|充值|续次|续费|购卡/.test(t);
+    var consume = /洗|剪|吹|烫|染|护|造型|美甲|美睫|产品|头皮|护理|套餐/.test(t) || !recharge;
+    if (recharge && /赠.*?(洗|剪|吹|烫|染|护)|含(洗|剪|吹|烫|染|护)/.test(t)) consume = true;
+    return { recharge: recharge, consume: consume };
+  }
+
   function memberHistorySummary(m) {
     var rows = memberHistoryRows(m);
-    var total = rows.reduce(function (s, r) { return s + Number(r.amount || 0); }, 0);
+    var recharge = 0;
+    var consume = 0;
     var years = [];
     rows.forEach(function (r) {
+      var amt = Number(r.amount || 0);
+      var flags = historyRowFlags(r);
+      if (flags.recharge) recharge += amt;
+      if (flags.consume) consume += amt;
       var y = historyYearKey(r.date);
       if (y && years.indexOf(y) === -1) years.push(y);
     });
     years.sort();
     return {
       rows: rows,
-      total: total,
+      visits: rows.length,
+      recharge: recharge,
+      consume: consume,
+      total: consume,
       years: years,
       range: years.length ? (years[0] === years[years.length - 1] ? years[0] : years[0] + '–' + years[years.length - 1]) : ''
     };
@@ -6589,36 +7028,16 @@
     if (!host) return;
     if (state.memberDetailId == null) state.memberDetailId = 0;
     var m = findMemberById(state.memberDetailId);
+    /* 纯占位：不渲染档案卡；仅在找不到会员时提示 */
     if (!m) {
-      host.innerHTML = '<div class="v3-empty"><p class="v3-empty__title">会员不存在</p><p class="v3-empty__hint">返回列表重新选择。</p></div>';
+      host.innerHTML = '<div class="mp-placeholder"><p class="mp-placeholder__title">会员不存在</p><p class="mp-placeholder__hint">返回列表重新选择。</p></div>';
       return;
     }
-    var s = memberHistorySummary(m);
-    var dup = sameNameMembers(m.name).length;
-    var dupTip = dup > 1
-      ? '<p class="mh-dup-tip"><span aria-hidden="true">!</span><span>店内有 <b>' + dup + '</b> 位同名顾客，历史消费按姓名匹配，请先核对手机号再采信。</span></p>'
-      : '';
-    var entrySub = s.rows.length
-      ? s.range + ' · ' + s.rows.length + ' 笔 · ' + fmtMoney(s.total)
-      : '暂无匹配到同名历史记录';
     host.innerHTML =
-      '<div class="mp-card">' +
-        '<span class="avatar"><img src="' + m.avatar + '" alt=""></span>' +
-        '<span class="mp-card__main"><b>' + esc(m.name) + '</b>' +
-          '<span>' + esc(m.phone) + ' · ' + esc(m.cardName) + '</span></span>' +
-        '<span class="mp-card__bal">' + esc(m.balance) + '</span>' +
-      '</div>' +
-      dupTip +
-      '<div class="mp-sec">' +
-        '<div class="mp-sec__hd"><b>消费明细</b><span>共 ' + s.rows.length + ' 笔 · ' + fmtMoney(s.total) + '</span></div>' +
-        '<button type="button" class="mp-entry" id="btnMemberHistory">' +
-          '<span class="mp-entry__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16M4 12h16M4 17.5h10"/><circle cx="19" cy="17.5" r="2.2"/></svg></span>' +
-          '<span class="mp-entry__txt"><b>历史消费</b><span>' + esc(entrySub) + '</span></span>' +
-          '<span class="mp-entry__tag">只读</span>' +
-          '<span class="mp-entry__chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>' +
-        '</button>' +
-      '</div>' +
-      '<p class="mp-note">历史消费按<strong>顾客姓名</strong>自动匹配到会员，只用于查看核对，不参与开单、业绩与余额计算；匹配错了可在「历史消费」里逐条解除。</p>';
+      '<div class="mp-placeholder">' +
+        '<p class="mp-placeholder__title">顾客详情示意</p>' +
+        '<p class="mp-placeholder__hint">线上以真实页面为准。点右上角「历史消费」查看「' + esc(m.name) + '」名下的历史订单。</p>' +
+      '</div>';
   }
 
   function renderMemberHistory() {
@@ -6631,8 +7050,25 @@
       return;
     }
     var s = memberHistorySummary(m);
+    var dup = sameNameMembers(m.name).length;
+    var dupTip = dup > 1
+      ? '<p class="mh-dup-tip"><span aria-hidden="true">!</span><span>店内有 <b>' + dup + '</b> 位「' + esc(m.name) + '」，这些记录按姓名匹配，可能不全属于本顾客；不对的请解除。</span></p>'
+      : '';
+    var profile =
+      '<div class="mh-profile">' +
+        '<div class="mh-profile__who">' +
+          '<b>' + esc(m.name) + '</b>' +
+          '<span>' + esc(m.phone || '未留手机号') + '</span>' +
+        '</div>' +
+        '<div class="mh-profile__stats" role="group" aria-label="历史订单汇总">' +
+          '<div class="mh-profile__cell"><em>' + fmtMoney(s.recharge) + '</em><span>累计充值</span></div>' +
+          '<div class="mh-profile__cell"><em>' + fmtMoney(s.consume) + '</em><span>累计消费</span></div>' +
+          '<div class="mh-profile__cell"><em class="v3-num">' + s.visits + '</em><span>到店次数</span></div>' +
+        '</div>' +
+        '<p class="mh-profile__note">仅统计历史订单：充值为办卡 / 充卡 / 续次 / 续费；消费为项目与产品订单；两者可重叠。</p>' +
+      '</div>';
     if (!s.rows.length) {
-      host.innerHTML =
+      host.innerHTML = profile +
         '<div class="v3-empty">' +
           '<p class="v3-empty__title">暂无历史消费</p>' +
           '<p class="v3-empty__hint">导入的历史记录里没有「' + esc(m.name) + '」的消费；同名记录被你解除匹配后也会回到这里。</p>' +
@@ -6648,16 +7084,10 @@
       groups[y].sum += Number(r.amount || 0);
     });
     order.sort(function (a, b) { return a < b ? 1 : (a > b ? -1 : 0); });
-    var dup = sameNameMembers(m.name).length;
-    var dupTip = dup > 1
-      ? '<p class="mh-dup-tip"><span aria-hidden="true">!</span><span>店内有 <b>' + dup + '</b> 位「' + esc(m.name) + '」，这些记录按姓名匹配，可能不全属于本顾客；不对的请解除。</span></p>'
-      : '';
     host.innerHTML =
-      '<div class="mh-head">' +
-        '<span class="mh-head__who">' + esc(m.name) + '<i>' + esc(m.phone) + '</i></span>' +
-        '<span class="mh-head__sum"><b>' + fmtMoney(s.total) + '</b><i>' + s.rows.length + ' 笔 · ' + s.range + '</i></span>' +
-      '</div>' +
+      profile +
       dupTip +
+      '<div class="mh-list">' +
       order.map(function (y) {
         var g = groups[y];
         var open = state.mhOpenYear === y;
@@ -6669,10 +7099,12 @@
             '</span>' +
           '</button>' +
           (open ? '<div class="mh-card__body">' + g.rows.map(function (r) {
+            var flags = historyRowFlags(r);
+            var tag = flags.recharge && flags.consume ? '充值·消费' : (flags.recharge ? '充值' : '消费');
             return '<div class="mh-row">' +
               '<button type="button" class="mh-row__open" data-mh-open="' + esc(r.id) + '">' +
                 '<span class="mh-row__main"><b>' + esc(r.raw['项目'] || '历史消费') + '</b>' +
-                  '<i>' + esc(r.date) + ' · ' + esc(r.raw['支付方式'] || '—') + '</i></span>' +
+                  '<i>' + esc(r.date) + ' · ' + esc(r.raw['支付方式'] || '—') + ' · ' + tag + '</i></span>' +
                 '<span class="mh-row__amt">' + fmtMoney(r.amount) + '</span>' +
               '</button>' +
               '<button type="button" class="mh-row__unmatch" data-mh-unmatch="' + esc(r.id) + '">解除</button>' +
@@ -6680,6 +7112,7 @@
           }).join('') + '</div>' : '') +
         '</div>';
       }).join('') +
+      '</div>' +
       '<p class="mh-foot">解除匹配只把该条从本会员名下移出，记录仍留在「历史订单」，不会被删除。</p>';
   }
 
@@ -6931,22 +7364,22 @@
       });
     }
 
-    /* ---- v2.45：会员详情 / 会员历史消费 ---- */
+    /* ---- v2.45/v2.47：会员详情 / 会员历史消费 ---- */
     var mhBack = $('#btnMemberHistoryBack');
     if (mhBack) {
       mhBack.addEventListener('click', function () {
         go('member-detail');
       });
     }
-
-    document.addEventListener('click', function (e) {
-      /* 顾客详情 · 消费明细里的「历史消费」入口（动态渲染，走代理） */
-      var me = e.target.closest('.mp-entry');
-      if (me) {
+    var mhNav = $('#btnMemberHistoryNav');
+    if (mhNav) {
+      mhNav.addEventListener('click', function () {
         state.mhOpenYear = null;
         go('member-history');
-        return;
-      }
+      });
+    }
+
+    document.addEventListener('click', function (e) {
       /* 年份卡片：左边年份、右边金额，点开看该年明细 */
       var yb = e.target.closest('[data-mh-year]');
       if (yb) {
@@ -6973,20 +7406,12 @@
         showToast('已解除匹配，记录仍在历史订单');
         return;
       }
-      /* 核对页 · 月份卡片开合 */
+      /* 核对页 · 月份卡片开合（样例只看不点） */
       var cm = e.target.closest('[data-hist-month]');
       if (cm) {
         var mk = cm.getAttribute('data-hist-month');
         state.histMonthOpen = state.histMonthOpen === mk ? null : mk;
-        if (state.importMode === 'history') renderHistoryCheck();
-        return;
-      }
-      /* 核对页 · 行 → 订单详情（返回回到核对） */
-      var co = e.target.closest('[data-hist-open]');
-      if (co) {
-        state.historySelectedId = co.getAttribute('data-hist-open');
-        state.historyReturnFlow = 'import-check';
-        go('history-detail');
+        renderHistoryPreview();
         return;
       }
       /* 历史完成页：去看历史订单 / 原始存档 */
@@ -7035,6 +7460,71 @@
     if (hrCancel) hrCancel.addEventListener('click', hideHistoryReimportSheet);
     var hrMask = $('#historyReimportMask');
     if (hrMask) hrMask.addEventListener('click', hideHistoryReimportSheet);
+  }
+
+  /* 历史消费导入：核对页（Figma 6-09）/ 完成页（6-10）/ 失败明细 */
+  function bindHistoryImport() {
+    var back = $('#btnHistoryPreviewBack');
+    if (back) {
+      back.addEventListener('click', function () {
+        go('import-cards');
+      });
+    }
+
+    var confirm = $('#btnHistoryPreviewConfirm');
+    if (confirm) confirm.addEventListener('click', submitHistoryImport);
+
+    var failRow = $('#btnHistoryFailRow');
+    if (failRow) failRow.addEventListener('click', function () { go('history-import-fail'); });
+
+    var failDl = $('#btnHistoryFailDownload');
+    if (failDl) {
+      failDl.addEventListener('click', function () {
+        showToast('已生成 失败行.xls（演示）');
+      });
+    }
+
+    var goOrders = $('#btnHistoryResultGo');
+    if (goOrders) {
+      goOrders.addEventListener('click', function () {
+        exitHistoryMode();
+        state.viewReturn = 'history-import-result';
+        go('history-orders');
+      });
+    }
+
+    function closeHistoryDel() {
+      var mask = $('#historyDelMask');
+      var dlg = $('#historyDelDialog');
+      if (mask) mask.classList.remove('show');
+      if (dlg) dlg.classList.remove('show');
+    }
+
+    var delBtn = $('#btnHistoryDeleteBatch');
+    if (delBtn) {
+      delBtn.addEventListener('click', function () {
+        if (state.historyDeleted) return;
+        var mask = $('#historyDelMask');
+        var dlg = $('#historyDelDialog');
+        if (mask) mask.classList.add('show');
+        if (dlg) dlg.classList.add('show');
+      });
+    }
+    var delCancel = $('#btnHistoryDelCancel');
+    if (delCancel) delCancel.addEventListener('click', closeHistoryDel);
+    var delMask = $('#historyDelMask');
+    if (delMask) delMask.addEventListener('click', closeHistoryDel);
+    var delConfirm = $('#btnHistoryDelConfirm');
+    if (delConfirm) {
+      delConfirm.addEventListener('click', function () {
+        closeHistoryDel();
+        state.historyDeleted = true;
+        state.storeStock.history = 0;
+        renderHistoryResult();
+        renderImportBanner();
+        showToast('已删除本批历史消费');
+      });
+    }
   }
 
   function bindImport() {
@@ -7360,30 +7850,16 @@
       });
     }
     var camPreviewClose = $('#btnCamPreviewClose');
-    if (camPreviewClose) camPreviewClose.addEventListener('click', closeCamPreview);
-    var camPreviewPrev = $('#btnCamPreviewPrev');
-    if (camPreviewPrev) {
-      camPreviewPrev.addEventListener('click', function () {
-        var n = demoAlbumShots().length;
-        state.camPreviewIdx = (state.camPreviewIdx - 1 + n) % n;
-        syncCamPreview();
-      });
-    }
-    var camPreviewNext = $('#btnCamPreviewNext');
-    if (camPreviewNext) {
-      camPreviewNext.addEventListener('click', function () {
-        var n = demoAlbumShots().length;
-        state.camPreviewIdx = (state.camPreviewIdx + 1) % n;
-        syncCamPreview();
-      });
-    }
+    if (camPreviewClose) camPreviewClose.addEventListener('click', function () { closeCamPreview(); });
     var camPreviewPick = $('#btnCamPreviewPick');
     if (camPreviewPick) {
       camPreviewPick.addEventListener('click', function () {
         var shot = demoAlbumShots()[state.camPreviewIdx];
         if (!shot) return;
+        /* 「选择这张」选中并收起；文案为「取消选择」时取消选中并收起 */
         toggleAlbumPick(shot.src);
-        syncCamPreview();
+        closeCamPreview();
+        renderCamera();
       });
     }
     var camPreviewEl = $('#camPreview');
@@ -8938,13 +9414,29 @@
       go('history-detail');
       return;
     }
-    // 核对历史：通用流程的「核对」屏（历史模式 · 按月卡片 · 行可点进详情）
+    // 核对历史：独立核对屏（历史模式 · 按月样例）
     if (cap === 'history-import-preview' || cap === 'history-import-preview-open') {
       seedHistoryDemoBatch();
-      go('import-check');
+      if (cap === 'history-import-preview-open') state.histMonthOpen = historyMonthKey(HISTORY_ROWS[0].date);
+      go('history-import-preview');
       return;
     }
-    // 导入历史消费 · 选择方式（历史模式只给 Excel）
+    // 历史消费 · 导入完成 / 失败明细
+    if (cap === 'history-import-result') {
+      seedHistoryDemoBatch();
+      state.storeStock.history = HISTORY_ROWS.length;
+      state.historyDeleted = false;
+      state.importTask = { started: true, stage: 'done', resumeFlow: 'history-import-result', entry: 'home' };
+      go('history-import-result');
+      return;
+    }
+    if (cap === 'history-import-fail') {
+      seedHistoryDemoBatch();
+      state.importTask = { started: true, stage: 'check', resumeFlow: 'history-import-fail', entry: 'home' };
+      go('history-import-fail');
+      return;
+    }
+    // 导入历史消费 · 选择方式（Excel 与拍照都可，可混传）
     if (cap === 'history-import-upload' || cap === 'history-import-upload-empty') {
       goHistoryImportStart();
       return;
@@ -9072,6 +9564,7 @@
     bindArchiveMenus();
     bindCoachLayer();
     bindHistory();
+    bindHistoryImport();
     bindMembers();
     bindWorkbench();
     applyDeepLink();

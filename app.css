@@ -3078,6 +3078,99 @@
 /* .v3-foot__note 原为 .v3-foot 设计（块级），进 .import-foot 的 flex+gap 后需收掉重复间距 */
 .import-foot .v3-foot__note { margin: -12px -16px 4px; }
 
+/* ===== 历史消费导入：分区标题（24px 线描贴边，对齐 Figma 6-09） ===== */
+.hs-sec {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.hs-sec__ico {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  color: var(--brand);
+}
+.hs-sec__ico svg { display: block; width: 24px; height: 24px; }
+.hs-sec__ico.is-err { color: var(--error-ink); }
+.hs-sec__txt { flex: 1; min-width: 0; }
+.hs-sec__txt h2 {
+  margin: 0;
+  font-size: var(--fs-title-s);
+  line-height: var(--lh-title-s);
+  font-weight: 600;
+  color: var(--text);
+}
+.hs-sec__txt p {
+  margin: 2px 0 0;
+  font-size: var(--fs-sub);
+  line-height: var(--lh-sub);
+  color: var(--text-sec);
+}
+
+/* ===== 历史消费导入：核对页汇总 ===== */
+.hs-sum {
+  margin-top: 12px;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,.05);
+}
+.hs-sum__stats { display: flex; align-items: stretch; }
+.hs-sum__cell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hs-sum__cell + .hs-sum__cell {
+  padding-left: 16px;
+  border-left: var(--divider-weight) solid var(--card-divider);
+}
+.hs-sum__cell b {
+  font-size: var(--fs-metric);
+  line-height: var(--lh-metric);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.hs-sum__cell span {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  color: var(--text-sec);
+}
+.hs-sum__range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: var(--divider-weight) solid var(--card-divider);
+  font-size: var(--fs-sub);
+  line-height: var(--lh-sub);
+}
+.hs-sum__range span { color: var(--text-sec); }
+.hs-sum__range b { font-weight: 500; color: var(--text-sec); font-variant-numeric: tabular-nums; }
+
+/* 历史失败明细：卡片化列表 + 底部链接动作 */
+.check-list.history-fail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.check-list.history-fail-list .import-fail-item {
+  margin: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,.05);
+}
+.result-acts--foot { margin-top: 8px; padding: 0; }
+
 /* ===== 历史订单：列表 / 详情 ===== */
 /* 标题栏右侧动作（§13 标题栏规范）：纯文字 + 可选图标，无边框无底色 */
 .nav-act {
@@ -9049,6 +9142,16 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
 
 /* ---- 拍照页：相册大图预览 ---- */
 .cam-preview {
+  transition: opacity .22s ease;
+}
+.cam-preview.is-open .cam-preview__img {
+  animation: camPreviewIn .34s cubic-bezier(.22,.9,.28,1) both;
+}
+@keyframes camPreviewIn {
+  from { opacity: 0; transform: scale(.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.cam-preview {
   position: absolute;
   inset: 0;
   z-index: 20;
@@ -9080,35 +9183,13 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   justify-content: center;
   cursor: pointer;
 }
-.cam-preview__nav {
-  position: absolute;
-  top: 50%;
-  margin-top: -22px;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .14);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.cam-preview__nav.is-prev { left: 10px; }
-.cam-preview__nav.is-next { right: 10px; }
+.cam-preview__nav { display: none !important; }
 .cam-preview__bar {
   position: absolute;
   bottom: calc(22px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 16px;
-}
-.cam-preview__idx {
-  font-size: 12px;
-  color: rgba(255, 255, 255, .72);
-  font-variant-numeric: tabular-nums;
 }
 .cam-preview__pick {
   height: 36px;

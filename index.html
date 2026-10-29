@@ -59,6 +59,9 @@
     <button type="button" class="nav-item" data-flow="history-detail"><span class="idx">史·</span>订单详情</button>
     <button type="button" class="nav-item" data-flow="member-detail"><span class="idx">客</span>顾客详情</button>
     <button type="button" class="nav-item" data-flow="member-history"><span class="idx">客·</span>会员历史消费</button>
+    <button type="button" class="nav-item" data-flow="history-import-preview"><span class="idx">历·</span>核对历史</button>
+    <button type="button" class="nav-item" data-flow="history-import-result"><span class="idx">历✓</span>历史完成</button>
+    <button type="button" class="nav-item" data-flow="history-import-fail"><span class="idx">历✗</span>历史失败</button>
   </div>
   <div class="nav-group">
     <div class="g-t">空态</div>
@@ -73,7 +76,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.45</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.47</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -740,19 +743,19 @@
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
-          <p class="soft-tip soft-tip--inline hidden" id="importHistoryNote">历史消费只接受 Excel；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。</p>
+          <p class="soft-tip soft-tip--inline hidden" id="importHistoryNote">消费记录没有固定模板：Excel 或拍照都可以；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。</p>
           <div class="src-entry src-entry--hero">
             <button type="button" class="src-hero is-excel" id="btnEnterExcel">
               <span class="src-hero__art" aria-hidden="true">
                 <svg viewBox="0 0 96 84" width="96" height="84" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#srcExcelClip)"><path d="M86 0H10C4.477 0 0 5.223 0 11.667v60.666C0 78.777 4.477 84 10 84h76c5.523 0 10-5.223 10-11.667V11.667C96 5.223 91.523 0 86 0Z" fill="#E8F8F2"/><path d="M62 16.333H34c-3.314 0-6 3.134-6 7v37.334c0 3.866 2.686 7 6 7h28c3.314 0 6-3.134 6-7V23.333c0-3.866-2.686-7-6-7Z" fill="#fff" stroke="#2BA471" stroke-width="1.8"/><path d="M52 16.333v14c0 1.857.632 3.637 1.757 4.95 1.126 1.313 2.652 2.05 4.243 2.05h12M52 16.333l18 21" stroke="#2BA471" stroke-width="1.8"/><path opacity=".35" d="M52.5 38.667h-15c-.828 0-1.5.783-1.5 1.75v1.166c0 .967.672 1.75 1.5 1.75h15c.828 0 1.5-.783 1.5-1.75v-1.166c0-.967-.672-1.75-1.5-1.75Z" fill="#2BA471"/><path opacity=".22" d="M58.5 46.833h-21c-.828 0-1.5.784-1.5 1.75v.584c0 .966.672 1.75 1.5 1.75h21c.828 0 1.5-.784 1.5-1.75v-.584c0-.966-.672-1.75-1.5-1.75Z" fill="#2BA471"/><path opacity=".18" d="M48.5 54.417h-11c-.828 0-1.5.783-1.5 1.75v.583c0 .967.672 1.75 1.5 1.75h11c.828 0 1.5-.783 1.5-1.75v-.583c0-.967-.672-1.75-1.5-1.75Z" fill="#2BA471"/></g><defs><clipPath id="srcExcelClip"><rect width="96" height="84" fill="#fff"/></clipPath></defs></svg>
               </span>
-              <span class="src-hero__copy"><b>Excel 导入</b><span>表格文件 · xls / xlsx / csv</span></span>
+              <span class="src-hero__copy"><b>Excel 导入</b><span id="srcExcelSub">表格文件 · xls / xlsx / csv</span></span>
             </button>
             <button type="button" class="src-hero is-photo" id="btnEnterPhoto">
               <span class="src-hero__art" aria-hidden="true">
                 <svg viewBox="0 0 96 84" width="96" height="84" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#srcPhotoClip)"><path d="M86 0H10C4.477 0 0 5.223 0 11.667v60.666C0 78.777 4.477 84 10 84h76c5.523 0 10-5.223 10-11.667V11.667C96 5.223 91.523 0 86 0Z" fill="#EEF5FC"/><path d="M46 21H18c-2.209 0-4 2.089-4 4.667V63c0 2.577 1.791 4.667 4 4.667h28c2.209 0 4-2.09 4-4.667V25.667c0-2.578-1.791-4.667-4-4.667Z" fill="#fff" stroke="#3B82C4" stroke-width="1.6"/><path opacity=".45" d="M42.8 28H21.2c-.663 0-1.2.627-1.2 1.4v1.867c0 .773.537 1.4 1.2 1.4h21.6c.663 0 1.2-.627 1.2-1.4V29.4c0-.773-.537-1.4-1.2-1.4Z" fill="#3B82C4"/><path opacity=".18" d="M43 37.333H21c-.552 0-1 .522-1 1.167v1.167c0 .644.448 1.166 1 1.166h22c.552 0 1-.522 1-1.166V38.5c0-.645-.448-1.167-1-1.167ZM37 44.333H21c-.552 0-1 .523-1 1.167v1.167c0 .644.448 1.166 1 1.166h16c.552 0 1-.522 1-1.166V45.5c0-.644-.448-1.167-1-1.167ZM41 51.333H21c-.552 0-1 .523-1 1.167v1.167c0 .644.448 1.166 1 1.166h20c.552 0 1-.522 1-1.166V52.5c0-.644-.448-1.167-1-1.167Z" fill="#3B82C4"/><path d="M70 14H48c-3.314 0-6 3.134-6 7v42c0 3.866 2.686 7 6 7h22c3.314 0 6-3.134 6-7V21c0-3.866-2.686-7-6-7Z" fill="#fff" stroke="#3B82C4" stroke-width="1.8"/><path d="M68 21H50c-1.657 0-3 1.567-3 3.5v25.667c0 1.933 1.343 3.5 3 3.5h18c1.657 0 3-1.567 3-3.5V24.5c0-1.933-1.343-3.5-3-3.5Z" fill="#EEF5FC" stroke="#3B82C4" stroke-width="1.2"/><path opacity=".5" d="M66 26.833H52c-.552 0-1 .523-1 1.167v1.167c0 .644.448 1.166 1 1.166h14c.552 0 1-.522 1-1.166V28c0-.644-.448-1.167-1-1.167Z" fill="#3B82C4"/><path opacity=".2" d="M66 33.833H52c-.552 0-1 .523-1 1.167v.583c0 .645.448 1.167 1 1.167h14c.552 0 1-.522 1-1.167V35c0-.644-.448-1.167-1-1.167Z" fill="#3B82C4"/><path opacity=".7" d="M47 42h1m22 0h-1m-20 0h2m2 0h2m2 0h2m2 0h2m2 0h2" stroke="#3B82C4" stroke-width="1.2"/><path d="M62.2 60.667c0 2.061-1.433 3.733-3.2 3.733s-3.2-1.672-3.2-3.733c0-2.062 1.433-3.734 3.2-3.734s3.2 1.672 3.2 3.734Z" stroke="#3B82C4" stroke-width="1.5"/></g><defs><clipPath id="srcPhotoClip"><rect width="96" height="84" fill="#fff"/></clipPath></defs></svg>
               </span>
-              <span class="src-hero__copy"><b>拍照导入</b><span>纸质价目表、手写本，对准拍</span></span>
+              <span class="src-hero__copy"><b>拍照导入</b><span id="srcPhotoSub">纸质价目表、手写本，对准拍</span></span>
             </button>
           </div>
           <div class="pending-compact" id="pendingHead">
@@ -790,7 +793,7 @@
             <h2>选择 Excel 文件</h2>
             <p id="sourceLead">推荐按官方标准模板填写，可完美识别。其它表也能识别，可能要多核对几行。</p>
           </div>
-          <p class="soft-tip soft-tip--inline hidden" id="sourceHistoryNote">历史消费表：列名不必固定，系统会自己找<strong>日期 / 金额 / 顾客姓名</strong>，无需手动指定。</p>
+          <p class="soft-tip soft-tip--inline hidden" id="sourceHistoryNote">消费记录表：列名不必固定，系统会自己找<strong>日期 / 金额 / 顾客姓名</strong>，无需手动指定；手写流水可在上一步拍照。</p>
           <div class="tpl-promo" id="sourceTplPromo" role="note">
             <div class="tpl-promo__body">
               <b>用官方标准模板填写，可完美识别导入</b>
@@ -855,15 +858,8 @@
             <button type="button" class="cam-preview__close" id="btnCamPreviewClose" aria-label="关闭">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
-            <button type="button" class="cam-preview__nav is-prev" id="btnCamPreviewPrev" aria-label="上一张">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
             <img class="cam-preview__img" id="camPreviewImg" alt="">
-            <button type="button" class="cam-preview__nav is-next" id="btnCamPreviewNext" aria-label="下一张">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-            </button>
             <div class="cam-preview__bar">
-              <span class="cam-preview__idx" id="camPreviewIdx">1 / 8</span>
               <button type="button" class="cam-preview__pick" id="btnCamPreviewPick">选择这张</button>
             </div>
           </div>
@@ -1035,6 +1031,136 @@
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnImportBackHome">返回首页</button>
           </div>
+        </div>
+      </div>
+
+      <!-- history-import-preview：核对历史数据（Figma 6-09） -->
+      <div class="screen hidden" id="screen-history-import-preview" data-flow="history-import-preview">
+        <header class="page-title-bar">
+          <button type="button" class="back" id="btnHistoryPreviewBack" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">核对历史数据</span>
+        </header>
+        <div class="scroll-body import-body import-body--note">
+          <div class="hs-sec">
+            <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 6.4h9.2M4.6 12h9.2M4.6 17.6h9.2"/><path d="M17 8.6l2.2 2.2 3-3.4" stroke-width="1.9"/></svg></span>
+            <div class="hs-sec__txt">
+              <h2>按月对一下账本</h2>
+              <p>差不太多就可以导。点某月可看几条样例。</p>
+            </div>
+          </div>
+          <div class="hs-sum">
+            <div class="hs-sum__stats">
+              <div class="hs-sum__cell">
+                <b class="v3-num" id="historyPreviewCount">0</b>
+                <span>条待导入</span>
+              </div>
+              <div class="hs-sum__cell">
+                <b class="v3-num" id="historyPreviewTotal">¥0</b>
+                <span>合计金额</span>
+              </div>
+            </div>
+            <div class="hs-sum__range"><span>日期范围</span><b id="historyPreviewRange">—</b></div>
+          </div>
+          <div class="hist-month-list" id="historyPreviewList"></div>
+          <div class="v3-notice is-err hidden" id="historyPreviewWarn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.6v5.2M12 16.2v.1"/></svg>
+            <span><b><em class="v3-num" id="historyPreviewFailCount">0</em> 条无法识别</b>，导入后可在失败明细下载</span>
+          </div>
+        </div>
+        <div class="import-foot">
+          <div class="v3-foot__note">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.4 4.4 5.6v6.1c0 4.7 3.2 8.7 7.6 9.9 4.4-1.2 7.6-5.2 7.6-9.9V5.6L12 2.4Zm0 5.2a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Zm.9 8.6h-1.8v-5h1.8v5Z"/></svg>
+            <span>导入后可在「历史订单」查看全部</span>
+          </div>
+          <div class="v3-foot__main">
+            <button type="button" class="btn-primary" id="btnHistoryPreviewConfirm">确认导入</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- history-import-result：历史导入完成（Figma 6-10） -->
+      <div class="screen hidden" id="screen-history-import-result" data-flow="history-import-result">
+        <header class="page-title-bar"><span class="title">导入完成</span></header>
+        <div class="scroll-body import-body import-result-body">
+          <div class="v3-done v3-done--illust">
+            <span class="v3-done__art" aria-hidden="true">
+              <svg viewBox="0 0 96 96" width="88" height="88" fill="none">
+                <rect x="22" y="18" width="44" height="56" rx="6" stroke="#2BA471" stroke-width="2.2"/>
+                <path d="M34 34h20M34 44h20M34 54h12" stroke="#2BA471" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="68" cy="68" r="16" fill="#E8F8F2" stroke="#2BA471" stroke-width="2.2"/>
+                <path d="M61 68.5 66.2 73.5 75.5 62.5" stroke="#2BA471" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <h2 class="v3-done__title">导入成功</h2>
+            <p class="v3-done__lead" id="historyResultLead">历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。</p>
+          </div>
+          <div class="result-tiers">
+            <div class="result-tier-card">
+              <div class="result-tier-row">
+                <span class="result-tier-row__lab"><b>历史消费</b><em id="historyResultSource">已写入本店，只读核对</em></span>
+                <span class="result-tier-row__num" id="historyResultCount">0</span>
+                <button type="button" class="result-tier-row__go" id="btnHistoryResultGo">去看</button>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="result-fail" id="btnHistoryFailRow">
+            <span class="result-fail__body"><b><em class="v3-num" id="historyFailCount">0</em> 条失败</b><span>，下载后修正再传</span></span>
+            <span class="result-fail__link">查看明细</span>
+            <svg class="result-fail__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <div class="result-acts">
+            <button type="button" class="v3-foot__link is-danger" id="btnHistoryDeleteBatch">删除本批历史消费</button>
+          </div>
+        </div>
+        <div class="import-foot">
+          <div class="v3-foot__note">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.4 4.4 5.6v6.1c0 4.7 3.2 8.7 7.6 9.9 4.4-1.2 7.6-5.2 7.6-9.9V5.6L12 2.4Zm0 5.2a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Zm.9 8.6h-1.8v-5h1.8v5Z"/></svg>
+            <span>不进订单流水，仅用于查看核对；会员余额与业绩不受影响</span>
+          </div>
+          <div class="v3-foot__main">
+            <button type="button" class="btn-primary" data-go="workbench">返回工作台</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- history-import-fail：历史消费失败明细 -->
+      <div class="screen hidden" id="screen-history-import-fail" data-flow="history-import-fail">
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="history-import-result" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">失败明细 · <em class="v3-num" id="historyFailScreenCount">0</em> 条</span>
+        </header>
+        <div class="scroll-body import-body">
+          <div class="hs-sec">
+            <span class="hs-sec__ico is-err" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.8M12 16.2v.1"/></svg></span>
+            <div class="hs-sec__txt">
+              <h2>这几行没能入库</h2>
+              <p>只校验日期、金额、顾客姓名、支付方式；其余列原样保留。</p>
+            </div>
+          </div>
+          <div class="check-list history-fail-list" id="historyFailList"></div>
+        </div>
+        <div class="import-foot">
+          <div class="v3-foot__main">
+            <button type="button" class="btn-primary" id="btnHistoryFailDownload">下载失败行</button>
+          </div>
+          <div class="result-acts result-acts--foot">
+            <button type="button" class="v3-foot__link" data-go="history-import-result">返回导入结果</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 删除本批历史消费 -->
+      <div class="overlay-mask" id="historyDelMask" aria-hidden="true"></div>
+      <div class="del-batch-dialog" id="historyDelDialog" role="dialog" aria-labelledby="historyDelTitle" aria-hidden="true">
+        <h3 id="historyDelTitle">删除本批历史消费？</h3>
+        <p>将删除本次导入的 <em class="num-em" id="historyDelCount">0</em> 条历史消费。本店订单流水、会员余额与业绩都不受影响。</p>
+        <div class="del-batch-dialog__row">
+          <button type="button" class="btn-outline" id="btnHistoryDelCancel">先不删</button>
+          <button type="button" class="btn-primary" id="btnHistoryDelConfirm">确认删除</button>
         </div>
       </div>
 
@@ -1472,7 +1598,7 @@
         <div class="scroll-body history-detail-body" id="historyDetailBody"></div>
       </div>
 
-      <!-- 顾客详情（示意占位）：消费明细内的「历史消费」入口 -->
+      <!-- 顾客详情（纯占位）：标题栏右侧进历史消费 -->
       <div class="screen hidden" id="screen-member-detail" data-flow="member-detail">
         <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
         <header class="page-title-bar">
@@ -1480,8 +1606,14 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span class="title">顾客详情</span>
+          <button type="button" class="nav-act" id="btnMemberHistoryNav">历史消费</button>
         </header>
-        <div class="scroll-body member-profile-body" id="memberProfileBody"></div>
+        <div class="scroll-body member-profile-body" id="memberProfileBody">
+          <div class="mp-placeholder">
+            <p class="mp-placeholder__title">顾客详情示意</p>
+            <p class="mp-placeholder__hint">线上以真实页面为准。点右上角「历史消费」查看该会员名下的历史订单。</p>
+          </div>
+        </div>
       </div>
 
       <!-- 该会员的历史消费：默认按年份卡片 -->

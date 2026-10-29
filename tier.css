@@ -1189,16 +1189,38 @@
 .hist-month__hd span { font-size: 13px; color: #6B6B6B; font-variant-numeric: tabular-nums; }
 .hist-month__body { display: block; margin-top: 10px; padding-top: 8px; border-top: 0.5px solid #F0F0F0; }
 
-/* ===== v2.45 历史消费 × 会员（顾客详情 · 年份卡片 · 解除匹配） ===== */
-.mh-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 2px 2px 12px; }
-.mh-head__who { display: flex; flex-direction: column; gap: 4px; font-size: 15px; font-weight: 600; color: #1A1A1A; }
-.mh-head__who i { font-style: normal; font-size: 12px; font-weight: 400; color: #929292; font-variant-numeric: tabular-nums; }
-.mh-head__sum { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.mh-head__sum b { font-size: 19px; font-weight: 600; color: #1A1A1A; font-variant-numeric: tabular-nums; }
-.mh-head__sum i { font-style: normal; font-size: 12px; color: #929292; font-variant-numeric: tabular-nums; }
+/* ===== v2.47 历史消费 × 会员（顶部会员卡 · 年份卡片 · 解除匹配） ===== */
+.member-history-body { padding: 12px 16px 28px; background: #F5F6F7; }
+.mh-profile {
+  margin-bottom: 12px; padding: 16px;
+  background: #fff; border-radius: 14px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.05);
+}
+.mh-profile__who { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.mh-profile__who b { font-size: 18px; font-weight: 650; color: #1A1A1A; letter-spacing: .2px; }
+.mh-profile__who span { font-size: 13px; color: #6B6B6B; font-variant-numeric: tabular-nums; }
+.mh-profile__stats {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+  padding: 12px 0; border-radius: 10px; background: #F8F9FA;
+}
+.mh-profile__cell {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 2px 6px; min-width: 0;
+  border-right: 0.5px solid #E8E8E8;
+}
+.mh-profile__cell:last-child { border-right: 0; }
+.mh-profile__cell em {
+  font-style: normal; font-size: 16px; font-weight: 650; color: #1A1A1A;
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mh-profile__cell span { font-size: 11px; color: #929292; }
+.mh-profile__note {
+  margin: 10px 0 0; font-size: 11px; line-height: 1.55; color: #B0B0B0;
+}
+.mh-list { display: flex; flex-direction: column; gap: 10px; }
 
 .mh-card { background: #fff; border-radius: 14px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.05); overflow: hidden; }
-.mh-card + .mh-card { margin-top: 10px; }
+.mh-card + .mh-card { margin-top: 0; }
 .mh-card__hd {
   display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px;
   padding: 14px 16px; border: 0; background: transparent; font-family: inherit; color: inherit; text-align: left; cursor: pointer;
@@ -1238,7 +1260,13 @@
 }
 .mh-dup-tip b { color: #7A5A18; }
 
-.member-profile-body { padding-bottom: 24px; }
+.member-profile-body { padding: 16px 16px 24px; }
+.mp-placeholder {
+  margin-top: 8px; padding: 36px 20px; text-align: center;
+  background: #fff; border-radius: 14px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.05);
+}
+.mp-placeholder__title { margin: 0; font-size: 15px; font-weight: 600; color: #1A1A1A; }
+.mp-placeholder__hint { margin: 8px 0 0; font-size: 13px; line-height: 1.55; color: #929292; }
 .mp-card { display: flex; align-items: center; gap: 12px; padding: 16px; background: #fff; border-radius: 14px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.05); }
 .mp-card .avatar { flex: none; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: #F5F7F9; }
 .mp-card .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -1265,28 +1293,16 @@
 .mp-note { margin: 12px 2px 0; font-size: 12px; line-height: 1.6; color: #B0B0B0; }
 .mp-note strong { color: #969696; font-weight: 600; }
 
-/* 核对页 · 历史月份卡片（行可点进订单详情） */
-.hist-check-sum { display: flex; align-items: baseline; gap: 8px; padding: 4px 2px 10px; }
-.hist-check-sum b { font-size: 17px; font-weight: 600; color: #1A1A1A; font-variant-numeric: tabular-nums; }
-.hist-check-sum span { font-size: 12px; color: #929292; font-variant-numeric: tabular-nums; }
-.hist-month-card { background: #fff; border-radius: 14px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.05); overflow: hidden; }
-.hist-month-card .hist-month { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 0; box-shadow: none; }
-.hist-month__chev { display: inline-flex; color: #C4C4C4; transition: transform .18s ease; }
-.hist-month-card.is-open .hist-month__chev { transform: rotate(90deg); }
-.hist-month-card .hist-month__body { margin-top: 0; padding: 0 16px 4px; }
-.hist-month__row {
-  display: flex; width: 100%; align-items: center; gap: 10px; padding: 11px 0;
-  border: 0; border-top: 0.5px solid #F5F5F5; background: transparent;
-  font-family: inherit; color: inherit; text-align: left; cursor: pointer;
+/* 核对页 · 历史按月样例（对齐 Figma 6-09：卡片内最多 4 条样例） */
+.hist-month__sample {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 0;
+  font-size: 12px;
+  color: #6B6B6B;
 }
-.hist-month__row:active { background: #FAFAFA; }
-.hist-month__row-main { flex: 1; min-width: 0; }
-.hist-month__row-main b { display: block; font-size: 14px; font-weight: 500; color: #1A1A1A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hist-month__row-main i { display: block; margin-top: 3px; font-style: normal; font-size: 12px; color: #929292; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hist-month__row-amt { flex: none; font-size: 14px; font-weight: 600; color: #1A1A1A; font-variant-numeric: tabular-nums; }
-.hist-month__row-chev { flex: none; display: inline-flex; color: #D0D0D0; }
-.hist-check-fail { margin: 12px 2px 0; font-size: 12px; line-height: 1.6; color: #B0B0B0; }
-.hist-check-fail b { color: #8A8A8A; }
+.hist-month__sample b { font-weight: 600; color: #1A1A1A; font-variant-numeric: tabular-nums; }
 
 /* ========== v2.41 · 价目表行内改名称/价格：文字原地变输入框，行高不变 ========== */
 .verify-row.is-inline-tappable { gap: 8px; }
