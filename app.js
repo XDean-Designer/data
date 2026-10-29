@@ -563,14 +563,16 @@
     member: 'members',
     card: 'card-list',
     price: 'price-list',
-    stock: 'stock-list'
+    stock: 'stock-list',
+    order: 'order-list'
   };
-  var DOMAIN_LABEL = { member: '会员', card: '会员卡', price: '价目表', stock: '库存', product: '店铺产品' };
+  var DOMAIN_LABEL = { member: '会员', card: '会员卡', price: '价目表', stock: '库存', product: '店铺产品', order: '订单流水' };
   var DOMAIN_MATCH = {
     member: ['member'],
     card: ['card'],
     price: ['price', 'product'],
-    stock: ['stock']
+    stock: ['stock'],
+    order: ['order']
   };
   var STAGE_COPY = {
     idle: { title: '数据导入', sub: '把老店数据导进来', go: '进入', cls: '' },
@@ -610,7 +612,7 @@
     renderImportBanner();
   }
 
-  var VIEW_LIST_FLOWS = ['members', 'card-list', 'price-list', 'stock-list'];
+  var VIEW_LIST_FLOWS = ['members', 'card-list', 'price-list', 'stock-list', 'order-list'];
 
   function openResultCatView(type) {
     state.viewReturn = 'import-result';
@@ -2411,7 +2413,34 @@
     if (/价目|项目/.test(s)) return 'price';
     if (/库存|盘点/.test(s)) return 'stock';
     if (/产品|卖品/.test(s)) return 'product';
+    if (/流水|收银|账单/.test(s)) return 'order';
     return 'member';
+  }
+
+  /** 订单流水域演示存档（B1）：主链无 order 类别时仍保证 ···→原始存档可点通 */
+  function ensureOrderArchiveDemo() {
+    ensureTierDemo();
+    if (!state.tierResult.l1) state.tierResult.l1 = [];
+    var has = state.tierResult.l1.some(function (x) { return x.domain === 'order'; });
+    if (has) return;
+    state.tierResult.l1.push(
+      {
+        id: 'a-order-xls',
+        domain: 'order',
+        name: '老店收银流水导出.xlsx',
+        kind: 'excel',
+        size: '1.1 MB',
+        note: '列名杂乱，无法结构化，仅作原始存档备查'
+      },
+      {
+        id: 'a-order-scan',
+        domain: 'order',
+        name: '纸质流水本扫描.pdf',
+        kind: 'excel',
+        size: '2.4 MB',
+        note: '扫描件无法识别，仅存档'
+      }
+    );
   }
 
   /* 内部英文字段键 → 中文展示名（对齐 CHECK_FIELDS.label） */
@@ -2517,6 +2546,22 @@
       kind: 'excel',
       size: '0.4 MB',
       note: '版式杂乱，可识别已填不足 30%，整份仅存档'
+    });
+    pushArch({
+      id: 'a-order-xls',
+      domain: 'order',
+      name: '老店收银流水导出.xlsx',
+      kind: 'excel',
+      size: '1.1 MB',
+      note: '列名杂乱，无法结构化，仅作原始存档备查'
+    });
+    pushArch({
+      id: 'a-order-scan',
+      domain: 'order',
+      name: '纸质流水本扫描.pdf',
+      kind: 'excel',
+      size: '2.4 MB',
+      note: '扫描件无法识别，仅存档'
     });
     if (state.pending.photo.length) {
       pushArch({ id: 'a-ph-1', domain: 'price', name: '墙贴价目（半张裁切）.jpg', kind: 'photo', size: '0.6 MB', note: '画面不全，无法结构化' });
@@ -7106,6 +7151,7 @@
           return;
         }
         if (key === 'history') { state.viewReturn = null; go('history-orders'); return; }
+        if (key === 'flow') { state.viewReturn = null; go('order-list'); return; }
         if (key === 'price') { state.viewReturn = null; go('price-list'); return; }
         if (key === 'card') { state.viewReturn = null; go('card-list'); return; }
         if (key === 'customer') { state.viewReturn = null; go('members'); return; }
@@ -7282,6 +7328,7 @@
 
   function openArchiveList(domain, returnTo) {
     ensureTierDemo();
+    if ((domain || 'member') === 'order') ensureOrderArchiveDemo();
     state.emptyPreview = null;
     state.archiveDomain = domain || 'member';
     state.archiveReturn = returnTo || DOMAIN_FLOWS[state.archiveDomain] || 'members';
@@ -7542,7 +7589,9 @@
         else openDigestList(domain);
         return;
       }
-      if (!e.target.closest('[data-more-panel]')) closeAllTitleMenus();
+      /* 订单流水菜单「历史订单」等 data-go：先收起下拉再交给全局 data-go */
+      if (e.target.closest('[data-more-panel] [data-go]')) closeAllTitleMenus();
+      else if (!e.target.closest('[data-more-panel]')) closeAllTitleMenus();
 
       var dig = e.target.closest('[data-digest-id]');
       if (dig) {

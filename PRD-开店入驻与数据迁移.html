@@ -60,7 +60,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.33</td>
+<td>v2.35</td>
 </tr>
 <tr>
 <td>日期</td>
@@ -95,6 +95,16 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.35</td>
+<td>2026-10-29</td>
+<td><strong>新增「订单流水」示意占位页</strong>。flow <code>order-list</code>；工作台「订单流水」宫格与侧栏占位入口接入。标题栏 ··· <strong>仅两项</strong>：「历史订单」→ <code>history-orders</code>、「原始存档」→ 存档列表（域 <code>order</code>）；<strong>不含识别摘要</strong>。演示造 2 条 order 域原始存档。仅改本地；已做 <code>node --check app.js</code>；未提交。</td>
+</tr>
+<tr>
+<td>v2.34</td>
+<td>2026-10-29</td>
+<td><strong>内容区顶距 ≥12 + 三帧 Figma UI 对齐</strong>。<strong>① 间距</strong>：<code>.import-body</code> / <code>.history-body</code> / <code>.arch-list</code> / <code>.confirm-form</code> 等标题栏下滚动区顶距统一 ≥12px；带步骤条页保持合计约 14px（不叠成过大空白）。<strong>② 识别结果</strong>：「识别完成」加 24px 星芒；引导改为「先看能放心导入的；其余已帮你保存，可随时去查。」。<strong>③ 确认有效项</strong>：顶提示改为一行 + info「仅导入当前正在使用的项。」；底栏「不选的不会进店，识别摘要里仍能看到。」。<strong>④ 历史消费</strong>：分区标题改为 24px 线描贴边（空态/已选同改）；「AI 已经读出来了」用星芒。仅改本地原型；已做 <code>node --check app.js</code>；未截图、未重导 Figma、未提交。</td>
+</tr>
 <tr>
 <td>v2.33</td>
 <td>2026-10-29</td>
@@ -173,7 +183,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tr>
 <td>v2.18</td>
 <td>2026-10-28</td>
-<td><strong>三档识别架构 + 有效项确认 + 模块「原始存档 / 识别摘要」+ 首页「更多」聚光灯</strong>。<strong>① 分档</strong>：AI 识别后进「识别结果」三档总览——L1 原始存档（仅保存 Excel/图、可检索、不解析）、L2 识别摘要（关键要素结构化详情：未对上字段文案+复制、已识别卡、失败卡、出处预览）、L3 可入库（对齐系统字段）。主路径改为 提供 → 识别分档 → <strong>确认有效项</strong>（卡模板/价目默认不勾，须用户勾选仍在用的；支持「从会员资料识别」角标）→ L3 核对入库；跳过标准表转换动画直进核对；允许有限误差，无法入库也须有存档交待。<strong>② 模块入口</strong>：价目表、会员列表、会员卡模板、库存管理标题栏右侧 <code>···</code>，下拉「原始存档」「识别摘要」，按业务域过滤。<strong>③ 完成页</strong>：三块摘要（已入库 / 识别摘要 / 仅存档）+ 去向。<strong>④ 聚光灯</strong>：从未点过工作台「数据导入」（<code>localStorage.rtb_import_wb_hit</code>）且关闭首页 banner → 强制聚光灯聚焦首页「更多」（会员卡右侧线性图标+文字）；必须点「更多」进工作台，再聚光「数据导入」；点导入结束，其它操作 3 秒后结束。<strong>⑤ 首页</strong>：快捷区由切图改为可点图标行。<strong>⑥ 历史消费</strong>：旁路本版不动。<strong>⑦ 口径</strong>：演示剧本含 L1/L2/L3 与会员反推；已做 <code>node --check app.js</code>；未跑自动化断言、未截图、未提交。</td>
+<td><strong>三档识别架构 + 有效项确认 + 模块「原始存档 / 识别摘要」+ 首页「更多」聚光灯</strong>。<strong>① 分档</strong>：AI 识别后进「识别结果」三档总览——L1 原始存档（仅保存 Excel/图、可检索、不解析）、L2 识别摘要（关键要素结构化详情：未对上字段文案+复制、已识别卡、失败卡、出处预览）、L3 可入库（对齐系统字段）。主路径改为 提供 → 识别分档 → <strong>确认有效项</strong>（卡模板/价目默认不勾，须用户勾选仍在用的；支持「从会员资料识别」角标）→ L3 核对入库；跳过标准表转换动画直进核对；允许有限误差，无法入库也须有存档交待。<strong>② 模块入口</strong>：价目表、会员列表、会员卡模板、库存管理标题栏右侧 <code>···</code>，下拉「原始存档」「识别摘要」，按业务域过滤；<strong>订单流水</strong>（占位，v2.35）标题栏 ··· 仅「历史订单」「原始存档」（无识别摘要）。<strong>③ 完成页</strong>：三块摘要（已入库 / 识别摘要 / 仅存档）+ 去向。<strong>④ 聚光灯</strong>：从未点过工作台「数据导入」（<code>localStorage.rtb_import_wb_hit</code>）且关闭首页 banner → 强制聚光灯聚焦首页「更多」（会员卡右侧线性图标+文字）；必须点「更多」进工作台，再聚光「数据导入」；点导入结束，其它操作 3 秒后结束。<strong>⑤ 首页</strong>：快捷区由切图改为可点图标行。<strong>⑥ 历史消费</strong>：旁路本版不动。<strong>⑦ 口径</strong>：演示剧本含 L1/L2/L3 与会员反推；已做 <code>node --check app.js</code>；未跑自动化断言、未截图、未提交。</td>
 </tr>
 <tr>
 <td>v2.17</td>
@@ -4016,7 +4026,7 @@ flowchart LR
 </tr>
 <tr>
 <td>第 1 段 · 选择文件</td>
-<td><strong>分区标题（v2.10 重构）</strong>：30px 圆角方形浅灰图标块（<code>.hs-sec__ico</code>，18px 线性「文档 + 加号」）+ 标题「选择文件」（16px / 600）+ 说明「只接受 Excel；列名不必固定，下一步再指定哪列是日期、金额、顾客姓名。」（12px 次级灰）。<strong>不再带「1 ·」序号</strong>——两段靠图标块与留白分层，不靠数字。<br />选择卡（<code>.upload-drop</code>）：白底 + 1px 品牌浅色虚线 + 12px 圆角；<strong>40px 圆角方形浅品牌底（<code>--brand-soft</code>）内是 22px 品牌红「加号」，不再是向上箭头</strong>；主文案「选择文件」（16px / 600）+ 次行「xls / xlsx / csv · 单表 ≤ 10MB」（12px 次级灰）</td>
+<td><strong>分区标题（v2.34）</strong>：24px 品牌色线描图标贴标题（<code>.hs-sec__ico</code>，无粉底方块）+ 标题「选择文件」（16px / 600）+ 说明「只接受 Excel；列名不必固定，系统会自己找日期、金额、顾客姓名，认错再手动指定。」（12px 次级灰）。内容区相对标题栏顶距 ≥12px。<br />选择卡（<code>.upload-drop</code>）：白底 + 1px 品牌浅色虚线 + 12px 圆角；<strong>40px 圆角方形浅品牌底（<code>--brand-soft</code>）内是 22px 品牌红「加号」</strong>；主文案「选择文件」（16px / 600）+ 次行「xls / xlsx / csv · 单表 ≤ 10MB」（12px 次级灰）</td>
 <td>点 → toast「已选择 历史消费 2023-2025.xlsx（演示）」，<strong>不跳页</strong>：选择卡原地换成已选文件卡</td>
 </tr>
 <tr>
@@ -4026,7 +4036,7 @@ flowchart LR
 </tr>
 <tr>
 <td>第 2 段 · 指定字段</td>
-<td><strong>分区标题</strong>：同款图标块（18px 线性「列表 + 定位点」）+ 标题「指定字段」+ 说明「系统已按列名猜好，点右侧可换；只认日期、金额、顾客姓名三项。」（12px 次级灰）<br /><strong>三行字段映射改为 iOS 设置型行（<code>.hs-rows</code> / <code>.hs-row</code>，行高 56px）</strong>：左侧 28px 浅灰圆角图标块（日期 = 日历 / 金额 = 圆币 ¥ / 姓名 = 人像）+ 字段名 16px <code>--text</code> + 必填用 <strong>6px 品牌红圆点</strong>（可空用 11px 灰字「可空」）+ 右侧<strong>无边框、无底色</strong>的列名（14px 次级灰、右对齐）+ 16px 浅灰 chevron；行间 0.5px 发丝线<strong>左缩进 54px</strong>（对齐到文字而非图标）。行高与「设置」一致，点整行即展开选择<br />下方 12px 灰字提示「其余列会原样保留，可在『历史订单』详情里查看。」+ 样例行 + 标准表头卡</td>
+<td><strong>分区标题（v2.34）</strong>：24px 品牌色线描「列表 + 定位点」贴标题 +「指定字段」+ 说明「系统已按列名猜好，点右侧可换；识别日期、金额、顾客姓名、支付方式。」。选文件后先出「AI 已经读出来了」（24px 星芒）+ 四格映射 + 样例，再可展开本段。<br /><strong>字段映射为 iOS 设置型行（<code>.hs-rows</code> / <code>.hs-row</code>）</strong>：左侧图标 + 字段名 + 必填红点 + 右侧列名 + chevron</td>
 <td><strong>未选文件时整段隐藏</strong>（含样例行、标准表头卡），避免用户在没有文件时先面对空下拉</td>
 </tr>
 <tr>
@@ -7138,10 +7148,10 @@ sequenceDiagram
 <li>演示剧本（固定可复现）：只有 Excel → 会员资料 / 卡模板 / 价目表；只有照片 → 价目表 / 库存商品；两者都有 → 五类全出。</li>
 </ul>
 
-<h3>15.6 识别结果（<code>import-cards</code>，v2.19 通俗化）</h3>
+<h3>15.6 识别结果（<code>import-cards</code>，v2.19 通俗化 / v2.34 文案）</h3>
 <ul>
-<li>用户文案不讲分层术语。主区标题「这些可放心导入」（绿强调卡）；其下灰字两块：「识别摘要」（字段对不全，不能导入）、「原始存档」（看不清，只留原件），并提示在业务页右上角 ··· 查看。</li>
-<li>底栏进「确认有效项」：只<strong>选</strong>现在还在用的卡/价目；不选不入库但留底。随后「核对导入」页为<strong>只读对账</strong>（按卡种 / 项目组 / 分类汇总 + 关键字段），主按钮「确认导入」，不再要求用户改错行。</li>
+<li>用户文案不讲分层术语。页头「识别完成」左侧 24px 星芒；引导「先看能放心导入的；其余已帮你保存，可随时去查。」。主区标题「这些可放心导入」（绿强调卡）；其下灰字两块：「识别摘要」「原始存档」，并提示在业务页右上角 ··· 查看。</li>
+<li>「确认有效项」顶提示一行 + info：「仅导入当前正在使用的项。」；底栏「不选的不会进店，识别摘要里仍能看到。」。随后「核对导入」页为<strong>只读对账</strong>（按卡种 / 项目组 / 分类汇总 + 关键字段），主按钮「确认导入」，不再要求用户改错行。</li>
 <li>历史消费识别字段含支付方式；导入前按月汇总笔数与金额供与账本核对。</li>
 <li>关首页 banner 且从未点过工作台「数据导入」→ 聚光灯引导「更多 → 数据导入」。</li>
 </ul>
@@ -7170,7 +7180,7 @@ sequenceDiagram
 <ul>
 <li>进页只有「选择文件」；选完文件<strong>默认不显示「指定字段」</strong>。</li>
 <li>先给识别结果卡：三列「日期 / 金额 / 顾客姓名」各显示识别到的源列名（如 消费日期 / 实收金额 / 顾客姓名）。</li>
-<li>其下是<strong>6 行样例</strong>（日期 / 金额 / 顾客 / 项目），标题区说明「AI 已经读出来了」「日期、金额、顾客姓名三项都认到了。先看下面几行对不对，不对再手动指定。」</li>
+<li>其下是<strong>样例表</strong>（日期 / 金额 / 顾客 / 支付 / 项目），标题区 24px 星芒 +「AI 已经读出来了」+「日期、金额、顾客姓名、支付方式都认到了。先看样例对不对。」</li>
 <li>样例下方一行文字按钮「<strong>数值不对？手动指定字段</strong>」→ 展开原「指定字段」区（三行 iOS 设置型下拉），选择变化时同步刷新样例与识别结果卡。</li>
 <li>重新选文件会收起映射区并复位识别态；「下一步：核对」未选文件时禁用。</li>
 </ul>

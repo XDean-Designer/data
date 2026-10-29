@@ -195,17 +195,30 @@
   line-height: 20px;
 }
 
-/* —— 有效项确认 —— */
-.confirm-tip {
-  margin: 4px 0 16px;
+/* —— 有效项确认（仅导入确认屏；认领页 #confirmTip 仍用 app.css） —— */
+#screen-import-confirm .confirm-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 12px;
   padding: 0;
   background: transparent;
+  border: none;
+  border-left: 0;
   border-radius: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #6B6B6B;
   line-height: 22px;
   letter-spacing: 0.02em;
 }
+#screen-import-confirm .confirm-tip__ico {
+  flex: 0 0 auto;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: #929292;
+}
+#screen-import-confirm .confirm-tip__ico svg { display: block; width: 14px; height: 14px; }
 .confirm-group { margin-bottom: 18px; }
 .confirm-group__hd {
   display: flex;
@@ -282,7 +295,7 @@
 .arch-tools {
   padding: 10px 16px 0;
 }
-.arch-list { padding: 8px 16px 24px; }
+.arch-list { padding: 12px 16px 24px; }
 .arch-row {
   display: flex;
   gap: 12px;

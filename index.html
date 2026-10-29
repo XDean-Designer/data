@@ -48,6 +48,7 @@
     <button type="button" class="nav-item" data-flow="card-list"><span class="idx">卡</span>会员卡模板<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="price-list"><span class="idx">价</span>价目表<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="stock-list"><span class="idx">库</span>库存管理<span class="nav-ph">占位</span></button>
+    <button type="button" class="nav-item" data-flow="order-list"><span class="idx">流</span>订单流水<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="archive-list"><span class="idx">档</span>原始存档</button>
     <button type="button" class="nav-item" data-flow="digest-list"><span class="idx">摘</span>识别摘要</button>
     <button type="button" class="nav-item" data-flow="digest-detail"><span class="idx">摘·</span>摘要详情</button>
@@ -949,8 +950,11 @@
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">入库</span></li>
         </ol>
           <div class="v3-sec-hd">
-            <h2 id="cardsHead">识别完成</h2>
-            <p class="tier-lead" id="cardsLead">先看能进店的；其余已帮你留底，可随时去查。</p>
+            <div class="v3-sec-hd__row">
+              <span class="v3-sec-hd__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2.8 13.35 8.2 18.8 9.55 13.35 10.9 12 16.3 10.65 10.9 5.2 9.55 10.65 8.2Z"/><path d="M18.4 13.6 19.05 16.2 21.65 16.85 19.05 17.5 18.4 20.1 17.75 17.5 15.15 16.85 17.75 16.2Z"/><path d="M6.2 13.2 6.7 15.2 8.7 15.7 6.7 16.2 6.2 18.2 5.7 16.2 3.7 15.7 5.7 15.2Z"/></svg></span>
+              <h2 id="cardsHead">识别完成</h2>
+            </div>
+            <p class="tier-lead" id="cardsLead">先看能放心导入的；其余已帮你保存，可随时去查。</p>
           </div>
           <div id="cardsList"></div>
           <p class="cards-empty hidden" id="cardsEmpty">没有读出可用数据。换一份文件或重新拍几张再试。</p>
@@ -980,11 +984,14 @@
             <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">确认</span></li>
             <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">入库</span></li>
           </ol>
-          <p class="confirm-tip">只选现在还在用的。<br>不选的不会进店里，但会留底。</p>
+          <p class="confirm-tip">
+            <span class="confirm-tip__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 10.6v5.2M12 7.4v.2"/></svg></span>
+            <span>仅导入当前正在使用的项。</span>
+          </p>
           <div id="confirmBody"></div>
         </div>
         <div class="v3-foot">
-          <div class="v3-foot__note"><span id="confirmFootNote">可以一项都不选。</span></div>
+          <div class="v3-foot__note"><span id="confirmFootNote">不选的不会进店，识别摘要里仍能看到。</span></div>
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnConfirmNext">下一步：核对入库</button>
           </div>
@@ -1300,6 +1307,31 @@
         </div>
       </div>
 
+      <!-- order-list：订单流水占位（··· 仅「历史订单 / 原始存档」） -->
+      <div class="screen hidden" id="screen-order-list" data-flow="order-list">
+        <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
+        <header class="page-title-bar">
+          <button type="button" class="back" data-go="workbench" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="title">订单流水</span>
+          <button type="button" class="title-more" data-more-menu="order" aria-label="更多"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+          <div class="title-menu" data-more-panel="order" hidden>
+            <button type="button" data-go="history-orders">历史订单</button>
+            <button type="button" data-arch-open="archive" data-arch-domain="order">原始存档</button>
+          </div>
+        </header>
+        <div class="scroll-body import-body">
+          <p class="proto-note">原型占位 · 订单流水以线上系统的真实页面为准；老账单请进「历史订单」，不并入本流水</p>
+          <div class="proto-list">
+            <div class="proto-list__item"><b>剪发 · 李女士</b><span>2026-10-28 14:22 · 微信 · ¥68</span></div>
+            <div class="proto-list__item"><b>烫发 + 护理 · 王先生</b><span>2026-10-28 11:05 · 会员卡 · ¥368</span></div>
+            <div class="proto-list__item"><b>染发 · 陈女士</b><span>2026-10-27 16:40 · 支付宝 · ¥288</span></div>
+            <div class="proto-list__item"><b>头皮护理 · 赵女士</b><span>2026-10-27 10:18 · 现金 · ¥168</span></div>
+          </div>
+        </div>
+      </div>
+
       <!-- members -->
       <div class="screen hidden members-screen" id="screen-members" data-flow="members">
         <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
@@ -1482,7 +1514,7 @@
         </header>
         <div class="scroll-body import-body import-body--note">
           <div class="hs-sec">
-            <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 3.2H7.4a2 2 0 0 0-2 2v13.6a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8.6z"/><path d="M13.2 3.2v5.4h5.4"/><path d="M12 11.6v5.2M9.4 14.2h5.2"/></svg></span>
+            <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 3.2H7.4a2 2 0 0 0-2 2v13.6a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8.6z"/><path d="M13.2 3.2v5.4h5.4"/><path d="M12 11.6v5.2M9.4 14.2h5.2"/></svg></span>
             <div class="hs-sec__txt">
               <h2>选择文件</h2>
               <p>只接受 Excel；列名不必固定，系统会自己找日期、金额、顾客姓名，认错再手动指定。</p>
@@ -1506,8 +1538,8 @@
 
           <!-- 识别结果：先给样例核对，觉得不对再展开指定字段 -->
           <div id="histSampleArea" class="hidden">
-            <div class="hs-sec hs-sec--mt">
-              <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <div class="hs-sec hs-sec--ai hs-sec--mt">
+              <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2.8 13.35 8.2 18.8 9.55 13.35 10.9 12 16.3 10.65 10.9 5.2 9.55 10.65 8.2Z"/><path d="M18.4 13.6 19.05 16.2 21.65 16.85 19.05 17.5 18.4 20.1 17.75 17.5 15.15 16.85 17.75 16.2Z"/><path d="M6.2 13.2 6.7 15.2 8.7 15.7 6.7 16.2 6.2 18.2 5.7 16.2 3.7 15.7 5.7 15.2Z"/></svg></span>
               <div class="hs-sec__txt">
                 <h2>AI 已经读出来了</h2>
                 <p>日期、金额、顾客姓名、支付方式都认到了。先看样例对不对。</p>
@@ -1525,7 +1557,7 @@
 
           <div id="histMapArea" class="hidden">
             <div class="hs-sec hs-sec--mt">
-              <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.4h14M5 12h14M5 16.6h9"/><circle cx="17.4" cy="16.6" r="2.2"/></svg></span>
+              <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.4h14M5 12h14M5 16.6h9"/><circle cx="17.4" cy="16.6" r="2.2"/></svg></span>
               <div class="hs-sec__txt">
                 <h2>指定字段</h2>
                 <p>系统已按列名猜好，点右侧可换；识别日期、金额、顾客姓名、支付方式。</p>
@@ -1605,7 +1637,7 @@
         </header>
         <div class="scroll-body import-body import-body--note">
           <div class="hs-sec">
-            <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 6.4h9.2M4.6 12h9.2M4.6 17.6h9.2"/><path d="M17 8.6l2.2 2.2 3-3.4" stroke-width="1.9"/></svg></span>
+            <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 6.4h9.2M4.6 12h9.2M4.6 17.6h9.2"/><path d="M17 8.6l2.2 2.2 3-3.4" stroke-width="1.9"/></svg></span>
             <div class="hs-sec__txt">
               <h2>按月对一下账本</h2>
               <p>差不太多就可以导。点某月可看几条样例。</p>
@@ -1694,7 +1726,7 @@
         </header>
         <div class="scroll-body import-body">
           <div class="hs-sec">
-            <span class="hs-sec__ico is-err" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.8M12 16.2v.1"/></svg></span>
+            <span class="hs-sec__ico is-err" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.8M12 16.2v.1"/></svg></span>
             <div class="hs-sec__txt">
               <h2>这几行没能入库</h2>
               <p>只校验日期、金额、顾客姓名、支付方式；其余列原样保留。</p>
