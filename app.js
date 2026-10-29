@@ -556,7 +556,7 @@
   var BANNER_MUTE_KEY = 'rtb_import_banner_muted';
   var WB_IMPORT_HIT_KEY = 'rtb_import_wb_hit';
   var POST_AI_FLOWS = [
-    'import-analyze', 'import-cards', 'import-confirm', 'import-convert',
+    'import-analyze', 'import-cards', 'import-confirm',
     'import-check', 'import-result', 'import-fail'
   ];
   var DOMAIN_FLOWS = {
@@ -604,9 +604,21 @@
   }
 
   function leaveImportShell() {
+    state.viewReturn = null;
     var entry = state.importTask.entry === 'workbench' ? 'workbench' : 'home';
     go(entry);
     renderImportBanner();
+  }
+
+  var VIEW_LIST_FLOWS = ['members', 'card-list', 'price-list', 'stock-list'];
+
+  function openResultCatView(type) {
+    state.viewReturn = 'import-result';
+    if (type === 'member') go('members');
+    else if (type === 'card') go('card-list');
+    else if (type === 'price') go('price-list');
+    else if (type === 'stock') go('stock-list');
+    else showToast(IMPORT_CAT_SHORT[type] + '列表为原型占位，以线上系统为准');
   }
 
   function resumeImportTask() {
@@ -1617,7 +1629,7 @@
     if (!PREVIEW_TYPE_META[type]) return;
     state.importPreviewType = type;
     renderImportPreviewDetail(type);
-    go('import-preview-detail');
+    go('import-check');
   }
 
   function showPreviewDetail(idx) {
@@ -1696,7 +1708,7 @@
       state.importTask.resumeFlow = flow;
       if (flow === 'import-check' || flow === 'import-fail') state.importTask.stage = 'check';
       else if (flow === 'import-result') state.importTask.stage = 'done';
-      else if (flow === 'import-analyze' || flow === 'import-cards' || flow === 'import-convert' || flow === 'import-confirm') {
+      else if (flow === 'import-analyze' || flow === 'import-cards' || flow === 'import-confirm') {
         state.importTask.stage = flow === 'import-confirm' ? 'check' : 'analyzing';
       }
       renderImportBanner();
@@ -1736,40 +1748,8 @@
     if (flow === 'source-preview') {
       renderSourcePreview();
     }
-    if (flow === 'import-queue') {
-      state.queueBusy = false;
-      var qbtn = $('#btnQueueStart');
-      if (qbtn) { qbtn.disabled = false; qbtn.textContent = '开始转换'; }
-      renderQueue();
-    }
-    if (flow === 'import-convert') {
-      runConversion();
-    }
     if (flow === 'import-check') {
       renderCheck();
-    }
-    if (flow === 'import-preview') {
-      setImportLoading(false);
-      renderPreviewTypes();
-    }
-    if (flow === 'import-map') {
-      var fromDownstream = ['import-tpl-gen', 'import-preview', 'import-preview-detail'].indexOf(prevFlow) > -1;
-      if (state.importMapSkipResetAck || fromDownstream) {
-        state.importMapSkipResetAck = false;
-      } else {
-        resetImportMapAck();
-      }
-      syncImportMapReturnHint();
-      renderImportMap();
-    }
-    if (flow === 'import-tpl-gen') {
-      renderTplGen();
-    }
-    if (flow === 'import-preview-detail') {
-      if (!state.importPreviewType) state.importPreviewType = 'member';
-      renderImportPreviewDetail(state.importPreviewType);
-    } else {
-      hidePreviewDetail();
     }
     if (flow === 'members') renderMembersOnce();
     if (flow === 'history-orders') renderHistoryOrders();
@@ -1790,10 +1770,11 @@
       var el = e.target.closest('[data-go]');
       if (!el) return;
       // AI 开始后，导入链路标题栏返回统一回首页 / 工作台
+      // 例外：失败明细回成功页（data-go=import-result），不出壳
       if (state.importTask.started && el.classList.contains('back')) {
         var sc = el.closest('.screen');
         var flow = sc && sc.getAttribute('data-flow');
-        if (flow && POST_AI_FLOWS.indexOf(flow) >= 0) {
+        if (flow && flow !== 'import-fail' && POST_AI_FLOWS.indexOf(flow) >= 0) {
           e.preventDefault();
           state.emptyPreview = null;
           leaveImportShell();
@@ -1803,7 +1784,18 @@
       var target = el.getAttribute('data-go');
       if (!target) return;
       state.emptyPreview = null;
-      // 从概况「查看」进入列表时，返回应回到概况而非结果页
+      // 从成功页 / 概况「查看」进入业务列表时，返回应回 viewReturn（默认 HTML 写死 workbench）
+      if (target === 'workbench' && state.viewReturn && el.classList.contains('back')) {
+        var listSc = el.closest('.screen');
+        var listFlow = listSc && listSc.getAttribute('data-flow');
+        if (listFlow && VIEW_LIST_FLOWS.indexOf(listFlow) >= 0) {
+          var ret = state.viewReturn;
+          state.viewReturn = null;
+          go(ret);
+          return;
+        }
+      }
+      // 兼容仍写 data-go="import-result" 的返回（概况查看）
       if (target === 'import-result' && state.viewReturn === 'import-overview') {
         state.viewReturn = null;
         go('import-overview');
@@ -2422,20 +2414,36 @@
     return 'member';
   }
 
+  /* 内部英文字段键 → 中文展示名（对齐 CHECK_FIELDS.label） */
+  function checkFieldLabel(cat, key) {
+    if (!key) return '字段';
+    var list = (typeof CHECK_FIELDS !== 'undefined' && CHECK_FIELDS[cat]) || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].key === key) return list[i].label;
+    }
+    return key;
+  }
+
   function digestFromErrorRow(cat, row) {
     var f = row.f || {};
     var title = (typeof checkRowTitle === 'function' ? checkRowTitle(cat, row) : '') ||
       ((IMPORT_CAT_SHORT[cat] || cat) + ' · 未达门槛');
     var fails = (row.problems || []).filter(function (p) { return p.level === 'error'; }).map(function (p) {
-      return { k: p.field || '字段', v: p.msg || '无法入库', edit: '' };
+      var key = p.field || '';
+      return {
+        key: key,
+        k: key ? checkFieldLabel(cat, key) : '字段',
+        v: p.msg || '无法入库',
+        edit: ''
+      };
     });
-    if (!fails.length) fails = [{ k: '入库', v: '未达必填或含无法识别内容', edit: '' }];
+    if (!fails.length) fails = [{ key: '', k: '入库', v: '未达必填或含无法识别内容', edit: '' }];
     var fields = [];
     Object.keys(f).forEach(function (key) {
       if (fields.length >= 4) return;
       if (fieldEmpty(f[key]) || isUnreadableText(f[key])) return;
       if (moneyUnreadable(f[key]) || (typeof f[key] === 'string' && intUnreadable(f[key]) && /qty|times|count|duration|stock/i.test(key))) return;
-      fields.push({ k: key, v: String(f[key]) });
+      fields.push({ key: key, k: checkFieldLabel(cat, key), v: String(f[key]) });
     });
     var srcFile = ((state.importFiles[cat] || [])[0] || {}).name || '本批表格';
     return {
@@ -2750,7 +2758,6 @@
     delete state.importMapAck[key];
     if (msg) showToast(msg);
     renderImportSelect();
-    renderQueue();
   }
 
   function goSourceStep(key, src) {
@@ -3266,7 +3273,7 @@
       if (aiBadge) aiBadge.innerHTML = std
         ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
         : '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M15.7757 5.77566L16.4308 3.81026H17.5692L18.2243 5.77566L20.1897 6.43079V7.56921L18.2243 8.22434L17.5692 10.1897H16.4308L15.7757 8.22434L13.8103 7.56921V6.43079L15.7757 5.77566Z"/><path d="M18 12V19H16V12H18Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7.33731 6H10.6627L14.033 19H11.9668L11.1891 16H6.81084L6.03306 19H3.96694L7.33731 6ZM7.32936 14H10.6706L9.11508 8H8.88491L7.32936 14Z"/></svg>';
-      if (aiText) aiText.textContent = std ? '标准模板，直接识别' : '非标准表，AI 转标准格式';
+      if (aiText) aiText.textContent = std ? '标准模板，完美识别' : '其它表也能识别，可能要多核对';
       if (stdToggle) {
         stdToggle.checked = std;
         stdToggle.disabled = !picked.length;
@@ -3345,13 +3352,8 @@
       state.convertTimers.forEach(function (t) { clearTimeout(t); });
       state.convertTimers = [];
     }
-    resetConvertUI(false);
-    setConvertIdle(isRealMode()
-      ? '已切到真实模式，本批已清空。请回上一步选真实 Excel 或拍照。'
-      : '已切到演示模式，本批已清空。可重新开始一轮导入。');
     renderUploadList();
     renderImportSelect();
-    renderQueue();
     renderCamera();
   }
 
@@ -3564,7 +3566,7 @@
         catFiles(k).forEach(function (f, i) {
           rows.push('<div class="queue-file">' +
             fmtIcon('xls') +
-            '<span class="queue-file__body"><b>' + f.name + '</b><span>' + IMPORT_CAT_SHORT[k] + ' · ' + f.size + ' · ' + (state.uploadStd[k] ? '标准模板' : 'AI 转换') + '</span></span>' +
+            '<span class="queue-file__body"><b>' + f.name + '</b><span>' + IMPORT_CAT_SHORT[k] + ' · ' + f.size + '</span></span>' +
             '<button type="button" class="queue-file__act" data-queue-file-change="' + k + '">' + ACT_ICO.swap + '<span>' + (catFiles(k).length > 1 ? '管理' : '更换') + '</span></button>' +
             '<button type="button" class="queue-file__act queue-file__act--del" data-clear-file="' + k + '" data-file-idx="' + i + '">' + ACT_ICO.trash + '<span>删除</span></button>' +
           '</div>');
@@ -3592,33 +3594,14 @@
     var note = $('#queueNote');
     if (note) {
       note.textContent = (files.length && plan.photo.length)
-        ? 'Excel 与照片都会先转成标准表'
-        : (plan.photo.length ? '照片会在后台转成标准表' : 'Excel 会先转成标准表');
+        ? 'Excel 与照片会统一进入识别'
+        : (plan.photo.length ? '照片会进入识别流程' : 'Excel 会进入识别流程');
     }
   }
 
   function startRecognition() {
-    if (state.queueBusy) return;
-    var plan = collectPlan();
-    var files = plan.excel.filter(function (k) { return hasFiles(k); });
-    var fileTotal = totalFiles(plan.excel);
-    var shots = plan.photo.reduce(function (s, k) { return s + state.importPhotos[k].length; }, 0);
-    if (!files.length && !shots) {
-      showToast('还没有可转换的内容');
-      return;
-    }
-    state.queueBusy = true;
-    // 本批重来：清掉上一批的转换结果与核对数据
-    state.checkData = null;
-    state.convertDone = false;
-    state.convertRunning = false;
-    state.realSheets = null;
-    state.checkOpen = null;
-    state.checkFilter = 'all';
-    state.convertTimers.forEach(function (t) { clearTimeout(t); });
-    state.convertTimers = [];
-    state.queueBusy = false;
-    go('import-convert');
+    /* 残留：旧队列页入口已下线；主路径走「开始识别」→ analyze */
+    go('import-analyze');
   }
 
   /* ---- 映射（按类别 tab） ---- */
@@ -3666,7 +3649,7 @@
   function renderImportMap(pinTab) {
     var cats = mapExcelCats();
     if (!cats.length) {
-      go('import-preview');
+      go('import-check');
       return;
     }
     // 进页 / 切回来时优先落在「还没确认」的那一类；手动切 tab 时不要抢焦点
@@ -3987,14 +3970,14 @@
           return;
         }
         state.tplGenIncluded = picked.slice();
-        go('import-preview');
+        go('import-check');
       });
     }
     var skip = $('#btnTplGenSkip');
     if (skip) {
       skip.addEventListener('click', function () {
         state.tplGenIncluded = [];
-        go('import-preview');
+        go('import-check');
       });
     }
   }
@@ -4061,7 +4044,7 @@
     var parts = [];
     if (files) parts.push('Excel ' + files + ' 个');
     if (shots) parts.push('照片 ' + shots + ' 张');
-    if (files || shots) parts.push('AI 转标准表');
+    if (files || shots) parts.push('AI 识别');
     el.textContent = '本批来源：' + (parts.join(' · ') || '演示数据');
   }
 
@@ -6317,10 +6300,8 @@
     if (enterExcel) {
       enterExcel.addEventListener('click', function () {
         state.uploadFocus = null;
+        /* 进页保持空/已有列表；仅点「选择文件」才落演示文件 */
         go('import-source');
-        /* 进页自动落 1 个演示文件；已有文件则不再自动追加 */
-        if (!state.pending.excel.length) addPendingExcel();
-        else renderExcelPick();
       });
     }
 
@@ -6475,7 +6456,6 @@
           var k = del.getAttribute('data-clear-file');
           removeFile(k, del.getAttribute('data-file-idx'));
           renderImportSelect();
-          renderQueue();
           showToast('已移除「' + IMPORT_CAT[k] + '」的 Excel');
           return;
         }
@@ -6517,7 +6497,6 @@
           removeFile(k, del.getAttribute('data-file-idx'));
           renderUploadList();
           renderImportSelect();
-          renderQueue();
         }
       });
     }
@@ -6530,7 +6509,7 @@
         if (!cur) return;
         state.uploadStd[cur] = !!uploadStdToggle.checked;
         renderUploadList();
-        showToast(uploadStdToggle.checked ? '按标准模板识别' : '将用 AI 转成标准格式');
+        showToast(uploadStdToggle.checked ? '按标准模板识别' : '其它表也能识别');
       });
     }
 
@@ -6621,132 +6600,6 @@
       });
     }
 
-    var queueScreen = $('#screen-import-queue');
-    if (queueScreen) {
-      queueScreen.addEventListener('click', function (e) {
-        var start = e.target.closest('#btnQueueStart');
-        if (start) {
-          startRecognition();
-          return;
-        }
-        var change = e.target.closest('[data-queue-file-change]');
-        if (change) {
-          state.uploadFocus = change.getAttribute('data-queue-file-change');
-          go('import-source');
-          return;
-        }
-        var delFile = e.target.closest('[data-clear-file]');
-        if (delFile) {
-          var k = delFile.getAttribute('data-clear-file');
-          removeFile(k, delFile.getAttribute('data-file-idx'));
-          renderQueue();
-          renderImportSelect();
-          return;
-        }
-        var recam = e.target.closest('[data-queue-recam]');
-        if (recam) {
-          openCamera(recam.getAttribute('data-queue-recam'), 'import-queue');
-          return;
-        }
-        var shotDel = e.target.closest('[data-shot-del]');
-        if (shotDel) deleteShot(shotDel.getAttribute('data-shot-del'), shotDel.getAttribute('data-shot-cat'));
-      });
-    }
-
-    var mapBack = $('#btnImportMapBack');
-    if (mapBack) {
-      mapBack.addEventListener('click', function () {
-        setImportReturnedFromPreview(false);
-        go('import-queue');
-      });
-    }
-
-    var mapTabs = $('#importMapTabs');
-    if (mapTabs) {
-      mapTabs.addEventListener('click', function (e) {
-        var tab = e.target.closest('[data-map-tab]');
-        if (tab) switchMapTab(tab.getAttribute('data-map-tab'));
-      });
-    }
-
-    bindTplGen();
-
-    var ackInput = $('#importMapAckInput');
-    if (ackInput) {
-      ackInput.addEventListener('change', function () {
-        setImportMapAck(ackInput.checked);
-        if (ackInput.checked) setImportReturnedFromPreview(false);
-      });
-    }
-
-    var preview = $('#btnImportMapPreview');
-    if (preview) {
-      preview.addEventListener('click', function () {
-        if (!allMapAcked()) {
-          if (!jumpToUnacked()) showToast('请先确认每一类 Excel 的映射关系');
-          return;
-        }
-        if (hasInvalidCustomMap()) {
-          showToast('未识别的自定义字段已按跳过处理');
-        }
-        setImportReturnedFromPreview(false);
-        if (needTplGen()) {
-          go('import-tpl-gen');
-        } else {
-          go('import-preview');
-        }
-      });
-    }
-
-    var previewConfirm = $('#btnImportPreviewConfirm');
-    if (previewConfirm) {
-      previewConfirm.addEventListener('click', function () {
-        if (state.importing) return;
-        setImportLoading(true);
-        var plan = collectPlan();
-        var names = plan.excel.concat(plan.photo).map(function (k) { return IMPORT_CAT_SHORT[k]; });
-        runImportProgress({
-          title: '正在导入',
-          sub: names.length ? names.join(' · ') + '，导入完成前请不要关闭页面' : '正在写入本店数据',
-          stages: [
-            { at: 0, label: '校验数据' },
-            { at: 26, label: '写入会员与持卡信息' },
-            { at: 56, label: '写入卡模板与价目表' },
-            { at: 84, label: '处理失败行' }
-          ],
-          duration: 2100,
-          doneLabel: '导入完成',
-          onDone: function () {
-            setImportLoading(false);
-            state.pendingStockApply = true;
-            var screen = $('#screen-import-preview');
-            if (screen && screen.classList.contains('active')) go('import-result');
-          }
-        });
-      });
-    }
-
-    var previewBack = $('#btnImportPreviewBack');
-    if (previewBack) {
-      previewBack.addEventListener('click', function () {
-        if (!mapExcelCats().length) {
-          go('import-queue');
-          return;
-        }
-        unlockImportMap();
-        state.importMapSkipResetAck = true;
-        setImportReturnedFromPreview(true);
-        go('import-map');
-      });
-    }
-
-    var previewTopBack = $('#btnImportPreviewTopBack');
-    if (previewTopBack) {
-      previewTopBack.addEventListener('click', function () {
-        go(mapExcelCats().length ? 'import-map' : 'import-queue');
-      });
-    }
-
     var history = $('#btnImportHistory');
     if (history) {
       history.addEventListener('click', function () {
@@ -6757,20 +6610,20 @@
     var backHome = $('#btnImportBackHome');
     if (backHome) {
       backHome.addEventListener('click', function () {
+        state.viewReturn = null;
         go('home');
       });
     }
 
-    $all('[data-result-view]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var type = btn.getAttribute('data-result-view');
-        if (type === 'member') go('members');
-        else if (type === 'card') go('card-list');
-        else if (type === 'price') go('price-list');
-        else if (type === 'stock') go('stock-list');
-        else showToast(IMPORT_CAT_SHORT[type] + '列表为原型占位，以线上系统为准');
+    /* data-result-view 由 renderResultStockLines 动态生成，用委托 */
+    var resultStockHost = $('#resultStockList');
+    if (resultStockHost) {
+      resultStockHost.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-result-view]');
+        if (!btn) return;
+        openResultCatView(btn.getAttribute('data-result-view'));
       });
-    });
+    }
 
     var delBatch = $('#btnImportDeleteBatch');
     if (delBatch) {
@@ -6918,46 +6771,7 @@
     var failMask = $('#failFixMask');
     if (failMask) failMask.addEventListener('click', hideFailFix);
 
-    /* ---- v2.0 转换 / 概览 / 仪式 / 微信引导 ---- */
-
-    var convertResult = $('#convertResult');
-    if (convertResult) {
-      convertResult.addEventListener('click', function (e) {
-        var act = e.target.closest('[data-conv-act]');
-        if (!act) return;
-        var kind = act.getAttribute('data-conv-act');
-        if (kind === 'tpl') openTplSheet();
-        else if (kind === 'reupload') {
-          state.convertDone = false;
-          state.realSheets = null;
-          go('import-source');
-        }
-      });
-    }
-
-    var convertNext = $('#btnConvertNext');
-    if (convertNext) {
-      convertNext.addEventListener('click', function () {
-        if (convertNext.disabled) return;
-        setImportStage('check', 'import-check');
-        go('import-check');
-      });
-    }
-    var convertBack = $('#btnConvertBack');
-    if (convertBack) {
-      convertBack.addEventListener('click', function () {
-        if (state.importTask.started) leaveImportShell();
-        else go('import-cards');
-      });
-    }
-    var convertReupload = $('#btnConvertReupload');
-    if (convertReupload) {
-      convertReupload.addEventListener('click', function () {
-        state.convertDone = false;
-        state.realSheets = null;
-        go('import-source');
-      });
-    }
+    /* ---- 概览 / 微信引导 ---- */
 
     var checkScreen = $('#screen-import-check');
     if (checkScreen) {
@@ -7039,6 +6853,13 @@
     var checkHelpMask = $('#checkHelpMask');
     if (checkHelpMask) checkHelpMask.addEventListener('click', hideCheckHelp);
 
+    document.addEventListener('click', function (e) {
+      var openTpl = e.target.closest('[data-open-tpl]');
+      if (openTpl) {
+        e.preventDefault();
+        openTplSheet();
+      }
+    });
     var tplDownload = $('#btnTplDownload');
     if (tplDownload) tplDownload.addEventListener('click', openTplSheet);
     var tplClose = $('#btnTplClose');
@@ -7188,29 +7009,6 @@
     }
   }
 
-  function bindPreviewDetail() {
-    var overview = $('#screen-import-preview');
-    if (overview) {
-      overview.addEventListener('click', function (e) {
-        var typeBtn = e.target.closest('[data-preview-type]');
-        if (!typeBtn) return;
-        openPreviewType(typeBtn.getAttribute('data-preview-type'));
-      });
-    }
-    var cards = $('#importPreviewCards');
-    if (cards) {
-      cards.addEventListener('click', function (e) {
-        var card = e.target.closest('[data-preview-idx]');
-        if (!card) return;
-        showPreviewDetail(Number(card.getAttribute('data-preview-idx')));
-      });
-    }
-    var closeBtn = $('#btnPreviewDetailClose');
-    if (closeBtn) closeBtn.addEventListener('click', hidePreviewDetail);
-    var mask = $('#previewDetailMask');
-    if (mask) mask.addEventListener('click', hidePreviewDetail);
-  }
-
   function bindMembers() {
     var input = $('#membersSearchInput');
     if (input) {
@@ -7307,11 +7105,11 @@
           enterMigrate('workbench');
           return;
         }
-        if (key === 'history') { go('history-orders'); return; }
-        if (key === 'price') { go('price-list'); return; }
-        if (key === 'card') { go('card-list'); return; }
-        if (key === 'customer') { go('members'); return; }
-        if (key === 'stock') { go('stock-list'); return; }
+        if (key === 'history') { state.viewReturn = null; go('history-orders'); return; }
+        if (key === 'price') { state.viewReturn = null; go('price-list'); return; }
+        if (key === 'card') { state.viewReturn = null; go('card-list'); return; }
+        if (key === 'customer') { state.viewReturn = null; go('members'); return; }
+        if (key === 'stock') { state.viewReturn = null; go('stock-list'); return; }
         showToast('演示占位');
       });
     });
@@ -7468,8 +7266,8 @@
           showToast('请先点「更多」进入工作台');
           return;
         }
-        if (act === 'member') { go('members'); return; }
-        if (act === 'card') { go('card-list'); return; }
+        if (act === 'member') { state.viewReturn = null; go('members'); return; }
+        if (act === 'card') { state.viewReturn = null; go('card-list'); return; }
         showToast('演示占位');
       });
     });
@@ -7482,20 +7280,20 @@
     return (list || []).filter(function (it) { return allow.indexOf(it.domain) >= 0; });
   }
 
-  function openArchiveList(domain) {
+  function openArchiveList(domain, returnTo) {
     ensureTierDemo();
     state.emptyPreview = null;
     state.archiveDomain = domain || 'member';
-    state.archiveReturn = DOMAIN_FLOWS[state.archiveDomain] || 'members';
+    state.archiveReturn = returnTo || DOMAIN_FLOWS[state.archiveDomain] || 'members';
     closeAllTitleMenus();
     go('archive-list');
   }
 
-  function openDigestList(domain) {
+  function openDigestList(domain, returnTo) {
     ensureTierDemo();
     state.emptyPreview = null;
     state.archiveDomain = domain || 'member';
-    state.archiveReturn = DOMAIN_FLOWS[state.archiveDomain] || 'members';
+    state.archiveReturn = returnTo || DOMAIN_FLOWS[state.archiveDomain] || 'members';
     closeAllTitleMenus();
     go('digest-list');
   }
@@ -7576,29 +7374,37 @@
     ensureCheckData();
     if (!state.checkData[cat]) state.checkData[cat] = [];
     var f = {};
-    (d.fields || []).forEach(function (x) { f[x.k] = x.v; });
-    (d.fails || []).forEach(function (x) { f[x.k] = (x.edit || '').trim() || x.v; });
-    // 映射到核对行常用键（演示）
+    function digestValKey(x) { return x.key || x.k; }
+    (d.fields || []).forEach(function (x) {
+      var kk = digestValKey(x);
+      if (kk) f[kk] = x.v;
+    });
+    (d.fails || []).forEach(function (x) {
+      var kk = digestValKey(x);
+      if (!kk || kk === '入库') return;
+      f[kk] = (x.edit || '').trim() || x.v;
+    });
+    // 优先内部英文字段键；中文键作兼容回退
     var row = {
       id: 'dig-' + d.id,
       f: {
-        name: f['人物'] || f['姓名'] || f['卡名称'] || f['项目'] || f['商品'] || f['产品名'] || d.title,
-        phone: f['手机号'] || '',
-        cardName: f['正式卡种'] || f['卡名称'] || '',
-        memberNo: f['会员编号'] || '',
-        cardType: f['卡类型'] || '储值卡',
-        recharge: String(f['金额'] || f['开卡价'] || f['售价'] || '').replace(/[^\d.]/g, '') || '0',
-        remain: '',
-        type: f['卡类型'] || '储值卡',
-        price: String(f['金额'] || f['售价'] || f['开卡价'] || '').replace(/[^\d.]/g, '') || '0',
-        group: f['项目组'] || '未分组',
-        bookable: f['是否可开单'] === '是' ? '是' : '是',
-        category: f['产品分类'] || f['商品分类'] || '默认分类',
-        spec: f['规格'] || '',
-        unit: f['单位'] || '件',
-        qty: f['库存数量'] || f['精确数量'] || '0',
-        cost: String(f['金额'] || '').replace(/[^\d.]/g, '') || '0',
-        onShelf: f['是否上架'] || '上架'
+        name: f.name || f['人物'] || f['姓名'] || f['会员姓名'] || f['卡名称'] || f['卡名'] || f['项目名'] || f['商品名'] || f['产品名称'] || d.title,
+        phone: f.phone || f['手机号'] || '',
+        cardName: f.cardName || f['正式卡种'] || f['卡名称'] || f['卡名'] || '',
+        memberNo: f.memberNo || f['会员编号'] || '',
+        cardType: f.cardType || f.type || f['卡类型'] || '储值卡',
+        recharge: String(f.recharge || f.price || f['充值余额'] || f['金额'] || f['开卡价'] || f['售价'] || '').replace(/[^\d.]/g, '') || '0',
+        remain: f.remain || '',
+        type: f.type || f.cardType || f['卡类型'] || '储值卡',
+        price: String(f.price || f.recharge || f['价格'] || f['产品售价'] || f['金额'] || f['售价'] || f['开卡价'] || '').replace(/[^\d.]/g, '') || '0',
+        group: f.group || f['项目组'] || '未分组',
+        bookable: (f.bookable || f['可开单'] || f['是否可开单'] || '是') === '否' ? '否' : '是',
+        category: f.category || f['产品分类'] || f['商品分类'] || '默认分类',
+        spec: f.spec || f['商品规格'] || f['规格'] || '',
+        unit: f.unit || f['单位'] || '件',
+        qty: f.qty || f.stockQty || f['数量'] || f['库存数量'] || f['精确数量'] || '0',
+        cost: String(f.cost || f['采购价'] || f['金额'] || '').replace(/[^\d.]/g, '') || '0',
+        onShelf: f.onShelf || f['是否上架'] || '上架'
       },
       problems: [],
       ignored: false,
@@ -7754,9 +7560,9 @@
       var rt = e.target.closest('[data-result-tier]');
       if (rt) {
         var tier = rt.getAttribute('data-result-tier');
-        if (tier === 'l3') { go('members'); return; }
-        if (tier === 'l2') { openDigestList('member'); return; }
-        if (tier === 'l1') { openArchiveList('member'); return; }
+        if (tier === 'l3') { openResultCatView('member'); return; }
+        if (tier === 'l2') { openDigestList('member', 'import-result'); return; }
+        if (tier === 'l1') { openArchiveList('member', 'import-result'); return; }
       }
       var ck = e.target.closest('[data-confirm-id]');
       if (ck) {
@@ -7821,6 +7627,7 @@
     $all('.site-nav [data-flow]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         state.emptyPreview = null;
+        state.viewReturn = null;
         var flow = btn.getAttribute('data-flow');
         // 从左侧导航直接进「认领门店」看完整态，不弹权限说明
         if (flow === 'claim') {
@@ -7967,6 +7774,17 @@
       go('import-overview');
       return;
     }
+    if (cap === 'import-overview-empty') {
+      state.storeStock = { member: 0, card: 0, price: 0, stock: 0, product: 0 };
+      go('import-overview');
+      return;
+    }
+    if (cap === 'import-select-empty') {
+      state.pending.excel = [];
+      state.pending.photo = [];
+      go('import-select');
+      return;
+    }
     if (cap === 'reimport-mode') {
       // 该半屏的真实触发点是「识别结果」页点「下一步：核对」（见 commitAnalysis），
       // 因此底页必须是识别结果，否则浮层背景与触发时机不符。
@@ -8086,32 +7904,6 @@
       go('import-check');
       return;
     }
-    // 核对页 · 展开「需修正」行编辑器（修改有问题数据）
-    if (cap === 'import-check-edit') {
-      seedCaptureImportDemo();
-      state.importSelection = { member: true, card: true, price: true, stock: true, product: true };
-      state.analysisCats = ALL_CATS.slice();
-      state.checkData = null;
-      go('import-check');
-      step(function () {
-        ensureCheckData();
-        var blocking = [];
-        checkCats().forEach(function (cat) {
-          checkRows(cat).forEach(function (r) {
-            if (!r.ignored && rowHasLevel(r, 'error')) blocking.push({ cat: cat, row: r });
-          });
-        });
-        if (!blocking.length) return;
-        var b = blocking[0];
-        state.checkTab = b.cat;
-        state.checkFilter = 'issue';
-        state.checkOpen = b.row.id;
-        renderCheckStats();
-        renderCheckList();
-        setTimeout(function () { scrollCheckRow(b.row.id); }, 40);
-      }, 500);
-      return;
-    }
     // 核对页 · 问题标记说明半屏
     if (cap === 'check-help') {
       seedCaptureImportDemo();
@@ -8122,20 +7914,29 @@
       step(openCheckHelp, 500);
       return;
     }
-    // 标准表转换的完成态：跑一遍演示转换，等 3s 再截（与核对页一致，五类全出）
-    if (cap === 'import-convert-done') {
-      seedCaptureImportDemo();
-      state.importSelection = { member: true, card: true, price: true, stock: true, product: true };
-      state.analysisCats = ALL_CATS.slice();
-      state.checkData = null;
-      go('import-convert');
-      step(runConversion, 300);
-      return;
-    }
     // 订单详情需要一条已选记录，否则是「记录不存在」空态
     if (cap === 'history-detail') {
       state.historySelectedId = HISTORY_ROWS[0].id;
       go('history-detail');
+      return;
+    }
+    // 核对历史：默认展开最近一个月的摘要卡（含样例行）
+    if (cap === 'history-import-preview' || cap === 'history-import-preview-open') {
+      var monthKeys = {};
+      HISTORY_ROWS.forEach(function (r) {
+        var mk = historyMonthKey(r.date);
+        if (mk && mk !== '未知') monthKeys[mk] = true;
+      });
+      var months = Object.keys(monthKeys).sort().reverse();
+      state.histMonthOpen = months[0] || null;
+      go('history-import-preview');
+      return;
+    }
+    // 导入历史消费 · 未选文件（入口）
+    if (cap === 'history-import-upload' || cap === 'history-import-upload-empty') {
+      state.historyFilePicked = false;
+      state.historyMapOpen = false;
+      go('history-import-upload');
       return;
     }
     // 已选文件态：展示 v2.15 的「AI 已识别 + 6 行样例」
@@ -8143,6 +7944,21 @@
       state.historyFilePicked = true;
       state.historyMapOpen = false;
       go('history-import-upload');
+      return;
+    }
+    // 已选文件 + 展开「手动指定字段」
+    if (cap === 'history-import-upload-map') {
+      state.historyFilePicked = true;
+      state.historyMapOpen = true;
+      go('history-import-upload');
+      return;
+    }
+    // 未选文件底页 + 「说明」半屏
+    if (cap === 'history-import-intro') {
+      state.historyFilePicked = false;
+      state.historyMapOpen = false;
+      go('history-import-upload');
+      step(openHistoryIntro, 400);
       return;
     }
     /* ---- §三 状态补拍 ---- */
@@ -8182,17 +7998,6 @@
       step(function () {
         setCameraDemo(true);
         syncCamWatermark();
-      }, 200);
-      return;
-    }
-    if (cap === 'import-convert-idle') {
-      seedCaptureImportDemo();
-      state.convertDone = false;
-      state.convertRunning = false;
-      go('import-convert');
-      step(function () {
-        resetConvertUI(false);
-        setConvertIdle('选择文件后开始转换');
       }, 200);
       return;
     }

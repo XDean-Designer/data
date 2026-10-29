@@ -60,11 +60,11 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.26</td>
+<td>v2.33</td>
 </tr>
 <tr>
 <td>日期</td>
-<td>2026-10-28</td>
+<td>2026-10-29</td>
 </tr>
 <tr>
 <td>交互原型（唯一可视依据）</td>
@@ -95,6 +95,41 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.33</td>
+<td>2026-10-29</td>
+<td><strong>Figma <code>6-09-核对历史数据</code> 展开最近月摘要卡</strong>。抓取默认打开最近一个月（含样例行）；路由 <code>history-import-preview-open</code>。已做 <code>node --check app.js</code>；未提交。</td>
+</tr>
+<tr>
+<td>v2.32</td>
+<td>2026-10-29</td>
+<td><strong>Figma 补齐「导入历史消费」缺帧</strong>。在 <code>数据迁移-03</code> 泳道 6 新增：未选文件 / 指定字段 / 说明半屏；原「已选文件」改名为 <code>6-06</code>，后续核对·完成·失败·再导顺延为 <code>6-09</code>–<code>6-12</code>。抓取路由：<code>history-import-upload-empty</code> / <code>history-import-upload-map</code> / <code>history-import-intro</code>。已做 <code>node --check app.js</code>；未提交。</td>
+</tr>
+<tr>
+<td>v2.31</td>
+<td>2026-10-29</td>
+<td><strong>残留页清理（Z）</strong>。<strong>① 原型</strong>：删除 <code>import-convert</code> 整屏与侧栏入口；删除旧预览半屏 <code>#previewDetailSheet</code>；切断 <code>import-queue</code> / <code>import-map</code> / <code>import-preview</code> / <code>import-preview-detail</code> / <code>import-tpl-gen</code> 的跳转与绑定（DOM 早先已下线）；抓取清单去掉转换态。<strong>② Figma</strong>：删除 <code>3-02-核对展开编辑</code>（现行核对为只读对账）；原 <code>3-03-拍照相机降级条</code> → <code>3-02</code>。<strong>③ 口径</strong>：已做 <code>node --check app.js</code>；未跑自动化断言、未截图、未提交。</td>
+</tr>
+<tr>
+<td>v2.30</td>
+<td>2026-10-29</td>
+<td><strong>Figma 删主链「标准表转换」帧</strong>。在 <code>数据迁移-03</code> 删除 <code>2-11-标准表转换中</code>、<code>2-12-标准表转换完成</code>、<code>3-03-标准表转换未开始</code>；泳道收紧并重编号——原核对 / 结果改为 <code>2-11-核对导入</code> / <code>2-12-导入结果</code>，原 <code>3-04-拍照相机降级条</code> → <code>3-03</code>。原型转换屏仍保留（侧栏「开发」），主路径不经此屏。未改原型代码；未提交。</td>
+</tr>
+<tr>
+<td>v2.29</td>
+<td>2026-10-29</td>
+<td><strong>隐藏「标准表转换」用户过程；导入前强调官方模板 + 乱表也能认</strong>。<strong>① 入口（P1）</strong>：引导区（<code>import-overview</code>）与上传 Excel（<code>import-source</code>）各增 <code>.tpl-promo</code> 推荐卡（主文「用官方标准模板填写，可完美识别导入」+「下载模板」→ 打开模板半屏）；选源页脚注同步「模板更准 / 其它表也能识别」。<strong>② 转换（D1）</strong>：侧栏「标准表转换」标「开发」；主路径仍跳过转换动画，用户话术统一为「识别」（结果来源「AI 识别」、待识别脚注、清单按钮「开始识别」）。<strong>③ 文案（C1）</strong>：引导步 2「AI 自动识别」；模板半屏副文案改为完美识别口径；其它表也能识别、可能要多核对。<strong>④ Figma（F1）</strong>：重导受影响帧（迁移中心 / 导入数据 / 上传 Excel / 导入结果）。<strong>⑤ 口径</strong>：已做 <code>node --check app.js</code>；未跑自动化断言脚本、未截图比对；本地改完待人工检查；未提交。</td>
+</tr>
+<tr>
+<td>v2.28</td>
+<td>2026-10-29</td>
+<td><strong>识别摘要字段中文化 + 列表标题与灰字分行</strong>。<strong>① 字段</strong>：摘要列表灰字、详情「已识别字段 / 未能对应字段」展示名一律取 <code>CHECK_FIELDS.label</code>（中文），内部仍保留英文字段键供补全导入。<strong>② 列表</strong>：存档 / 摘要列表行标题与灰字副行上下分行（不再横挤一行）。<strong>③ 口径</strong>：已做 <code>node --check app.js</code>；未跑自动化断言、未截图、未提交。</td>
+</tr>
+<tr>
+<td>v2.27</td>
+<td>2026-10-29</td>
+<td><strong>上传 Excel 进页不预落文件；成功页「去看」返回栈回成功页</strong>。<strong>① 上传</strong>：点「我有 Excel 表格 / Excel 导入」进 <code>import-source</code> 保持空列表（或保留用户已选）；仅点「选择文件」才追加演示文件（原型仍不调系统选择器）。<strong>② 成功页返回</strong>：从导入完成点「已入库 / 识别摘要 / 仅存档 / 入库清单行 / 失败明细」进入业务列表或存档/摘要后，标题栏返回应回 <code>import-result</code>；摘要详情 → 摘要列表 → 成功页。标题栏回首页、「返回首页」仍出导入壳。<strong>③ 口径</strong>：已做 <code>node --check app.js</code>；未跑自动化断言、未截图、未提交。</td>
+</tr>
 <tr>
 <td>v2.26</td>
 <td>2026-10-28</td>
@@ -1011,14 +1046,6 @@ flowchart LR
 </tr>
 <tr>
 <td>12</td>
-<td><code>import-convert</code></td>
-<td>标准表转换（兼容保留）</td>
-<td>整页 · AI 转换</td>
-<td>侧栏 / 旧深链</td>
-<td>主路径 v2.18 起跳过；仍可深链进入</td>
-</tr>
-<tr>
-<td>13</td>
 <td><code>import-check</code></td>
 <td>数据核对（L3 · 行内轻改）</td>
 <td>整页 · 唯一可传输</td>
@@ -1263,7 +1290,7 @@ flowchart LR
 <tr>
 <td>官方标准模板下载</td>
 <td><code>tplSheet</code> / <code>tplMask</code></td>
-<td>上传页「下载标准模板」/ 转换结果兜底卡「下载标准模板」</td>
+<td>引导区 / 上传 Excel 的「下载模板」推荐卡（<code>.tpl-promo</code>）；转换结果兜底卡「下载标准模板」（开发侧栏可见）</td>
 <td>关闭 / 点遮罩 / 点任一下载行</td>
 </tr>
 <tr>
@@ -2749,7 +2776,7 @@ flowchart LR
 </tr>
 </tbody>
 </table>
-<p><strong>半屏文案</strong>：标题「官方标准模板」，副文案「按模板填写可直接识别。」；三行下载项标题分别为「会员资料（24 列 · 一行一张卡）」「卡模板（5 类分 sheet）」「价目表（8 列 · 单批 ≤ 200 行）」，各带一行列名摘要；底部一句「转不了的行可在概览里改或忽略。」（v2.1 由原来的两句压成一句）。</p>
+<p><strong>半屏文案（v2.29）</strong>：标题「官方标准模板」，副文案「按官方标准模板填写，可完美识别导入。」；三行下载项标题分别为「会员资料（24 列 · 一行一张卡）」「卡模板（5 类分 sheet）」「价目表（8 列 · 单批 ≤ 200 行）」，各带一行列名摘要；底部一句「其它表格也能识别，可能要多核对几行。」。<strong>入口</strong>：引导区与上传 Excel 页各有一张 <code>.tpl-promo</code> 推荐卡（主文强调完美识别 + 「下载模板」按钮）；选源页脚注同步提示模板更准、其它表也能认。</p>
 <p><strong>口径</strong>：模板文件是<strong>仓库内静态资源</strong>（<code>excel模板/</code>），不依赖后端接口；三份模板的列名与列序以本表为准，PRD 其它章节引用列名时不再另立一套（v1.x 的 12 / 8 / 5 列口径已在 v2.0 作废）。</p>
 <h2>6.10 拍照识表与「确认待识别内容」</h2>
 <h3>6.10.1 拍照页</h3>
@@ -3499,8 +3526,8 @@ flowchart LR
 <tbody>
 <tr>
 <td>标题栏</td>
-<td>「导入完成」，无返回</td>
-<td>—</td>
+<td>「导入完成」+ 返回（<code>data-leave-import</code>）</td>
+<td>→ 出导入壳回首页或工作台（视入口）；与底栏「返回首页」同向出壳</td>
 </tr>
 <tr>
 <td>成功区</td>
@@ -3509,8 +3536,13 @@ flowchart LR
 </tr>
 <tr>
 <td>入库清单</td>
-<td><strong>白卡内三行可点行</strong>（<code>.v3-stock</code>，行高 52px）：18px 面性类别图标（品牌红）+ 名称（14px）+ 状态词「已入库」（11px 绿）+ 数量（数字 16px / 600 + 单位 11px 灰）+ 右箭头；行间 0.5px 内缩发丝线（分隔线左缩进 16px，右到边）</td>
-<td>点任一行 → 会员列表 / 会员卡模板列表 / 价目表；<strong>整行可点</strong>，不再用「查看」文字链</td>
+<td><strong>白卡内可点行</strong>（<code>.v3-stock</code>，行高 52px）：18px 面性类别图标（品牌红）+ 名称（14px）+ 状态词「已入库」（11px 绿）+ 数量（数字 16px / 600 + 单位 11px 灰）+ 右箭头；行间 0.5px 内缩发丝线（分隔线左缩进 16px，右到边）</td>
+<td>点任一行 → 对应业务列表（会员 / 卡模板 / 价目 / 库存等）；<strong>整行可点</strong>。从本页进入后，列表标题栏返回应回本页（<code>viewReturn=import-result</code>），不应直达工作台</td>
+</tr>
+<tr>
+<td>三档摘要卡</td>
+<td>白卡内三行：已入库 / 识别摘要 / 仅存档，各含说明 + 数量 +「去看」</td>
+<td>已入库「去看」→ 会员列表；识别摘要「去看」→ 摘要列表；仅存档「去看」→ 原始存档列表。从本页进入时 <code>archiveReturn/viewReturn=import-result</code>；摘要详情返回摘要列表，再返回本页。失败明细返回本页（既有）</td>
 </tr>
 <tr>
 <td>本批来源行</td>
@@ -7087,13 +7119,13 @@ sequenceDiagram
 <tr><td>两枚大入口</td><td>①「<strong>我有 Excel 表格</strong>」副标「会员表、价目表、库存表都能传」，右侧动作文字「去上传」；②「<strong>只有手机能拍照</strong>」副标「纸质价目表、手写会员本，拍下来就行」，右侧「去拍照」</td></tr>
 <tr><td>已拿到清单</td><td>分区标题「已经拿到 <em>N</em> 份」+「还能继续加，Excel 与照片可以混着来。」；每行左侧格式图标（Excel / 照片缩略图）、主文案文件名或「照片 N」、副行「大小 · 待识别」或「拍照 · 待识别」、右侧「移除」；0 份时显示空态「还没有添加任何数据。点上面的入口开始。」</td></tr>
 <tr><td>底栏</td><td>提示条「不用挑类别，也不用整理表头：AI 会判断这批数据是会员、卡模板、价目表、库存商品还是店铺产品。」+ 主按钮「开始识别（N 份）」；0 份时禁用且文案「先添加数据」</td></tr>
-<tr><td>交互</td><td>点「我有 Excel 表格」→ 进上传页；<strong>原型</strong>若待识别池尚无 Excel 则自动落 1 个演示文件（不调系统选择器）；点「只有手机能拍照」→ 直接进拍照页；清单里「移除」即从待识别池删掉（Excel 与照片共用一个 <code>data-pending-del</code>，按 id 归属分流）。<strong>线上</strong>须进页后点选并唤起系统文件选择器上传真实文件</td></tr>
+<tr><td>交互</td><td>点「我有 Excel 表格」→ 进上传页，<strong>进页不自动落文件</strong>（空列表或保留已选）；点「选择文件」才追加演示文件（原型不调系统选择器）。点「只有手机能拍照」→ 直接进拍照页；清单里「移除」即从待识别池删掉（Excel 与照片共用一个 <code>data-pending-del</code>，按 id 归属分流）。<strong>线上</strong>须进页后点选并唤起系统文件选择器上传真实文件</td></tr>
 </tbody>
 </table>
 
 <h3>15.4 上传 Excel（<code>import-source</code>）与拍照（<code>import-camera</code>）</h3>
 <ul>
-<li><strong>上传页</strong>：标题「上传 Excel」；分区「选择 Excel 文件」+「一次可以选多个。表头不标准、有合并单元格都没关系，AI 会读。」；白卡「选择文件」（xls / xlsx / csv · 单个 ≤ 10MB）；下方复用「已拿到清单」的行样式；提示「最多 5 个文件；传错了在列表里直接删。」；底栏「完成」→ 回导入数据页。不再按类别逐屏上传，不再出现「AI 转换 / 按标准模板填写」开关。<strong>原型（v2.24）</strong>：点「选择文件」不调系统选择器，按预设名轮换追加演示文件并 toast「已添加演示文件」。<strong>线上</strong>：必须唤起系统选择器，接受真实 <code>.xls/.xlsx/.csv</code> 多选上传。</li>
+<li><strong>上传页</strong>：标题「上传 Excel」；分区「选择 Excel 文件」+「一次可以选多个。表头不标准、有合并单元格都没关系，AI 会读。」；白卡「选择文件」（xls / xlsx / csv · 单个 ≤ 10MB）；下方复用「已拿到清单」的行样式；提示「最多 5 个文件；传错了在列表里直接删。」；底栏「完成」→ 回导入数据页。不再按类别逐屏上传，不再出现「AI 转换 / 按标准模板填写」开关。<strong>原型（v2.27）</strong>：从选源进本页<strong>不预落文件</strong>；仅点「选择文件」才按预设名轮换追加演示文件并 toast「已添加演示文件」（不调系统选择器）。<strong>线上</strong>：必须唤起系统选择器，接受真实 <code>.xls/.xlsx/.csv</code> 多选上传。</li>
 <li><strong>拍照页</strong>：顶部「拍什么都行 · 对准表格四角，可连拍」；取景区四角框 + 扫描线；下方缩略图条（已拍 N 张，可单张删除）；底部「照片 / 快门 / 完成」。<strong>照片落进统一待识别池</strong>，不绑类别；「完成」→ 回导入数据页。</li>
 <li><strong>相机取景</strong>：<code>getUserMedia</code> 不可用（http 非 localhost / 未授权）时切演示态并提示「这里拿不到相机取景，可用左下角「照片」从相册选，或点重试」；不可用时按快门落<strong>演示样张</strong>（文案「演示照片 · 仅用于展示识别流程」）。「照片」入口用 <code>input[type=file][accept=image/*]</code> 读成 dataURL 后同样进待识别池。</li>
 </ul>
@@ -7128,7 +7160,7 @@ sequenceDiagram
 <tr><td>校验规则 · 价目表</td><td>必填：<strong>项目名</strong> + <strong>价格</strong>；项目组等选填；价格无法解析或为负 → 需修正。</td></tr>
 <tr><td>校验规则 · 库存商品</td><td>对齐模板必填：<strong>商品名</strong> / <strong>商品规格</strong> / <strong>单位</strong> / <strong>数量</strong>；采购价可空但不可解析即错误；数量非非负整数 → 无法识别；为 0 仅警告；条码非 8–14 位仅警告</td></tr>
 <tr><td>校验规则 · 店铺产品</td><td>入库必填：<strong>产品名称</strong> + <strong>产品售价</strong>；产品分类等选填（空则警告归「未分类」）；售价无法解析或为负 → 需修正；会员价可空但不可解析即错误；上架状态非「上架 / 下架」仅警告</td></tr>
-<tr><td>导入完成</td><td>存量行逐类渲染（名称 + 单位 + 状态标签 + 数量 + chevron）；合并 / 覆盖的说明句按五类拼接；点行 → 会员 / 卡模板 / 价目表进各自列表页，库存商品 / 店铺产品为<strong>原型占位 toast</strong>（页面以线上为准）</td></tr>
+<tr><td>导入完成</td><td>三档摘要「去看」+ 存量行逐类渲染；点「去看」/ 入库行进入业务列表或存档/摘要后，返回应回本页（首页 / 出壳除外）。摘要详情 → 摘要列表 → 本页。库存商品 / 店铺产品无独立列表时为<strong>原型占位 toast</strong></td></tr>
 <tr><td>失败明细</td><td>仍以会员行示例（手机号格式 / 卡名不在店内等），库存与产品的失败行沿用同一套 <code>.import-fail-item</code> 组件</td></tr>
 <tr><td>再导模式 / 整批删除</td><td>合并与清空二选一按<strong>五类</strong>各自判断；整批删除对话框按五类动态列出将删除的数量（不再写死「126 条会员 + 4 张卡 + 42 项价目」）</td></tr>
 </tbody>
@@ -7158,7 +7190,8 @@ sequenceDiagram
 </thead>
 <tbody>
 <tr><td>AC-N01</td><td>进入「导入数据」页时，页面上<strong>不应出现任何类别选项</strong>（会员 / 卡模板 / 价目表 / 库存 / 产品都不得作为可勾选项出现），只应有两枚来源入口与已拿到清单。</td></tr>
-<tr><td>AC-N02</td><td>点「我有 Excel 表格」应进入上传页并唤起文件选择器；选中的文件名应出现在上传页清单与「导入数据」页的已拿到清单里。</td></tr>
+<tr><td>AC-N02</td><td>点「我有 Excel 表格」应进入上传页且<strong>进页时清单为空</strong>（若本批尚未选过文件）；点「选择文件」后文件名应出现在上传页清单与「导入数据」页的已拿到清单里。线上须唤起系统文件选择器。</td></tr>
+<tr><td>AC-N18</td><td>导入完成页点「已入库 / 识别摘要 / 仅存档」去看或点入库清单行进入下级页后，标题栏返回应回到导入完成页；识别摘要详情返回摘要列表，再返回导入完成页。点「返回首页」或标题栏出壳应回首页 / 工作台，不应卡在完成页。</td></tr>
 <tr><td>AC-N03</td><td>点「只有手机能拍照」应进入拍照页；按快门后该页「已拍 N 张」与缩略图条应同步增加，「完成」后照片应出现在「导入数据」页的已拿到清单。</td></tr>
 <tr><td>AC-N04</td><td>同一批里既有 Excel 又有照片时，「开始识别」应可用，且识别结果应同时包含来源为 Excel 与来源为拍照的类别；两类徽标应分别显示「Excel N 个」「拍照 N 张」。</td></tr>
 <tr><td>AC-N05</td><td>只有 Excel 时识别结果应为会员资料 / 卡模板 / 价目表 3 类；只有照片时应为价目表 / 库存商品 2 类；两者都有时应为 5 类。</td></tr>

@@ -39,7 +39,6 @@
     <button type="button" class="nav-item" data-flow="import-analyze"><span class="idx">识</span>识别中</button>
     <button type="button" class="nav-item" data-flow="import-cards"><span class="idx">III</span>分档结果</button>
     <button type="button" class="nav-item" data-flow="import-confirm"><span class="idx">IV</span>确认有效项</button>
-    <button type="button" class="nav-item" data-flow="import-convert"><span class="idx">转</span>标准表转换</button>
     <button type="button" class="nav-item" data-flow="import-check"><span class="idx">核</span>数据核对</button>
     <button type="button" class="nav-item" data-flow="import-result"><span class="idx">VI</span>导入结果</button>
     <button type="button" class="nav-item" data-flow="import-fail"><span class="idx">VII</span>失败明细</button>
@@ -628,7 +627,7 @@
             <li class="v3-guide__step">
               <div class="v3-guide__hd">
                 <span class="v3-guide__n" aria-hidden="true">2</span>
-                <span class="v3-guide__body"><b>AI 认类别、转标准表</b><span>字段自动对齐，整理成规则表单</span></span>
+                <span class="v3-guide__body"><b>AI 自动识别</b><span>认类别、对齐字段，整理成可核对的数据</span></span>
               </div>
               <div class="v3-guide__anim">
                 <div class="guide-ai" aria-hidden="true">
@@ -663,6 +662,14 @@
               </div>
             </li>
           </ol>
+
+          <div class="tpl-promo" role="note">
+            <div class="tpl-promo__body">
+              <b>用官方标准模板填写，可完美识别导入</b>
+              <span>其它表格也能识别，可能要多核对几行。</span>
+            </div>
+            <button type="button" class="tpl-promo__btn" data-open-tpl>下载模板</button>
+          </div>
 
           <div class="v3-stock hidden" id="hubStock">
             <div class="v3-stock__hd">本店已有导入数据</div>
@@ -709,7 +716,7 @@
         <div class="v3-foot">
           <div class="v3-foot__note">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.6A9.4 9.4 0 1 0 12 21.4 9.4 9.4 0 0 0 12 2.6Zm.05 4.9a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3ZM10.9 11.4h2.2v6.2h-2.2v-6.2Z"/></svg>
-            <span>导入可随时退出：已转换的数据留在本批，下次进来接着核对。</span>
+            <span>导入可随时退出：已识别的数据留在本批，下次进来接着核对。</span>
           </div>
 
           <div class="v3-foot__main">
@@ -788,7 +795,7 @@
         <div class="v3-foot">
           <div class="v3-foot__note">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.6A9.4 9.4 0 1 0 12 21.4 9.4 9.4 0 0 0 12 2.6Zm.05 4.9a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3ZM10.9 11.4h2.2v6.2h-2.2v-6.2Z"/></svg>
-            <span>不用挑类别，也不用整理表头：AI 会判断这批数据是会员、卡模板、价目表、库存商品还是店铺产品。</span>
+            <span>按标准模板填写识别更准；其它表也能识别。不用挑类别，AI 会判断是会员、卡、价目、库存还是产品。</span>
           </div>
 
           <div class="v3-foot__main">
@@ -813,7 +820,14 @@
         </ol>
           <div class="v3-sec-hd">
             <h2>选择 Excel 文件</h2>
-            <p>一次可以选多个。表头不标准、有合并单元格都没关系，AI 会读。</p>
+            <p>推荐按官方标准模板填写，可完美识别。其它表也能识别，可能要多核对几行。</p>
+          </div>
+          <div class="tpl-promo" role="note">
+            <div class="tpl-promo__body">
+              <b>用官方标准模板填写，可完美识别导入</b>
+              <span>一次可多选；传错了在列表里直接删。</span>
+            </div>
+            <button type="button" class="tpl-promo__btn" data-open-tpl>下载模板</button>
           </div>
           <button type="button" class="upload-drop" id="btnPickExcel">
             <span class="upload-drop__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.8V4.6M7.4 9.2 12 4.6l4.6 4.6"/><path d="M4.6 15.4v2.6c0 1 .8 1.8 1.8 1.8h11.2c1 0 1.8-.8 1.8-1.8v-2.6"/></svg></span>
@@ -974,44 +988,6 @@
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnConfirmNext">下一步：核对入库</button>
           </div>
-        </div>
-      </div>
-
-      <!-- import-convert：AI 把任意表 / 照片转成官方标准模板 -->
-      <div class="screen hidden" id="screen-import-convert" data-flow="import-convert">
-        <header class="page-title-bar">
-          <button type="button" class="back" id="btnConvertBack" aria-label="返回">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span class="title">标准表转换</span>
-        </header>
-        <div class="scroll-body import-body">
-        <ol class="v3-step" aria-label="导入进度：第 2 步，共 3 步">
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li>
-          <li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
-          <li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
-        </ol>
-          <div class="conv-hero">
-            <div class="v3-eq" id="convertEq" role="img" aria-label="AI 正在处理">
-              <i></i><i></i><i></i><i></i><i></i>
-              <span class="v3-eq__done"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span>
-            </div>
-            <h2 id="convertTitle">正在转成标准模板</h2>
-            <p id="convertLead">非标准列名由 AI 对齐官方模板</p>
-            <div class="conv-steps" id="convertSteps">
-              <div class="conv-step" data-conv-step="0"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>读取原表</b><em>列名 / 表头</em></div>
-              <div class="conv-step" data-conv-step="1"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>理解字段</b><em>对齐标准列</em></div>
-              <div class="conv-step" data-conv-step="2"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>转成标准表</b><em>补默认值</em></div>
-              <div class="conv-step" data-conv-step="3"><span class="conv-step__dot"><svg class="conv-step__tick" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>逐行自检</b><em>标出问题</em></div>
-            </div>
-          </div>
-          <div class="conv-result hidden" id="convertResult"></div>
-        </div>
-        <div class="v3-foot">
-          <div class="v3-foot__main">
-            <button type="button" class="btn-primary" id="btnConvertNext" disabled>转换中…</button>
-          </div>
-          <button type="button" class="v3-foot__link" id="btnConvertReupload"><span>重新选择文件</span></button>
         </div>
       </div>
 
@@ -1775,14 +1751,6 @@
         </div>
       </div>
 
-      <div class="overlay-mask" id="previewDetailMask" aria-hidden="true"></div>
-      <div class="preview-detail-sheet" id="previewDetailSheet" role="dialog" aria-labelledby="previewDetailTitle">
-        <div class="preview-detail-sheet__handle"></div>
-        <h3 id="previewDetailTitle">核对明细</h3>
-        <dl class="preview-detail-dl" id="previewDetailBody"></dl>
-        <button type="button" class="btn-primary" id="btnPreviewDetailClose">知道了</button>
-      </div>
-
       <!-- 定位：App 内说明（对照现状实拍） -->
       <div class="overlay-mask loc-mask" id="locExplainMask" aria-hidden="true"></div>
       <div class="loc-explain-dialog" id="locExplainDialog" role="dialog" aria-labelledby="locExplainTitle" aria-hidden="true">
@@ -1940,12 +1908,12 @@
         </div>
       </div>
 
-      <!-- 标准模板下载（兜底：AI 转不了就按模板重填） -->
+      <!-- 标准模板下载（导入前推荐 + 识别不完整时按模板重填） -->
       <div class="overlay-mask" id="tplMask" aria-hidden="true"></div>
       <div class="invite-sheet tpl-sheet" id="tplSheet" role="dialog" aria-labelledby="tplSheetTitle" aria-hidden="true">
         <div class="invite-sheet__handle"></div>
         <h3 id="tplSheetTitle">官方标准模板</h3>
-        <p>按模板填写可直接识别。</p>
+        <p>按官方标准模板填写，可完美识别导入。</p>
         <div class="tpl-list">
           <a class="tpl-row" href="excel模板/RTB店铺会员资料导入文档模版.xlsx" download>
             <span class="tpl-row__ico">XLS</span>
@@ -1963,7 +1931,7 @@
             <span class="tpl-row__dl" aria-hidden="true">↓</span>
           </a>
         </div>
-        <p class="tpl-sheet__note">转不了的行可在概览里改或忽略。</p>
+        <p class="tpl-sheet__note">其它表格也能识别，可能要多核对几行。</p>
         <div class="invite-sheet__actions">
           <button type="button" class="btn-ghost" id="btnTplClose">关闭</button>
         </div>
