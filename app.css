@@ -6486,7 +6486,8 @@ a:focus-visible,
 .import-clear-sheet h3 {
   text-align: center;
 }
-.import-clear-sheet #importClearLead {
+.import-clear-sheet #importClearLead,
+.import-clear-sheet .import-clear-sheet__lead {
   text-align: center;
   margin-bottom: 4px;
 }

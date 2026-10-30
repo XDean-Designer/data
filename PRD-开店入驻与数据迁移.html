@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -60,7 +60,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.49</td>
+<td>v2.52</td>
 </tr>
 <tr>
 <td>日期</td>
@@ -95,6 +95,21 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.52</td>
+<td>2026-10-30</td>
+<td><strong>会员历史消费顶部卡对齐 Figma 手改</strong>（node <code>455:245</code>）。<strong>① 视觉</strong>：卡底改为粉→杏渐变 <code>#FFD9DA → #FFF0D4</code>；姓名与手机号同一行（左人像珊瑚线标 + 姓名 18px/500，右电话灰线标 + 手机号 13px/<code>#6B6B6B</code>）；三项汇总半透明底 <code>rgba(248,249,250,.54)</code> + 白 30% 描边，分割线 <code>#CCC</code>，数字 Regular。<strong>② 文案</strong>：去掉卡内「仅统计历史订单…」说明（口径仍按充值/消费/到店统计，见 §6.28）。<strong>③ 口径</strong>：改 <code>app.js</code> / <code>tier.css</code> + 本 PRD；已做 <code>node --check app.js</code>；未跑断言、未截图、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.51</td>
+<td>2026-10-30</td>
+<td><strong>价目表摘要/存档合并项目+产品</strong>。<strong>① 域</strong>：价目表 ···「识别摘要 / 原始存档」与引导 <code>docs-pick</code> 的「价目表」均一次展示<strong>项目 ∪ 产品</strong>；标题为「· 价目表」；列表行用「项目 / 产品」标签区分。<strong>② Figma</strong>：<code>5-08/5-09</code> 改为「识别摘要·价目表 / 原始存档·价目表」。<strong>③ 口径</strong>：改 <code>app.js</code> / <code>tier.css</code> + 本 PRD + Figma；已做 <code>node --check app.js</code>；未跑断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.50</td>
+<td>2026-10-30</td>
+<td><strong>历史消费再导对齐主链：一律清空再导</strong>。<strong>① 半屏</strong>：有历史订单时点「导入」弹出与主链同结构的温和确认半屏（<code>#historyReimportSheet</code>）——标题「准备开始导入」、说明会换成新数据、可先导出；次按钮「先导出当前数据」、主按钮「我知道了，继续导入」；点遮罩取消。下线「追加导入 / 先整批删除再导入」二选一。<strong>② 逻辑</strong>：确认后清空本类再进选源；成功页不再出现「已追加 N · 合计现有 M」。<strong>③ Figma</strong>：泳道 6 的 <code>6-11</code> 改为「历史重新导入确认半屏」。<strong>④ 口径</strong>：改 <code>index.html</code> / <code>app.js</code> / <code>app.css</code> + 本 PRD + Figma；已做 <code>node --check app.js</code>；未跑断言脚本、<strong>未提交</strong>。</td>
+</tr>
 <tr>
 <td>v2.49</td>
 <td>2026-10-30</td>
@@ -995,7 +1010,7 @@ flowchart LR
      ├─ 手动补录半屏（多卡列表）
      ├─ 删除本批数据确认 Dialog
      ├─ 再导模式半屏（合并 / 清空本类 · 强制二选一）
-     ├─ 历史再导半屏（追加 / 先删再导）
+     ├─ 历史再导确认半屏（一律清空再导 · 对齐主链）
      ├─ 历史订单筛选半屏
      └─ 导入进度层（v2.1：识别 / 正式传输 / 历史消费导入共用；原全屏仪式层已删除）
 </code></pre>
@@ -1319,10 +1334,10 @@ flowchart LR
 <td>—</td>
 </tr>
 <tr>
-<td>历史再导半屏</td>
+<td>历史再导确认半屏（v2.50）</td>
 <td><code>historyReimportSheet</code> / <code>historyReimportMask</code></td>
 <td>历史订单有数据时点「导入」</td>
-<td>追加导入 / 先整批删除再导入 / 取消 / 点遮罩</td>
+<td>先导出当前数据（半屏不关）/ 我知道了，继续导入 / 点遮罩取消；一律清空再导</td>
 </tr>
 <tr>
 <td>浮球关闭确认</td>
@@ -2060,7 +2075,7 @@ flowchart LR
 </tr>
 </tbody>
 </table>
-<p><strong>历史消费再导入</strong>：列表有数据时点「导入」→ 半屏二选一「追加导入」（按行追加、不去重）/「先整批删除再导入」；两者都进入<strong>通用「选择导入方式」（历史模式）</strong>。空列表直接进该页（§6.23）；<strong>v2.45 起不再有「说明」半屏</strong>，要点已并入选择页提示行。</p>
+<p><strong>历史消费再导入（v2.50）</strong>：列表有数据时点「导入」→ 温和确认半屏（对齐主链 <code>importClearSheet</code>）：说明导入成功后会<strong>换成这次的新数据</strong>；「先导出当前数据」/「我知道了，继续导入」；确认后<strong>一律清空再导</strong>，进入通用「选择导入方式」（历史模式）。空列表直接进该页（§6.23）；<strong>v2.45 起不再有「说明」半屏</strong>；<strong>不再提供追加合并</strong>。</p>
 <p><strong>不做</strong>：静默覆盖全店；跨类别一键覆盖；历史自动去重；断点续传（中途退出再进从概况 / 引导重新开始）。</p>
 <h2>5.6 整批删除</h2>
 <table>
@@ -3727,7 +3742,7 @@ flowchart LR
 <tr>
 <td>次要操作</td>
 <td><strong>两枚 40px 描边次按钮纵向排列</strong>（<code>.result-acts</code> + <code>.v3-foot__link</code>，白底 + 1px <code>--n-200</code>、圆角 8px、14px / 500）：「去导入历史消费记录」/「删除本批数据」（后者浅红描边 + <code>--error-ink</code>）</td>
-<td>前者 → 通用「选择导入方式」<strong>历史模式</strong>（§6.23；本店已有历史消费时先弹「追加导入 / 先整批删除再导入」半屏）；后者开删除确认。v2.8 起不再用红色文字链。<strong>历史模式下该行两枚按钮均隐藏</strong>（§6.26）</td>
+<td>前者 → 通用「选择导入方式」<strong>历史模式</strong>（§6.23；本店已有历史消费时先弹「准备开始导入」确认半屏，一律清空再导）；后者开删除确认。v2.8 起不再用红色文字链。<strong>历史模式下该行两枚按钮均隐藏</strong>（§6.26）</td>
 </tr>
 <tr>
 <td>底部</td>
@@ -4018,7 +4033,7 @@ flowchart LR
 <tr>
 <td>标题栏</td>
 <td>返回 → 工作台；标题「历史订单」；右侧 30px 胶囊描边钮「导入」</td>
-<td>「导入」→ 通用「选择导入方式」<strong>历史模式</strong>（§6.23，Excel / 拍照可混）；本店已有历史消费时先弹「追加导入 / 先整批删除再导入」半屏</td>
+<td>「导入」→ 通用「选择导入方式」<strong>历史模式</strong>（§6.23，Excel / 拍照可混）；本店已有历史消费时先弹「准备开始导入」确认半屏（一律清空再导，§5.5）</td>
 </tr>
 <tr>
 <td>搜索</td>
@@ -4140,7 +4155,7 @@ flowchart LR
 <tr>
 <td>0 · 入口</td>
 <td>历史订单页页头「导入」按钮</td>
-<td>已有历史订单时先弹「本店已有历史订单」半屏（追加 / 先整批删除再导入）；「追加导入」与「先整批删除再导入」都进入 <strong>§6.23 选择导入方式</strong>（历史模式）；<strong>不再二次确认</strong>——「先整批删除再导入」本身就是确认</td>
+<td>已有历史订单时先弹「准备开始导入」确认半屏（一律清空再导，对齐主链）；确认后进入 <strong>§6.23 选择导入方式</strong>（历史模式）；点遮罩取消</td>
 </tr>
 <tr>
 <td>1 · 选择导入方式</td>
@@ -4296,8 +4311,8 @@ flowchart LR
 </tr>
 </tbody>
 </table>
-<h3>6.26.1 追加导入</h3>
-<p>若入口选择了「追加导入」且店内已有历史订单，成功块引导语改为「已追加 <em class="num-em">16</em> 条，合计现有 <em class="num-em">N</em> 条。可在「工作台 · 店铺管理 · 历史订单」查看。」，条数显示<strong>现有总量</strong>（<code>state.historyAppended</code>）。</p>
+<h3>6.26.1 再导口径（v2.50）</h3>
+<p><strong>v2.50 起不再追加合并</strong>：有存量再导一律先清空本类再写入本批；成功块引导语为「历史订单已入库…」，条数显示本批写入量。旧「已追加 N · 合计现有 M」文案与 <code>state.historyAppended</code> 追加路径已下线。</p>
 <h3>6.26.2 失败明细（<code>history-import-fail</code>）</h3>
 <table>
 <thead>
@@ -4423,9 +4438,14 @@ flowchart LR
 <td>同名多位会员时<strong>每人都挂上</strong>，并各自提示「同名 N 人，请核对」</td>
 </tr>
 <tr>
-<td>页头</td>
-<td><code>.mh-head</code>：左姓名（15px / 600）+ 次行手机号（12px 次级灰）；右合计金额（19px / 600）+ 次行「N 笔 · 2023–2025」（12px 次级灰）</td>
+<td>标题栏</td>
+<td>左返回；中「历史消费」</td>
 <td>返回 → 顾客详情</td>
+</tr>
+<tr>
+<td>顶部会员卡</td>
+<td><code>.mh-profile</code>：圆角 14、粉→杏竖向渐变 <code>#FFD9DA → #FFF0D4</code>、发丝描边阴影；首行左右排布——左「20px 珊瑚人像线标 + 姓名 18px/500/<code>#1A1A1A</code>」、右「16px 灰电话线标 + 手机号 13px/<code>#6B6B6B</code>」；其下三项汇总区（累计充值 / 累计消费 / 到店次数）半透明底 <code>rgba(248,249,250,.54)</code> + 白 30% 描边、圆角 10、数字 16px Regular、标签 11px/<code>#929292</code>、竖分割 <code>#CCC</code>；<strong>无卡内说明文案</strong></td>
+<td>统计口径：充值 = 办卡/充卡/续次/续费类订单金额；消费 = 项目与产品订单金额；到店 = 本会员名下历史订单笔数；充值与消费可重叠计入。仅读历史订单，不参与开单/业绩/余额</td>
 </tr>
 <tr>
 <td>年份卡片</td>
@@ -5376,7 +5396,7 @@ sequenceDiagram
 <li><strong>唯一入口是 Excel</strong>：不上拍照 / OCR（§6.23）。  </li>
 <li>日期与金额<strong>必须能解析</strong>才能入库；姓名可空。解析失败行<strong>不入库</strong>，留在识别摘要计数里，<strong>不做站内补录</strong>。  </li>
 <li><strong>与会员的关联只按姓名</strong>：行里没有手机号，会员侧「历史消费」用 <code>r.name === member.name</code> 投影；同名多位会员<strong>各自都挂</strong>并提示核对；解除匹配只写 <code>state.historyUnmatched[rowId]</code>，<strong>不删记录、不改 <code>LegacyOrder</code></strong>。同名 / 解除态都是<strong>会员侧的展示口径</strong>，不反向改历史订单。  </li>
-<li>不做自动去重：历史账单无稳定主键，按行追加；列表已有数据再点「导入」时须半屏确认「追加导入」或「先整批删除再导入」。  </li>
+<li>不做自动去重：历史账单无稳定主键；列表已有数据再点「导入」时须半屏确认后<strong>一律清空再导</strong>（v2.50，不再追加合并）。  </li>
 <li><strong>查看入口已定</strong>：工作台 → 店铺管理 →「历史订单」（列表 / 时间·金额·姓名筛选 / 独立详情）；会员侧为 会员列表 → 顾客详情 → 历史消费（年份卡片）。  </li>
 <li>导入前在选择导入方式页<strong>明确告知</strong>：Excel 或拍照都可以（无模板）、按日期 / 金额 / 顾客姓名识别、不进订单流水；<strong>不设硬门槛</strong>。  </li>
 <li>会员与持卡信息、会员卡模板、价目表<strong>可选择不同来源</strong>（Excel 或拍照，逐类独立），混合批次先拍照、后上传，结果合并展示。  </li>
@@ -6396,7 +6416,7 @@ sequenceDiagram
 <td>AC-49</td>
 <td>导入完成页</td>
 <td>点「去导入历史消费记录」</td>
-<td>进入<strong>通用「选择导入方式」</strong>（<code>importMode='history'</code>：Excel / 拍照可混、上方带历史提示行），识别后进<strong>专属核对/完成页</strong>；本店已有历史订单时先弹「追加导入 / 先整批删除再导入」半屏</td>
+<td>进入<strong>通用「选择导入方式」</strong>（<code>importMode='history'</code>：Excel / 拍照可混、上方带历史提示行），识别后进<strong>专属核对/完成页</strong>；本店已有历史订单时先弹「准备开始导入」确认半屏（一律清空再导）</td>
 </tr>
 <tr>
 <td>AC-50</td>
@@ -6712,7 +6732,7 @@ sequenceDiagram
 <td>AC-H-07</td>
 <td>历史订单列表 / 导入完成页</td>
 <td>点「导入」/「去导入历史消费记录」</td>
-<td>进入<strong>通用「选择导入方式」</strong>（历史模式）：Excel 与拍照两张卡都出；步骤条上方出现提示行「消费记录没有固定模板：Excel 或拍照都可以；按日期 / 金额 / 顾客姓名识别，不进订单流水。」；识别后进专属核对/完成页；本店已有历史订单时先弹「追加导入 / 先整批删除再导入」半屏</td>
+<td>进入<strong>通用「选择导入方式」</strong>（历史模式）：Excel 与拍照两张卡都出；步骤条上方出现提示行「消费记录没有固定模板：Excel 或拍照都可以；按日期 / 金额 / 顾客姓名识别，不进订单流水。」；识别后进专属核对/完成页；本店已有历史订单时先弹「准备开始导入」确认半屏（一律清空再导）</td>
 </tr>
 <tr>
 <td>AC-H-08</td>

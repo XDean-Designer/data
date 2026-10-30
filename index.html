@@ -76,7 +76,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.49</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.52</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -1769,16 +1769,18 @@
         </div>
       </div>
 
-      <!-- 历史再导：追加 / 先删除再导 -->
+      <!-- 历史再导：有存量时温和确认（一律清空再导，对齐主链 importClearSheet） -->
       <div class="overlay-mask" id="historyReimportMask" aria-hidden="true"></div>
-      <div class="invite-sheet" id="historyReimportSheet" role="dialog" aria-labelledby="historyReimportTitle">
+      <div class="invite-sheet import-clear-sheet" id="historyReimportSheet" role="dialog" aria-labelledby="historyReimportTitle" aria-describedby="historyReimportLead">
         <div class="invite-sheet__handle"></div>
-        <h3 id="historyReimportTitle">本店已有历史订单</h3>
-        <p id="historyReimportLead">当前约有 <em class="num-em" id="historyReimportCount">0</em> 条。系统不去重，请选择本次导入方式。</p>
+        <div class="import-clear-sheet__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="16.2" r="1" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h3 id="historyReimportTitle">准备开始导入</h3>
+        <p id="historyReimportLead" class="import-clear-sheet__lead">导入成功后，现有历史订单会换成这次的新数据。历史订单不进流水、不影响余额与业绩；若还需要，可先导出，再和新表一起导入。</p>
         <div class="invite-sheet__actions">
-          <button type="button" class="btn-primary" id="btnHistoryReimportAppend">追加导入</button>
-          <button type="button" class="btn-ghost" id="btnHistoryReimportReplace">先整批删除再导入</button>
-          <button type="button" class="btn-ghost" id="btnHistoryReimportCancel">取消</button>
+          <button type="button" class="btn-outline" id="btnHistoryReimportExport">先导出当前数据</button>
+          <button type="button" class="btn-primary" id="btnHistoryReimportContinue">我知道了，继续导入</button>
         </div>
       </div>
 

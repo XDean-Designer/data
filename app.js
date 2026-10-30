@@ -64,8 +64,8 @@
     storeStock: { member: 0, card: 0, price: 0, product: 0, history: 0 },
     /* 再导模式：merge | replace；首次导入为 null */
     reimportMode: { member: null, card: null, price: null, product: null },
-    historyReimportIntent: null, /* append | replace */
-    historyAppended: false, /* 本批是否为追加导入（成功页文案用） */
+    historyReimportIntent: null, /* 仅 replace（v2.50 起一律清空再导；保留字段防旧引用） */
+    historyAppended: false, /* 已废弃：不再追加导入 */
     viewReturn: null,
     pendingStockApply: false,
     /* 标准表转换 + 数据核对 */
@@ -568,12 +568,13 @@
     product: 'price-list',
     order: 'order-list'
   };
-  var DOMAIN_LABEL = { member: '会员', card: '会员卡', price: '价目项目', product: '价目产品', order: '订单流水' };
+  /* 价目表模块：项目 + 产品同属一域展示（标题「价目表」） */
+  var DOMAIN_LABEL = { member: '会员', card: '会员卡', price: '价目表', product: '价目表', order: '订单流水' };
   var DOMAIN_MATCH = {
     member: ['member'],
     card: ['card'],
-    price: ['price'],
-    product: ['product'],
+    price: ['price', 'product'],
+    product: ['price', 'product'],
     order: ['order']
   };
   var STAGE_COPY = {
@@ -2388,6 +2389,46 @@
     if (btn) { btn.disabled = false; btn.textContent = '跳过等待'; }
   }
 
+  /** Figma / 深链：定格识别中页（历史与主链文案不同） */
+  function paintAnalyzeStatic(isHist) {
+    var labels = isHist
+      ? ['读取文件', '抽取日期与金额', '对齐顾客姓名']
+      : ['读取文件', '判断类别', '对齐字段'];
+    labels.forEach(function (t, i) {
+      var el = $('#anaLabel' + i);
+      if (el) el.textContent = t;
+    });
+    var titleEl = $('#analyzeTitle');
+    var leadEl = $('#analyzeLead');
+    if (titleEl) titleEl.textContent = isHist ? '正在读这批老账单' : '正在看这批数据';
+    if (leadEl) leadEl.textContent = isHist
+      ? '抽取日期、金额、顾客姓名，其余列原样保留'
+      : '读取表头、比对字段，判断属于哪几类';
+    var fileNames = (state.pending.excel || []).map(function (f) { return f.name; });
+    if ((state.pending.photo || []).length) {
+      fileNames = fileNames.concat((state.pending.photo || []).map(function (_, i) { return '照片 ' + (i + 1); }));
+    }
+    if (!fileNames.length) fileNames = [isHist ? '老店收银流水.xlsx' : '（本批文件）'];
+    var em0 = $('#anaEm0');
+    var em1 = $('#anaEm1');
+    var em2 = $('#anaEm2');
+    if (em0) em0.textContent = fileNames[0];
+    if (em1) em1.textContent = isHist ? '历史消费' : '会员资料';
+    if (em2) em2.textContent = isHist ? '消费日期' : '会员姓名';
+    var steps = $all('[data-ana-step]');
+    steps.forEach(function (el, i) {
+      el.classList.toggle('is-done', i === 0);
+      el.classList.toggle('is-on', i === 1);
+    });
+    var eq = $('#analyzeEq');
+    if (eq) {
+      eq.classList.add('is-run');
+      eq.classList.remove('is-done');
+    }
+    var btn = $('#btnAnalyzeSkip');
+    if (btn) { btn.disabled = true; btn.textContent = '识别中…'; }
+  }
+
   function startAnalysis() {
     if (state.analyzing) return;
     if (!pendingTotal()) {
@@ -2643,13 +2684,9 @@
         state.historyDeleted = false;
         state.historyImported = true;
         var batchN = HISTORY_ROWS.length;
-        var append = state.historyReimportIntent === 'append' && (state.storeStock.history || 0) > 0;
-        if (append) {
-          state.storeStock.history += batchN;
-        } else {
-          state.storeStock.history = batchN;
-        }
-        state.historyAppended = append;
+        /* v2.50：一律清空再导，写入本批条数（不再追加合并） */
+        state.storeStock.history = batchN;
+        state.historyAppended = false;
         state.historyReimportIntent = null;
         setImportStage('done', 'history-import-result');
         go('history-import-result');
@@ -2830,12 +2867,28 @@
       note: '反光严重，关键列不可读'
     });
     pushArch({
+      id: 'a-demo-card',
+      domain: 'card',
+      name: '旧卡种对照表（手写）.jpg',
+      kind: 'photo',
+      size: '0.5 MB',
+      note: '手写潦草，无法结构化'
+    });
+    pushArch({
       id: 'a-demo-mess',
       domain: 'price',
       name: '2019价目表扫描件.pdf',
       kind: 'excel',
       size: '0.4 MB',
       note: '版式杂乱，可识别已填不足 30%，整份仅存档'
+    });
+    pushArch({
+      id: 'a-demo-prod',
+      domain: 'product',
+      name: '卖品进货单（模糊）.jpg',
+      kind: 'photo',
+      size: '0.7 MB',
+      note: '字迹不清，无法结构化'
     });
     pushArch({
       id: 'a-order-xls',
@@ -3325,8 +3378,6 @@
   }
 
   function openHistoryReimportSheet() {
-    var cnt = $('#historyReimportCount');
-    if (cnt) cnt.textContent = state.storeStock.history || HISTORY_ROWS.length;
     var mask = $('#historyReimportMask');
     var sheet = $('#historyReimportSheet');
     if (mask) mask.classList.add('show');
@@ -6290,8 +6341,6 @@
     if (lead) {
       if (state.historyDeleted) {
         lead.textContent = '本批历史消费已删除，可重新导入。';
-      } else if (state.historyAppended && total > batchN) {
-        lead.textContent = '已追加 ' + batchN + ' 条，合计现有 ' + total + ' 条。可在「工作台 · 店铺管理 · 历史订单」查看。';
       } else {
         lead.textContent = '历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。';
       }
@@ -7090,18 +7139,19 @@
     var dupTip = dup > 1
       ? '<p class="mh-dup-tip"><span aria-hidden="true">!</span><span>店内有 <b>' + dup + '</b> 位「' + esc(m.name) + '」，这些记录按姓名匹配，可能不全属于本顾客；不对的请解除。</span></p>'
       : '';
+    var icoUser = '<svg class="mh-profile__ico mh-profile__ico--user" viewBox="0 0 20 20" width="20" height="20" fill="none" aria-hidden="true"><path d="M2.81569 18H17.1843C17.6348 18 18 17.5942 18 17.0937C18 13.9474 15.3714 11.3968 10 11.3968C4.62857 11.3968 2 13.9474 2 17.0937C2 17.5942 2.36519 18 2.81569 18ZM13 5C13 6.65685 11.6569 8 10 8C8.34314 8 7 6.65685 7 5C7 3.34315 8.34314 2 10 2C11.6569 2 13 3.34315 13 5Z" stroke="#FF7272" stroke-width="2"/></svg>';
+    var icoPhone = '<svg class="mh-profile__ico mh-profile__ico--phone" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M13.7756 12.514C13.7756 12.514 13.0031 13.2726 12.8138 13.4951C12.5055 13.8241 12.1421 13.9795 11.6659 13.9795C11.6201 13.9795 11.5712 13.9795 11.5254 13.9765C10.6186 13.9186 9.77596 13.5652 9.14396 13.2635C7.41589 12.4287 5.89848 11.2434 4.63754 9.7413C3.59642 8.48903 2.90031 7.33121 2.43929 6.08807C2.15534 5.3294 2.05154 4.7383 2.09734 4.18072C2.12787 3.82423 2.26526 3.52868 2.51867 3.27579L3.55979 2.2368C3.70939 2.09664 3.86815 2.02047 4.02386 2.02047C4.21621 2.02047 4.37192 2.13625 4.46962 2.23375C4.47267 2.2368 4.47572 2.23985 4.47878 2.2429C4.66502 2.41657 4.8421 2.59633 5.02834 2.78829C5.12299 2.88579 5.22069 2.98329 5.31839 3.08384L6.15189 3.91564C6.47553 4.23861 6.47553 4.53721 6.15189 4.86018C6.06335 4.94854 5.97787 5.0369 5.88932 5.12221C5.63286 5.38424 5.83433 5.18319 5.56871 5.42084C5.5626 5.42694 5.55649 5.42998 5.55344 5.43608C5.29087 5.69811 5.33972 5.95405 5.39468 6.12772C5.39773 6.13686 5.40078 6.146 5.40384 6.15515C5.62061 6.67921 5.92592 7.17281 6.39 7.76086L6.39305 7.7639C7.23572 8.79985 8.12418 9.60727 9.10423 10.2258C9.22941 10.305 9.35764 10.369 9.47977 10.4299C9.58968 10.4848 9.69349 10.5366 9.78203 10.5914C9.79424 10.5975 9.80645 10.6067 9.81867 10.6127C9.92247 10.6645 10.0202 10.6889 10.1209 10.6889C10.3743 10.6889 10.5331 10.5305 10.585 10.4787L11.1835 9.88146C11.2873 9.77786 11.4521 9.65294 11.6445 9.65294C11.8338 9.65294 11.9895 9.77177 12.0841 9.87536C12.0872 9.87841 12.0872 9.87841 12.0902 9.88146L13.7725 11.5603C14.087 11.8711 13.7756 12.514 13.7756 12.514Z" stroke="#6B6B6B" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     var profile =
       '<div class="mh-profile">' +
         '<div class="mh-profile__who">' +
-          '<b>' + esc(m.name) + '</b>' +
-          '<span>' + esc(m.phone || '未留手机号') + '</span>' +
+          '<div class="mh-profile__name">' + icoUser + '<b>' + esc(m.name) + '</b></div>' +
+          '<div class="mh-profile__phone">' + icoPhone + '<span>' + esc(m.phone || '未留手机号') + '</span></div>' +
         '</div>' +
         '<div class="mh-profile__stats" role="group" aria-label="历史订单汇总">' +
           '<div class="mh-profile__cell"><em>' + fmtMoney(s.recharge) + '</em><span>累计充值</span></div>' +
           '<div class="mh-profile__cell"><em>' + fmtMoney(s.consume) + '</em><span>累计消费</span></div>' +
           '<div class="mh-profile__cell"><em class="v3-num">' + s.visits + '</em><span>到店次数</span></div>' +
         '</div>' +
-        '<p class="mh-profile__note">仅统计历史订单：充值为办卡 / 充卡 / 续次 / 续费；消费为项目与产品订单；两者可重叠。</p>' +
       '</div>';
     if (!s.rows.length) {
       host.innerHTML = profile +
@@ -7473,27 +7523,23 @@
     wireHistoryImportEntry($('#btnHistoryOrdersImport'));
     wireHistoryImportEntry($('#btnHistoryEmptyImport'));
 
-    var hrAppend = $('#btnHistoryReimportAppend');
-    if (hrAppend) {
-      hrAppend.addEventListener('click', function () {
-        state.historyReimportIntent = 'append';
-        hideHistoryReimportSheet();
-        goHistoryImportStart();
+    var hrExport = $('#btnHistoryReimportExport');
+    if (hrExport) {
+      hrExport.addEventListener('click', function () {
+        openExportStoreSheet();
       });
     }
-    var hrReplace = $('#btnHistoryReimportReplace');
-    if (hrReplace) {
-      hrReplace.addEventListener('click', function () {
-        state.historyReimportIntent = 'replace';
+    var hrContinue = $('#btnHistoryReimportContinue');
+    if (hrContinue) {
+      hrContinue.addEventListener('click', function () {
         hideHistoryReimportSheet();
-        /* v2.45：不再弹二次确认，「清空并重导」本身就是确认；直接走通用导入流程 */
+        /* v2.50：一律清空再导（对齐主链 importClearSheet） */
+        state.historyReimportIntent = 'replace';
         state.historyDeleted = true;
         state.storeStock.history = 0;
         goHistoryImportStart();
       });
     }
-    var hrCancel = $('#btnHistoryReimportCancel');
-    if (hrCancel) hrCancel.addEventListener('click', hideHistoryReimportSheet);
     var hrMask = $('#historyReimportMask');
     if (hrMask) hrMask.addEventListener('click', hideHistoryReimportSheet);
   }
@@ -8779,21 +8825,36 @@
     return (list || []).filter(function (it) { return allow.indexOf(it.domain) >= 0; });
   }
 
+  /** 价目表·产品旧入口并入价目表域 */
+  function normalizeArchiveDomain(domain) {
+    if (domain === 'product') return 'price';
+    return domain || 'member';
+  }
+
+  /** 价目表合并列表：行内区分项目 / 产品 */
+  function domainKindTag(itemDomain) {
+    if (itemDomain === 'price') return '项目';
+    if (itemDomain === 'product') return '产品';
+    return '';
+  }
+
   function openArchiveList(domain, returnTo) {
     ensureTierDemo();
-    if ((domain || 'member') === 'order') ensureOrderArchiveDemo();
+    var d = normalizeArchiveDomain(domain);
+    if (d === 'order') ensureOrderArchiveDemo();
     state.emptyPreview = null;
-    state.archiveDomain = domain || 'member';
-    state.archiveReturn = returnTo || DOMAIN_FLOWS[state.archiveDomain] || 'members';
+    state.archiveDomain = d;
+    state.archiveReturn = returnTo || DOMAIN_FLOWS[d] || 'members';
     closeAllTitleMenus();
     go('archive-list');
   }
 
   function openDigestList(domain, returnTo) {
     ensureTierDemo();
+    var d = normalizeArchiveDomain(domain);
     state.emptyPreview = null;
-    state.archiveDomain = domain || 'member';
-    state.archiveReturn = returnTo || DOMAIN_FLOWS[state.archiveDomain] || 'members';
+    state.archiveDomain = d;
+    state.archiveReturn = returnTo || DOMAIN_FLOWS[d] || 'members';
     closeAllTitleMenus();
     go('digest-list');
   }
@@ -8817,11 +8878,16 @@
     var empty = $('#archiveEmpty');
     var screen = $('#screen-archive-list');
     if (host) {
+      var showKind = state.archiveDomain === 'price';
       host.innerHTML = rows.map(function (f) {
+        var kind = showKind ? domainKindTag(f.domain) : '';
+        var meta = (kind ? kind + ' · ' : '') + (f.note || '') + (f.size ? ' · ' + f.size : '');
         return '<button type="button" class="arch-row" data-arch-id="' + f.id + '">' +
           '<span class="arch-row__ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></span>' +
-          '<span class="arch-row__body"><span class="arch-row__title">' + esc(f.name) + '</span>' +
-          '<span class="arch-row__meta">' + esc(f.note) + ' · ' + esc(f.size) + '</span></span>' +
+          '<span class="arch-row__body"><span class="arch-row__title">' + esc(f.name) +
+          (kind ? '<em class="arch-row__kind">' + esc(kind) + '</em>' : '') +
+          '</span>' +
+          '<span class="arch-row__meta">' + esc(meta) + '</span></span>' +
           '<span class="arch-row__chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></span></button>';
       }).join('');
     }
@@ -8853,13 +8919,19 @@
       var tip = rows.length
         ? '<p class="digest-list-tip">点进详情可把缺的字段补上，补完后就能导入系统。</p>'
         : '';
+      var showKind = state.archiveDomain === 'price';
       host.innerHTML = tip + rows.map(function (d) {
         var miss = (d.fails || []).length;
+        var kind = showKind ? domainKindTag(d.domain) : '';
+        var metaBits = d.fields.map(function (f) { return f.k + ' ' + f.v; }).slice(0, 2);
+        if (kind) metaBits.unshift(kind);
+        if (miss) metaBits.push('缺 ' + miss + ' 项可补');
         return '<button type="button" class="arch-row" data-digest-id="' + d.id + '">' +
           '<span class="arch-row__ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h11M8 12h11M8 18h7"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>' +
-          '<span class="arch-row__body"><span class="arch-row__title">' + esc(d.title) + '</span>' +
-          '<span class="arch-row__meta">' + esc(d.fields.map(function (f) { return f.k + ' ' + f.v; }).slice(0, 2).join(' · ')) +
-          (miss ? ' · 缺 ' + miss + ' 项可补' : '') + '</span></span>' +
+          '<span class="arch-row__body"><span class="arch-row__title">' + esc(d.title) +
+          (kind ? '<em class="arch-row__kind">' + esc(kind) + '</em>' : '') +
+          '</span>' +
+          '<span class="arch-row__meta">' + esc(metaBits.join(' · ')) + '</span></span>' +
           '<span class="arch-row__chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></span></button>';
       }).join('');
     }
@@ -9023,8 +9095,7 @@
       var items = [
         { k: 'member', lab: '会员资料' },
         { k: 'card', lab: '卡模板' },
-        { k: 'price', lab: '价目表 · 项目' },
-        { k: 'product', lab: '价目表 · 产品' }
+        { k: 'price', lab: '价目表' }
       ];
       list.innerHTML = items.map(function (it) {
         return '<button type="button" class="docs-pick-row" data-docs-domain="' + it.k + '">' +
@@ -9327,6 +9398,13 @@
       go('import-overview');
       return;
     }
+    // 有存量 · 重新导入温和确认半屏
+    if (cap === 'import-clear') {
+      seedStoreStockDemo();
+      go('import-overview');
+      step(openImportClearSheet, 500);
+      return;
+    }
     if (cap === 'import-select-empty') {
       state.pending.excel = [];
       state.pending.photo = [];
@@ -9348,6 +9426,54 @@
       seedStoreStockDemo();
       go('history-orders');
       step(openHistoryReimportSheet, 400);
+      return;
+    }
+    /* 历史消费 · AI 识别中（定格） */
+    if (cap === 'history-import-analyze') {
+      state.importMode = 'history';
+      state.pending.excel = [
+        { id: 'hist-e1', name: '老店收银流水.xlsx', size: '1.4 MB', readablePct: 72 }
+      ];
+      state.pending.photo = [];
+      state.analyzing = true;
+      setImportStage('analyzing', 'import-analyze');
+      go('import-analyze');
+      step(function () { paintAnalyzeStatic(true); }, 200);
+      return;
+    }
+    /* 分域：原始存档 / 识别摘要（模块 ··· 落地，不导占位列表） */
+    var archCap = /^archive-(member|card|price|product|order)$/.exec(cap);
+    if (archCap) {
+      seedCaptureImportDemo();
+      collectPlan();
+      state.checkData = null;
+      state.tierResult = { l1: [], l2: [], l3Cats: [] };
+      seedTierDemo();
+      openArchiveList(archCap[1], DOMAIN_FLOWS[archCap[1]] || 'members');
+      return;
+    }
+    var digCap = /^digest-(member|card|price|product)$/.exec(cap);
+    if (digCap) {
+      seedCaptureImportDemo();
+      collectPlan();
+      state.checkData = null;
+      state.tierResult = { l1: [], l2: [], l3Cats: [] };
+      seedTierDemo();
+      openDigestList(digCap[1], DOMAIN_FLOWS[digCap[1]] || 'members');
+      return;
+    }
+    if (cap === 'digest-detail-member') {
+      seedCaptureImportDemo();
+      collectPlan();
+      state.checkData = null;
+      state.tierResult = { l1: [], l2: [], l3Cats: [] };
+      seedTierDemo();
+      var digM = (state.tierResult.l2 || []).filter(function (d) { return d.domain === 'member'; })[0]
+        || (state.tierResult.l2 || [])[0];
+      state.digestId = digM ? digM.id : null;
+      state.archiveDomain = digM ? digM.domain : 'member';
+      state.archiveReturn = 'digest-list';
+      go('digest-detail');
       return;
     }
     if (cap === 'fab-close') {
