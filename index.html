@@ -76,7 +76,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.47</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.49</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -601,14 +601,15 @@
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
           <div class="v3-sec-hd">
-            <h2>3 步把老店数据搬过来</h2>
-            <p>会员、卡、价目可同批导入；历史消费请走历史订单。</p>
+            <h2>把老店数据搬进来</h2>
+            <p>会员 · 卡 · 价目可同批；历史消费请走历史订单。</p>
           </div>
-          <ol class="v3-guide v3-guide--anim" aria-label="三步导入说明">
-            <li class="v3-guide__step">
+
+          <ol class="v3-guide v3-guide--anim v3-guide--compact" aria-label="三步导入说明">
+            <li class="v3-guide__step v3-guide__step--provide">
               <div class="v3-guide__hd">
                 <span class="v3-guide__n" aria-hidden="true">1</span>
-                <span class="v3-guide__body"><b>把手里的数据给它</b><span>Excel 或拍照，可以混着来</span></span>
+                <span class="v3-guide__body"><b>把手里的数据给它</b><span>Excel 或拍照，可混着来；表头清晰、拍正更好认</span></span>
               </div>
               <div class="v3-guide__anim v3-guide__anim--duo">
                 <figure class="guide-fig">
@@ -630,6 +631,16 @@
                   <figcaption>拍表格</figcaption>
                 </figure>
               </div>
+              <ul class="guide-tips" aria-label="提供数据时尽量做到">
+                <li>
+                  <span class="guide-tips__check" aria-hidden="true"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.2 6.4 11l6.1-6.5"/></svg></span>
+                  <span>优先用官方模板</span>
+                </li>
+                <li>
+                  <span class="guide-tips__check" aria-hidden="true"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.2 6.4 11l6.1-6.5"/></svg></span>
+                  <span>会员·卡·价目一次备齐</span>
+                </li>
+              </ul>
             </li>
             <li class="v3-guide__step">
               <div class="v3-guide__hd">
@@ -1740,6 +1751,21 @@
         <div class="invite-sheet__actions">
           <button type="button" class="btn-primary" id="btnReimportModeOk" disabled>确认并继续</button>
           <button type="button" class="btn-ghost" id="btnReimportModeCancel">返回</button>
+        </div>
+      </div>
+
+      <!-- 有存量时：开始/重新导入前温和确认 -->
+      <div class="overlay-mask" id="importClearMask" aria-hidden="true"></div>
+      <div class="invite-sheet import-clear-sheet" id="importClearSheet" role="dialog" aria-labelledby="importClearTitle" aria-describedby="importClearLead">
+        <div class="invite-sheet__handle"></div>
+        <div class="import-clear-sheet__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="16.2" r="1" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h3 id="importClearTitle">准备开始导入</h3>
+        <p id="importClearLead">导入成功后，店内现有的会员、卡模板、价目会换成这次的新数据。若还需要现在的数据，可先导出店内数据，再和新表一起导入。</p>
+        <div class="invite-sheet__actions">
+          <button type="button" class="btn-outline" id="btnImportClearExport">先导出当前数据</button>
+          <button type="button" class="btn-primary" id="btnImportClearContinue">我知道了，继续导入</button>
         </div>
       </div>
 

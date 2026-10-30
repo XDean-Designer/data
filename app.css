@@ -6441,6 +6441,64 @@ a:focus-visible,
 }
 
 /* ---------- 21. 导入中心（概况 + 引导合并 · 三步动画） ---------- */
+.v3-guide + .tpl-promo { margin-top: 12px; }
+
+.guide-tips {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guide-tips > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: 500;
+  color: var(--text);
+}
+.guide-tips__check {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #E8F8F2;
+  color: #2BA471;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.import-clear-sheet .import-clear-sheet__ico {
+  width: 40px;
+  height: 40px;
+  margin: 4px auto 12px;
+  border-radius: 50%;
+  background: #EEF5FC;
+  color: #3B82C4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.import-clear-sheet h3 {
+  text-align: center;
+}
+.import-clear-sheet #importClearLead {
+  text-align: center;
+  margin-bottom: 4px;
+}
+.import-clear-sheet .invite-sheet__actions {
+  margin-top: 16px;
+}
+.import-clear-sheet .invite-sheet__actions .btn-outline {
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-btn);
+}
+
 .v3-guide {
   list-style: none;
   margin: 12px 0 0;
@@ -6452,6 +6510,12 @@ a:focus-visible,
 .v3-guide--anim .v3-guide__step {
   position: relative;
   padding: 14px 16px 16px;
+}
+.v3-guide--compact.v3-guide--anim .v3-guide__step {
+  padding: 10px 14px 10px;
+}
+.v3-guide--compact.v3-guide--anim .v3-guide__step--provide {
+  padding: 12px 14px 14px;
 }
 .v3-guide--anim .v3-guide__step + .v3-guide__step::before {
   content: "";
@@ -6469,6 +6533,10 @@ a:focus-visible,
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
+}
+.v3-guide--compact .v3-guide__hd {
+  margin-bottom: 8px;
+  gap: 10px;
 }
 .v3-guide__n {
   flex: 0 0 auto;
@@ -6508,6 +6576,18 @@ a:focus-visible,
   padding: 10px 12px;
   overflow: hidden;
 }
+.v3-guide--compact .v3-guide__anim {
+  min-height: 56px;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+.v3-guide--compact .v3-guide__step--provide .v3-guide__anim {
+  min-height: 72px;
+  padding: 8px 8px;
+}
+.v3-guide--compact .v3-guide__step--provide .v3-guide__anim--duo {
+  padding: 0;
+}
 .v3-guide__anim--duo {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6515,6 +6595,10 @@ a:focus-visible,
   padding: 8px;
   background: transparent;
   min-height: 0;
+}
+.v3-guide--compact .v3-guide__anim--duo {
+  gap: 6px;
+  padding: 0;
 }
 .guide-fig {
   margin: 0;
@@ -6526,6 +6610,11 @@ a:focus-visible,
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+.v3-guide--compact .guide-fig {
+  padding: 4px 4px 4px;
+  gap: 4px;
+  border-radius: 10px;
 }
 .guide-fig figcaption {
   font-size: 11px;
@@ -6540,9 +6629,19 @@ a:focus-visible,
   width: 100%;
   background: transparent;
 }
+.v3-guide--compact .wechat-demo--compact {
+  height: 48px;
+  padding: 0 4px;
+}
+.v3-guide--compact .v3-guide__step--provide .wechat-demo--compact {
+  height: 58px;
+}
 .wechat-demo--compact .wechat-demo__pc { transform: scale(.78); transform-origin: left center; }
 .wechat-demo--compact .wechat-demo__phone { transform: scale(.78); transform-origin: right center; }
 .wechat-demo--compact .wechat-demo__chat { width: 72px; transform: scale(.85); transform-origin: center; }
+.v3-guide--compact .wechat-demo--compact .wechat-demo__pc { transform: scale(.48); }
+.v3-guide--compact .wechat-demo--compact .wechat-demo__phone { transform: scale(.48); }
+.v3-guide--compact .wechat-demo--compact .wechat-demo__chat { width: 56px; transform: scale(.55); }
 .guide-photo {
   position: relative;
   width: 100%;
@@ -6551,6 +6650,14 @@ a:focus-visible,
   align-items: center;
   justify-content: center;
 }
+.v3-guide--compact .guide-photo { height: 48px; }
+.v3-guide--compact .v3-guide__step--provide .guide-photo { height: 58px; }
+.v3-guide--compact .v3-guide__step--provide .guide-photo__phone {
+  width: 34px; height: 52px;
+}
+.v3-guide--compact .v3-guide__step--provide .wechat-demo--compact .wechat-demo__pc { transform: scale(.56); }
+.v3-guide--compact .v3-guide__step--provide .wechat-demo--compact .wechat-demo__phone { transform: scale(.56); }
+.v3-guide--compact .v3-guide__step--provide .wechat-demo--compact .wechat-demo__chat { width: 60px; transform: scale(.62); }
 .guide-photo__phone {
   position: relative;
   width: 46px; height: 72px;
@@ -6558,6 +6665,10 @@ a:focus-visible,
   border-radius: 8px;
   background: #fff;
   overflow: hidden;
+}
+.v3-guide--compact .guide-photo__phone {
+  width: 28px; height: 44px;
+  border-radius: 6px;
 }
 .guide-photo__sheet {
   position: absolute;
@@ -6605,10 +6716,17 @@ a:focus-visible,
   gap: 8px;
   padding: 0 8px;
 }
+.v3-guide--compact .guide-ai {
+  gap: 6px;
+  padding: 0 4px;
+}
 .guide-ai__stack {
   position: relative;
   width: 56px; height: 64px;
   flex: 0 0 auto;
+}
+.v3-guide--compact .guide-ai__stack {
+  width: 36px; height: 40px;
 }
 .guide-ai__sheet {
   position: absolute;
@@ -6620,6 +6738,10 @@ a:focus-visible,
 .guide-ai__sheet.is-a { top: 4px; transform: rotate(-6deg); animation: aiSheet 2.8s ease-in-out infinite; }
 .guide-ai__sheet.is-b { top: 12px; transform: rotate(2deg); animation: aiSheet 2.8s .2s ease-in-out infinite; }
 .guide-ai__sheet.is-c { top: 20px; background: #E8F8F2; border-color: #2BA471; animation: aiSheet 2.8s .4s ease-in-out infinite; }
+.v3-guide--compact .guide-ai__sheet { height: 26px; left: 4px; right: 4px; border-radius: 4px; }
+.v3-guide--compact .guide-ai__sheet.is-a { top: 2px; }
+.v3-guide--compact .guide-ai__sheet.is-b { top: 8px; }
+.v3-guide--compact .guide-ai__sheet.is-c { top: 14px; }
 @keyframes aiSheet {
   0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
   50% { transform: translateY(-4px) rotate(var(--r, 0deg)); }
@@ -6642,6 +6764,12 @@ a:focus-visible,
   border: 1.5px solid #D7D7D5;
   flex: 0 0 auto;
 }
+.v3-guide--compact .guide-ai__grid {
+  width: 48px; height: 36px;
+  gap: 3px;
+  padding: 4px;
+  border-radius: 6px;
+}
 .guide-ai__grid span {
   border-radius: 3px;
   background: #E8F8F2;
@@ -6663,9 +6791,11 @@ a:focus-visible,
   justify-content: center;
   gap: 16px;
 }
+.v3-guide--compact .guide-app { gap: 10px; }
 .guide-app__fly {
   display: flex; flex-direction: column; gap: 6px;
 }
+.v3-guide--compact .guide-app__fly { gap: 4px; }
 .guide-app__fly i {
   width: 28px; height: 8px; border-radius: 4px;
   background: #F32F41; opacity: .35;
@@ -6673,6 +6803,9 @@ a:focus-visible,
 }
 .guide-app__fly i:nth-child(2) { animation-delay: .2s; width: 22px; }
 .guide-app__fly i:nth-child(3) { animation-delay: .4s; width: 18px; }
+.v3-guide--compact .guide-app__fly i { width: 18px; height: 5px; }
+.v3-guide--compact .guide-app__fly i:nth-child(2) { width: 14px; }
+.v3-guide--compact .guide-app__fly i:nth-child(3) { width: 11px; }
 @keyframes appFly {
   0%, 100% { transform: translateX(0); opacity: .25; }
   50% { transform: translateX(10px); opacity: .85; }
@@ -6686,6 +6819,13 @@ a:focus-visible,
   padding: 10px 7px 8px;
   box-sizing: border-box;
 }
+.v3-guide--compact .guide-app__phone {
+  width: 32px; height: 48px;
+  border-radius: 7px;
+  padding: 6px 4px 5px;
+}
+.v3-guide--compact .guide-app__bar { height: 4px; margin-bottom: 5px; }
+.v3-guide--compact .guide-app__row { height: 5px; margin-bottom: 4px; }
 .guide-app__bar {
   display: block; height: 6px; border-radius: 3px;
   background: #F32F41; margin-bottom: 8px;

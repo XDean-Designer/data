@@ -1983,7 +1983,13 @@
     if (start) {
       start.addEventListener('click', function () {
         hideInviteSheet();
+        // 有存量时先进引导页并弹温和确认；空店落引导页不弹
         enterMigrate('home');
+        if (hasP0Stock()) {
+          setTimeout(function () {
+            if (state.flow === 'import-overview') openImportClearSheet();
+          }, 280);
+        }
       });
     }
     if (later) {
@@ -3283,9 +3289,39 @@
     var hubStock = $('#hubStock');
     if (hubStock) hubStock.classList.toggle('hidden', !any);
     var cta = $('#btnOverviewContinue');
-    if (cta) cta.textContent = any ? '继续补充导入' : '开始导入';
+    if (cta) cta.textContent = any ? '重新导入' : '开始导入';
     var del = $('#btnOverviewDelete');
     if (del) del.classList.toggle('hidden', !any);
+  }
+
+  function openImportClearSheet() {
+    var mask = $('#importClearMask');
+    var sheet = $('#importClearSheet');
+    if (mask) {
+      mask.classList.add('show');
+      mask.setAttribute('aria-hidden', 'false');
+    }
+    if (sheet) sheet.classList.add('show');
+  }
+
+  function hideImportClearSheet() {
+    var mask = $('#importClearMask');
+    var sheet = $('#importClearSheet');
+    if (mask) {
+      mask.classList.remove('show');
+      mask.setAttribute('aria-hidden', 'true');
+    }
+    if (sheet) sheet.classList.remove('show');
+  }
+
+  /** 有存量时先温和确认「会换成新数据」；空店直接进选源 */
+  function startImportFromOverview() {
+    state.reimportMode = blankReimportMode();
+    if (hasP0Stock()) {
+      openImportClearSheet();
+      return;
+    }
+    go('import-select');
   }
 
   function openHistoryReimportSheet() {
@@ -7607,9 +7643,27 @@
     var overviewContinue = $('#btnOverviewContinue');
     if (overviewContinue) {
       overviewContinue.addEventListener('click', function () {
-        // 进入再导前清空上次模式，强制重新二选一
+        startImportFromOverview();
+      });
+    }
+    var importClearExport = $('#btnImportClearExport');
+    if (importClearExport) {
+      importClearExport.addEventListener('click', function () {
+        openExportStoreSheet();
+      });
+    }
+    var importClearContinue = $('#btnImportClearContinue');
+    if (importClearContinue) {
+      importClearContinue.addEventListener('click', function () {
+        hideImportClearSheet();
         state.reimportMode = blankReimportMode();
         go('import-select');
+      });
+    }
+    var importClearMask = $('#importClearMask');
+    if (importClearMask) {
+      importClearMask.addEventListener('click', function () {
+        hideImportClearSheet();
       });
     }
     var overviewDelete = $('#btnOverviewDelete');
@@ -9437,7 +9491,8 @@
       return;
     }
     // 导入历史消费 · 选择方式（Excel 与拍照都可，可混传）
-    if (cap === 'history-import-upload' || cap === 'history-import-upload-empty') {
+    if (cap === 'history-import-upload' || cap === 'history-import-upload-empty' ||
+        cap === 'history-import-select') {
       goHistoryImportStart();
       return;
     }
@@ -9448,7 +9503,27 @@
       go('import-source');
       return;
     }
-    // 历史消费 · 两层识别结果
+    // 历史消费 · 拍照取景（消费记录水印）
+    if (cap === 'history-import-camera') {
+      goHistoryImportStart();
+      state.pending.photo = [];
+      state.camTableGuide = false;
+      go('import-camera');
+      step(function () {
+        setCameraDemo(true);
+        syncCamWatermark();
+      }, 200);
+      return;
+    }
+    // 会员历史消费（按姓名挂靠 · 顶部累计充值/消费/到店）
+    if (cap === 'member-history') {
+      if (typeof patchHistoryDemoNames === 'function') patchHistoryDemoNames();
+      state.memberDetailId = 0;
+      state.mhOpenYear = null;
+      go('member-history');
+      return;
+    }
+    // 历史消费 · 两层识别结果（抓取兼容；主路径已直达核对，不进 Figma 帧清单）
     if (cap === 'history-import-intro') {
       seedHistoryDemoBatch();
       go('import-cards');
