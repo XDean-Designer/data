@@ -666,7 +666,7 @@
             <li class="v3-guide__step">
               <div class="v3-guide__hd">
                 <span class="v3-guide__n" aria-hidden="true">3</span>
-                <span class="v3-guide__body"><b>核对后导入</b><span>只改有问题的那几行，确认即入库</span></span>
+                <span class="v3-guide__body"><b>核对后导入</b><span>只改有问题的那几行，确认即导入</span></span>
               </div>
               <div class="v3-guide__anim">
                 <div class="guide-app" aria-hidden="true">
@@ -999,7 +999,7 @@
           </div>
         </div>
         <div class="v3-foot">
-          <p class="soft-tip soft-tip--foot" id="checkFootNote">只写入达门槛的行；未达门槛与整份存档不会写入。</p>
+          <p class="soft-tip soft-tip--foot" id="checkFootNote">只写入符合条件的数据；未符合条件的数据不会被写入，但提供存档。</p>
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnCheckSubmit">确认导入</button>
           </div>
@@ -1028,23 +1028,20 @@
             <p class="v3-done__lead" id="importResultLead">可导入的已写入；其余已按档存档，可随时查阅。</p>
           </div>
           <p class="v3-batch" id="importResultSources">本批来源：Excel 3 个</p>
-          <div class="result-tiers" id="resultTierSummary"></div>
-          <div class="hidden" aria-hidden="true"><div id="resultStockList"></div></div>
-          <p class="v3-notice is-warn hidden" id="importResultMerge"></p>
-          <button type="button" class="result-fail hidden" id="btnImportFailRow" aria-hidden="true" tabindex="-1">
-            <span class="result-fail__body">
-              <b><em class="v3-num" id="importFailCount">2</em> 条失败</b><span id="importFailTail">，可手动补录</span>
-            </span>
-            <span class="result-fail__link" id="importFailHint">查看明细</span>
-            <svg class="result-fail__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          <div class="result-dash-host" id="resultTierSummary"></div>
+          <button type="button" class="result-miss hidden" id="btnResultMiss" aria-hidden="true">
+            <span class="result-miss__body"><b><em class="v3-num" id="resultMissCount">0</em> 条未能成功导入</b></span>
+            <span class="result-miss__link">去查看</span>
+            <svg class="result-miss__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
           </button>
-          <div class="result-acts">
-            <button type="button" class="v3-foot__link" id="btnImportHistory">去导入历史消费记录</button>
-            <button type="button" class="v3-foot__link is-danger" id="btnImportDeleteBatch">删除本批数据</button>
-          </div>
+          <div class="hidden" aria-hidden="true"><div id="resultStockList"></div></div>
         </div>
-        <div class="import-foot">
-          <div class="v3-foot__main">
+        <div class="import-foot import-foot--result">
+          <p class="result-archive-tip hidden" id="resultArchiveTip">
+            本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnResultArchive">去查看存档</button>
+          </p>
+          <div class="v3-foot__main v3-foot__main--split">
+            <button type="button" class="btn-outline btn-outline--compact" id="btnImportHistory">导入历史消费</button>
             <button type="button" class="btn-primary" id="btnImportBackHome">返回首页</button>
           </div>
         </div>
@@ -1096,7 +1093,7 @@
         </div>
       </div>
 
-      <!-- history-import-result：历史导入完成（Figma 6-10） -->
+      <!-- history-import-result：历史导入完成（与主链完成页同结构，两档映射） -->
       <div class="screen hidden" id="screen-history-import-result" data-flow="history-import-result">
         <header class="page-title-bar"><span class="title">导入完成</span></header>
         <div class="scroll-body import-body import-result-body">
@@ -1110,33 +1107,18 @@
               </svg>
             </span>
             <h2 class="v3-done__title">导入成功</h2>
-            <p class="v3-done__lead" id="historyResultLead">历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。</p>
+            <p class="v3-done__lead" id="historyResultLead">历史订单已导入，可在「工作台 · 店铺管理 · 历史订单」查看。</p>
           </div>
-          <div class="result-tiers">
-            <div class="result-tier-card">
-              <div class="result-tier-row">
-                <span class="result-tier-row__lab"><b>历史消费</b><em id="historyResultSource">已写入本店，只读核对</em></span>
-                <span class="result-tier-row__num" id="historyResultCount">0</span>
-                <button type="button" class="result-tier-row__go" id="btnHistoryResultGo">去看</button>
-              </div>
-            </div>
-          </div>
-          <button type="button" class="result-fail hidden" id="btnHistoryFailRow" aria-hidden="true" tabindex="-1">
-            <span class="result-fail__body"><b><em class="v3-num" id="historyFailCount">0</em> 条失败</b><span>，下载后修正再传</span></span>
-            <span class="result-fail__link">查看明细</span>
-            <svg class="result-fail__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-          </button>
-          <div class="result-acts">
-            <button type="button" class="v3-foot__link is-danger" id="btnHistoryDeleteBatch">删除本批历史消费</button>
-          </div>
+          <p class="v3-batch" id="historyResultSources"></p>
+          <div class="result-dash-host" id="historyResultDash"></div>
         </div>
-        <div class="import-foot">
-          <div class="v3-foot__note">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.4 4.4 5.6v6.1c0 4.7 3.2 8.7 7.6 9.9 4.4-1.2 7.6-5.2 7.6-9.9V5.6L12 2.4Zm0 5.2a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Zm.9 8.6h-1.8v-5h1.8v5Z"/></svg>
-            <span>不进订单流水，仅用于查看核对；会员余额与业绩不受影响</span>
-          </div>
-          <div class="v3-foot__main">
-            <button type="button" class="btn-primary" data-go="workbench">返回工作台</button>
+        <div class="import-foot import-foot--result">
+          <p class="result-archive-tip hidden" id="historyArchiveTip">
+            本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnHistoryArchive">去查看存档</button>
+          </p>
+          <div class="v3-foot__main v3-foot__main--split">
+            <button type="button" class="btn-outline btn-outline--compact" id="btnHistoryViewOrders">查看历史订单</button>
+            <button type="button" class="btn-primary" id="btnHistoryBackWb">返回工作台</button>
           </div>
         </div>
       </div>
@@ -1153,7 +1135,7 @@
           <div class="hs-sec">
             <span class="hs-sec__ico is-err" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.8M12 16.2v.1"/></svg></span>
             <div class="hs-sec__txt">
-              <h2>这几行没能入库</h2>
+              <h2>这几行没能导入</h2>
               <p>只校验日期、金额、顾客姓名、支付方式；其余列原样保留。</p>
             </div>
           </div>
@@ -1197,7 +1179,7 @@
             <div class="v3-bar"><i id="failProgressBar"></i></div>
           </div>
           <div class="v3-sec-hd v3-sec-hd--tight">
-            <h2>这几行没能入库</h2>
+              <h2>这几行没能导入</h2>
             <p>按原因补全字段即可写回；也可以下载失败明细，改好后整表重传。</p>
           </div>
           <div class="import-fail-item" data-fail-id="f1">
@@ -1730,7 +1712,7 @@
           <p class="fail-fix-cards__empty" id="failFixCardEmpty">尚未补录会员卡，可留空</p>
         </div>
         <p class="fail-fix-card__note">会员可能没有持卡，性别、手机号、会员卡均可留空；同一卡种可补多张</p>
-        <button type="button" class="btn-primary" id="btnFailFixSave">保存并入库</button>
+        <button type="button" class="btn-primary" id="btnFailFixSave">保存并导入</button>
         <button type="button" class="btn-ghost" id="btnFailFixCancel">取消</button>
       </div>
 

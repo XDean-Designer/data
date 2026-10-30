@@ -11,7 +11,7 @@
       resumeFlow: null,
       entry: 'home' /* home | workbench */
     },
-    /* 三档识别结果（L1 原件 / L2 摘要 / L3 可入库） */
+    /* 三档识别结果（L1 原件 / L2 摘要 / L3 可导入） */
     tierResult: { l1: [], l2: [], l3Cats: [] },
     confirmItems: { cards: [], prices: [], acknowledged: false },
     archiveDomain: 'member',
@@ -60,7 +60,7 @@
     memberDetailId: null,
     historyReturnFlow: null,
     mhOpenYear: null,
-    /* 本店已入库存量（再导入承接） */
+    /* 本店已导存量（再导入承接） */
     storeStock: { member: 0, card: 0, price: 0, product: 0, history: 0 },
     /* 再导模式：merge | replace；首次导入为 null */
     reimportMode: { member: null, card: null, price: null, product: null },
@@ -364,7 +364,7 @@
       { key: 'initial', label: '首字母', group: '身份信息', tag: '可推导', derived: true, opts: ['首字母'], ph: '输入源表列名，如 拼音首字母' },
       { key: 'phone', label: '手机号', group: '身份信息', opts: ['手机号', '联系电话', '手机'], ph: '输入源表列名，如 联系电话' },
       { key: 'cardType', label: '卡种', group: '身份信息', opts: ['卡种', '卡类型'], ph: '输入源表列名，如 卡名称' },
-      { key: 'cardExpire', label: '卡有效期', group: '持卡与余额', opts: ['卡有效期', '有效期', '到期日'], ph: '输入源表列名，如 失效日期', hint: '支持文本日期与 Excel 日期序列号；远期日期（如 2123-11-09）按「长期有效」处理。' },
+      { key: 'cardExpire', label: '卡有效期', group: '持卡与余额', opts: ['卡有效期', '有效期', '到期日'], ph: '输入源表列名，如 失效日期', hint: '支持文本日期与 Excel 日期序列号；远期日期（如 2123-11-09）按「永久有效」处理。' },
       { key: 'balance', label: '储值余额', group: '持卡与余额', opts: ['储值余额', '余额', '账户余额'], ph: '输入源表列名，如 账户余额' },
       { key: 'rechargeSum', label: '充值合计', group: '持卡与余额', opts: ['充值合计', '累计充值'], ph: '输入源表列名，如 累计充值' },
       { key: 'payMethod', label: '支付方式', group: '持卡与余额', opts: ['支付方式', '付款方式'], ph: '输入源表列名，如 结算方式' },
@@ -377,10 +377,10 @@
       { key: 'recharge', label: '充值金额', group: '基础信息', opts: ['充值金额', '充值'], ph: '输入源表列名，如 办卡金额' },
       { key: 'bonus', label: '赠送金额', group: '基础信息', opts: ['赠送金额', '赠送'], ph: '输入源表列名，如 赠送' },
       { key: 'discountScope', label: '折扣范围', group: '折扣权益', tag: '二选一', opts: ['折扣范围', '折扣类型'], ph: '输入源表列名，如 全场／指定分类' },
-      { key: 'discountValue', label: '折扣值', group: '折扣权益', opts: ['折扣值', '折扣', '折扣比例'], ph: '输入源表列名，如 8折／88%', hint: '「8折」「88%」「0.8」都按 8 折入库。' },
+      { key: 'discountValue', label: '折扣值', group: '折扣权益', opts: ['折扣值', '折扣', '折扣比例'], ph: '输入源表列名，如 8折／88%', hint: '「8折」「88%」「0.8」都按 8 折导入。' },
       { key: 'benefits', label: '项目/产品权益', group: '权益与会员价', tag: '多值', opts: ['权益项目', '项目权益', '包含项目'], ph: '输入源表列名，如 包含项目', hint: '多项用逗号分隔，写成「项目×次数」：染发×2，护理×1。开卡后按项目扣次。' },
       { key: 'memberPrice', label: '会员价', group: '权益与会员价', tag: '多值', opts: ['会员价', '卡耗价', '会员单价'], ph: '输入源表列名，如 会员价格', hint: '多项用逗号分隔，写成「项目 价格」：染发 98，护理 168。须与价目表项目同名。' },
-      { key: 'validity', label: '有效期', group: '有效期', opts: ['有效期', '有效期限'], ph: '输入源表列名，如 有效月数', hint: '可填「12 个月」「365 天」或具体日期；留空按长期有效。' }
+      { key: 'validity', label: '有效期', group: '有效期', opts: ['有效期', '有效期限'], ph: '输入源表列名，如 有效月数', hint: '可填「12 个月」「365 天」或具体日期；留空按永久有效。' }
     ],
     price: [
       { key: 'item', label: '项目·产品', opts: ['项目', '项目名称'], ph: '输入源表列名，如 服务项目' },
@@ -1218,7 +1218,7 @@
     var hint = $('#failFixHint');
     if (hint) {
       hint.textContent = id === 'f1'
-        ? '手机号格式错误，可改正后入库；也可清空留待后续补全'
+        ? '手机号格式错误，可改正后导入；也可清空留待后续补全'
         : '卡余额无法解析，可补录会员卡，也可留空';
     }
     var mask = $('#failFixMask');
@@ -1595,7 +1595,7 @@
           { name: '黄金卡', recharge: '¥2,000', bonus: '¥200', scope: '全场', discount: '8 折', benefits: '染发×2，护理×1', memberPrice: '染发 98，护理 168', validity: '12 个月' },
           { name: '8折卡', recharge: '¥1,000', bonus: '¥100', scope: '全场', discount: '8 折', benefits: '—', memberPrice: '—', validity: '12 个月' },
           { name: '7.5折卡', recharge: '¥800', bonus: '¥80', scope: '全场', discount: '7.5 折', benefits: '洗剪吹×10', memberPrice: '洗剪吹 48', validity: '6 个月' },
-          { name: '6折卡', recharge: '¥500', bonus: '¥50', scope: '指定分类', discount: '6 折', benefits: '护理×6', memberPrice: '护理 128', validity: '长期有效' },
+          { name: '6折卡', recharge: '¥500', bonus: '¥50', scope: '指定分类', discount: '6 折', benefits: '护理×6', memberPrice: '护理 128', validity: '永久有效' },
         ]
         : tplIncluded().map(function (t) {
           return {
@@ -2619,7 +2619,7 @@
     go('import-check');
   }
 
-  /* ---- 历史消费：只有两层（识别摘要 / 原始存档），没有可直接入库 ---- */
+  /* ---- 历史消费：只有两层（识别摘要 / 原始存档），没有可直接导入经营数据 ---- */
   function commitHistoryAnalysis() {
     state.analyzing = false;
     state.checkData = null;
@@ -2789,17 +2789,17 @@
   function digestFromErrorRow(cat, row) {
     var f = row.f || {};
     var title = (typeof checkRowTitle === 'function' ? checkRowTitle(cat, row) : '') ||
-      ((IMPORT_CAT_SHORT[cat] || cat) + ' · 未达门槛');
+      ((IMPORT_CAT_SHORT[cat] || cat) + ' · 不符合条件');
     var fails = (row.problems || []).filter(function (p) { return p.level === 'error'; }).map(function (p) {
       var key = p.field || '';
       return {
         key: key,
         k: key ? checkFieldLabel(cat, key) : '字段',
-        v: p.msg || '无法入库',
+        v: p.msg || '无法导入',
         edit: ''
       };
     });
-    if (!fails.length) fails = [{ key: '', k: '入库', v: '未达必填或含无法识别内容', edit: '' }];
+    if (!fails.length) fails = [{ key: '', k: '导入', v: '未达必填或含无法识别内容', edit: '' }];
     var fields = [];
     Object.keys(f).forEach(function (key) {
       if (fields.length >= 4) return;
@@ -2822,7 +2822,7 @@
   function seedTierDemo() {
     ensureCheckData();
 
-    /* 整份 Excel 可识别已填 <30% → 仅存档；该类若只有这类文件则不进可入库 */
+    /* 整份 Excel 可识别已填 <30% → 仅存档；该类若只有这类文件则不进可导入 */
     ALL_CATS.forEach(function (k) {
       if (!state.importSelection[k]) return;
       if (!catFilesAllArchived(k)) return;
@@ -2979,8 +2979,8 @@
             '<span class="cat-card__ico" aria-hidden="true">' + (CAT_ICO[k] || '') + '</span>' +
             '<span class="tier-card__body">' +
             '<div class="tier-card__title">' + IMPORT_CAT[k] + '</div>' +
-            '<div class="tier-card__meta">可入库 ' + st.importable + ' ' + CAT_UNIT[k] +
-              (st.error ? ' · ' + st.error + ' 条未达门槛' : '') + '</div>' +
+            '<div class="tier-card__meta">可导入 ' + st.importable + ' ' + CAT_UNIT[k] +
+              (st.error ? ' · ' + st.error + ' 条不符合条件' : '') + '</div>' +
             '</span>' +
             '<span class="tier-card__okmark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>' +
             '</div>';
@@ -2988,7 +2988,7 @@
       : '<div class="tier-empty">本批没有可直接导入的数据</div>';
     var digBody = l2.length
       ? '<ul class="tier-mute-list">' + l2.map(function (d) {
-          var reason = (d.fails && d.fails[0] && d.fails[0].v) || '未达入库门槛';
+          var reason = (d.fails && d.fails[0] && d.fails[0].v) || '不符合条件';
           return '<li><b>' + esc(d.title) + '</b><span>' + esc(DOMAIN_LABEL[d.domain] || IMPORT_CAT_SHORT[d.domain] || '') + ' · ' + esc(reason) + '</span></li>';
         }).join('') + '</ul>'
       : '<p class="tier-mute-empty">暂无</p>';
@@ -3004,7 +3004,7 @@
       '<section class="tier-sec tier-sec--mute">' +
         '<div class="tier-mute-card">' +
           '<div class="tier-sec__hd"><h3>识别摘要</h3><em>' + l2.length + ' 条</em></div>' +
-          '<p class="tier-mute-tip">缺必填，或已填字段无法识别 / 数字解析失败。不会入库；可在业务页 ··· →「识别摘要」查看或补全。</p>' +
+          '<p class="tier-mute-tip">缺必填，或已填字段无法识别 / 数字解析失败。不会导入；可在业务页 ··· →「识别摘要」查看或补全。</p>' +
           digBody +
         '</div>' +
       '</section>' +
@@ -3033,7 +3033,7 @@
     return '<section class="tier-sec tier-sec--mute">' +
         '<div class="tier-mute-card">' +
           '<div class="tier-sec__hd"><h3>识别摘要</h3><em>' + t.digest + ' 条</em></div>' +
-          '<p class="tier-mute-tip">历史消费没有「可直接入库」这一档：核对完只写入「历史订单」，不进订单流水、不计业绩与会员余额。</p>' +
+          '<p class="tier-mute-tip">历史消费没有「可直接导入经营数据」这一档：核对完只写入「历史订单」，不进订单流水、不计业绩与会员余额。</p>' +
           digBody +
         '</div>' +
       '</section>' +
@@ -4778,7 +4778,7 @@
   var CHECK_UNIT = { member: '行', card: '行', price: '项', product: '个' };
   var CHECK_LV_LABEL = { error: '需修正', warn: '建议确认', ignored: '已忽略', ok: '可导入' };
 
-  /* v2.25 可入库门槛：必填齐全即可导；任一字段（含选填）文字无法识别或金额/数字解析失败 → 不可导。
+  /* v2.25 可导入条件：必填齐全即可导；任一字段（含选填）文字无法识别或金额/数字解析失败 → 不可导。
      列名对齐 excel模板/ 官方表头（见 PRD §15.7）。 */
   /* 卡模板权益列：按官方 5 sheet 区分（见 CARD_FIELDS_BY_TYPE） */
   var CARD_BENEFIT_KEYS = ['discount', 'rechargeDiscount', 'bonus', 'bonusDiscount', 'times', 'scope', 'scopeItems', 'gift', 'memberPrice', 'pkgMode', 'pkgItems', 'pkgScopeTimes', 'pkgScopeItems', 'pkgCommonTimes', 'includeItems'];
@@ -5358,7 +5358,7 @@
     var priceDsl = /^[^:;]+:(打折|固定金额),\d+(\.\d+)?(;\s*[^:;]+:(打折|固定金额),\d+(\.\d+)?)*$/;
 
     if (cat === 'member') {
-      /* 入库必填：仅会员姓名；其余可空。有值则须可识别。 */
+      /* 导入必填：仅会员姓名；其余可空。有值则须可识别。 */
       if (fieldEmpty(f.name)) add('name', 'error', '会员姓名为空');
       else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '会员姓名');
 
@@ -5488,7 +5488,7 @@
     var f = row.f || {};
     var out = [];
     function add(field, level, msg) { out.push({ field: field, level: level, msg: msg }); }
-    /* 入库必填：产品名称 + 产品售价；分类等选填 */
+    /* 导入必填：产品名称 + 产品售价；分类等选填 */
     if (fieldEmpty(f.name)) add('name', 'error', '产品名称为空');
     else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '产品名称');
     else if (ctx.names[f.name] > 1) add('name', 'warn', '本批有同名产品，导入会跳过后者');
@@ -5942,9 +5942,11 @@
   }
 
   function formatCardValidity(v) {
-    if (!v || String(v).trim() === '') return '长期有效';
-    var validity = String(v);
-    if (!/月|天|永久|长期|—/.test(validity) && /^\d+$/.test(validity)) {
+    if (!v || String(v).trim() === '') return '永久有效';
+    var validity = String(v).trim();
+    /* 系统口径只有「永久有效」，兼容旧文案 / 简写 */
+    if (validity === '长期有效' || validity === '长期' || validity === '永久') return '永久有效';
+    if (!/月|天|永久|—/.test(validity) && /^\d+$/.test(validity)) {
       validity = validity + ' 个月';
     }
     return validity;
@@ -5955,7 +5957,7 @@
     return '¥' + String(v).replace(/^[¥￥]\s*/, '');
   }
 
-  /* 主权益拆「数字 + 单位」：单位小两档、浅一档色，与数字基线对齐 */
+  /* 主权益拆「数字 + 单位」（Figma 607:332：¥ 14/#6B727B，数字 18/Bold） */
   function cardHeroHtml(val) {
     var s = String(val === undefined || val === null ? '' : val).trim();
     if (!s) return '<span class="card-pass__hero-val">—</span>';
@@ -6056,40 +6058,111 @@
     return Object.keys(people).length;
   }
 
+  /* Figma 607:269 — 28 方标；会员自带蓝渐变底，卡/价目白线标放在渐变底上 */
+  function verifyDashBadge(kind) {
+    if (kind === 'card') {
+      return '<span class="verify-dash__badge verify-dash__badge--card" aria-hidden="true">' +
+        '<img src="assets/figma/verify-ico-card.svg" width="22" height="22" alt="">' +
+      '</span>';
+    }
+    if (kind === 'price') {
+      return '<span class="verify-dash__badge verify-dash__badge--price" aria-hidden="true">' +
+        '<img src="assets/figma/verify-ico-price.svg" width="22" height="22" alt="">' +
+      '</span>';
+    }
+    if (kind === 'history') {
+      return '<span class="verify-dash__badge verify-dash__badge--history" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4.5"/></svg>' +
+      '</span>';
+    }
+    return '<span class="verify-dash__badge verify-dash__badge--member" aria-hidden="true">' +
+      '<img src="assets/figma/verify-ico-member.svg" width="28" height="28" alt="">' +
+    '</span>';
+  }
+
+  /* interactive=true → 核对页可点；false → 完成页只读展示（Figma 607:269） */
+  function verifyDashHtml(opts) {
+    opts = opts || {};
+    var interactive = !!opts.interactive;
+    var tag = interactive ? 'button' : 'div';
+    var typeAttr = interactive ? ' type="button"' : '';
+    var mainJump = interactive ? ' data-check-jump="member" aria-label="查看会员数据列表"' : '';
+    var cardJump = interactive ? ' data-check-jump="card" aria-label="查看卡模板数据列表"' : '';
+    var priceJump = interactive ? ' data-check-jump="price" aria-label="查看价目表数据列表"' : '';
+    var memberN = (opts.memberN != null ? opts.memberN : 0).toLocaleString('zh-CN');
+    var cardN = (opts.cardN != null ? opts.cardN : 0).toLocaleString('zh-CN');
+    var priceN = (opts.priceN != null ? opts.priceN : 0).toLocaleString('zh-CN');
+    return '<div class="verify-dash' + (interactive ? '' : ' is-static') + '">' +
+      '<' + tag + typeAttr + ' class="verify-dash__main"' + mainJump + '>' +
+        '<span class="verify-dash__top">' + verifyDashBadge('member') + '<span class="verify-dash__lab">会员信息</span></span>' +
+        '<span class="verify-dash__metric">' +
+          '<span class="verify-dash__metric-lab">人数</span>' +
+          '<b class="verify-dash__num">' + memberN + '</b>' +
+        '</span>' +
+      '</' + tag + '>' +
+      '<div class="verify-dash__stack">' +
+        '<' + tag + typeAttr + ' class="verify-dash__card"' + cardJump + '>' +
+          verifyDashBadge('card') +
+          '<span class="verify-dash__card-body">' +
+            '<span class="verify-dash__lab">卡模板</span>' +
+            '<b class="verify-dash__num">' + cardN + '</b>' +
+          '</span>' +
+        '</' + tag + '>' +
+        '<' + tag + typeAttr + ' class="verify-dash__card"' + priceJump + '>' +
+          verifyDashBadge('price') +
+          '<span class="verify-dash__card-body">' +
+            '<span class="verify-dash__lab">价目表</span>' +
+            '<b class="verify-dash__num">' + priceN + '</b>' +
+          '</span>' +
+        '</' + tag + '>' +
+      '</div></div>';
+  }
+
+  function historyResultDashHtml(count, totalText, subText) {
+    return '<div class="verify-dash verify-dash--solo is-static">' +
+      '<div class="verify-dash__main">' +
+        '<span class="verify-dash__top">' + verifyDashBadge('history') + '<span class="verify-dash__lab">历史订单</span></span>' +
+        '<span class="verify-dash__metric">' +
+          '<span class="verify-dash__metric-lab">已写入</span>' +
+          '<b class="verify-dash__num">' + Number(count || 0).toLocaleString('zh-CN') + '</b>' +
+        '</span>' +
+        '<span class="verify-dash__sub">' + esc(totalText || '') + (subText ? ' · ' + esc(subText) : '') + '</span>' +
+      '</div></div>';
+  }
+
+  function setResultMissRow(btnSel, countSel, n) {
+    var btn = $(btnSel);
+    var cnt = $(countSel);
+    var show = Number(n || 0) > 0;
+    if (cnt) cnt.textContent = String(n || 0);
+    if (btn) {
+      btn.classList.toggle('hidden', !show);
+      btn.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
+  }
+
+  function setResultArchiveTip(tipSel, show) {
+    var tip = $(tipSel);
+    if (tip) tip.classList.toggle('hidden', !show);
+  }
+
   function renderCheckStats() {
     var cats = checkUiCats();
     var all = checkAllStats();
     var batchEl = $('#checkBatchText');
     if (batchEl) {
       batchEl.textContent = all.error
-        ? ('可导入 ' + all.importable.toLocaleString('zh-CN') + ' 条 · 未达门槛 ' + all.error.toLocaleString('zh-CN') + ' 条不会写入。')
+        ? ('可导入 ' + all.importable.toLocaleString('zh-CN') + ' 条 · 不符合条件 ' + all.error.toLocaleString('zh-CN') + ' 条不会写入。')
         : ('可导入 ' + all.importable.toLocaleString('zh-CN') + ' 条，和账本对一下即可。');
     }
     var metrics = $('#checkVerifyMetrics');
     if (metrics) {
-      var memberN = countMemberPeople();
-      var cardN = importableRows('card').length;
-      var priceN = importableRows('price').length + importableRows('product').length;
-      var icoUser = '<svg class="verify-dash__ico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
-      var icoCard = '<svg class="verify-dash__ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>';
-      var icoPrice = '<svg class="verify-dash__ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v0Z"/><path d="M9 12h6M9 16h4"/></svg>';
-      metrics.innerHTML =
-        '<div class="verify-dash">' +
-          '<button type="button" class="verify-dash__main" data-check-jump="member" aria-label="查看会员数据列表">' +
-            '<span class="verify-dash__top">' + icoUser + '<span class="verify-dash__lab">会员人数</span></span>' +
-            '<b class="verify-dash__num">' + memberN.toLocaleString('zh-CN') + '</b>' +
-          '</button>' +
-          '<div class="verify-dash__stack">' +
-            '<button type="button" class="verify-dash__card" data-check-jump="card" aria-label="查看卡模板数据列表">' +
-              '<span class="verify-dash__top">' + icoCard + '<span class="verify-dash__lab">卡模板</span></span>' +
-              '<b class="verify-dash__num">' + cardN.toLocaleString('zh-CN') + '</b>' +
-            '</button>' +
-            '<button type="button" class="verify-dash__card" data-check-jump="price" aria-label="查看价目表数据列表">' +
-              '<span class="verify-dash__top">' + icoPrice + '<span class="verify-dash__lab">价目表</span></span>' +
-              '<b class="verify-dash__num">' + priceN.toLocaleString('zh-CN') + '</b>' +
-            '</button>' +
-          '</div>' +
-        '</div>';
+      metrics.innerHTML = verifyDashHtml({
+        interactive: true,
+        memberN: countMemberPeople(),
+        cardN: importableRows('card').length,
+        priceN: importableRows('price').length + importableRows('product').length
+      });
     }
     var totalEl = $('#checkTotal');
     if (totalEl) totalEl.textContent = all.total.toLocaleString('zh-CN');
@@ -6207,12 +6280,12 @@
     }
     if (blocked.length) {
       html += '<section class="verify-group is-blocked">' +
-        '<div class="verify-group__hd"><b>未达入库门槛</b><span>' + blocked.length + ' 条</span></div>' +
+        '<div class="verify-group__hd"><b>不符合条件</b><span>' + blocked.length + ' 条</span></div>' +
         '<p class="verify-group__hint">缺必填或含无法识别字段，确认导入时不会写入。</p>' +
         blocked.slice(0, 6).map(function (r) {
           var bCat = (state.checkData.price || []).indexOf(r) >= 0 ? 'price'
             : ((state.checkData.product || []).indexOf(r) >= 0 ? 'product' : cat);
-          var msg = ((r.problems || []).filter(function (p) { return p.level === 'error'; })[0] || {}).msg || '未达门槛';
+          var msg = ((r.problems || []).filter(function (p) { return p.level === 'error'; })[0] || {}).msg || '不符合条件';
           return '<div class="verify-row is-blocked"><span class="verify-row__main"><b>' +
             esc((typeof checkRowTitle === 'function' ? checkRowTitle(bCat, r) : '') || '—') +
             '</b><i>' + esc(msg) + '</i></span></div>';
@@ -6293,7 +6366,7 @@
     var foot = $('#checkFootNote');
     if (foot) foot.textContent = isHist
       ? '只写入「历史订单」，不进订单流水、不计业绩与会员余额。'
-      : '只写入达门槛的行；未达门槛与整份存档不会写入。';
+      : '只写入符合条件的数据；未符合条件的数据不会被写入，但提供存档。';
     var submit = $('#btnCheckSubmit');
     if (submit) submit.textContent = isHist ? '确认导入历史消费' : '确认导入';
   }
@@ -6354,39 +6427,33 @@
   function renderHistoryResult() {
     var t = state.historyTier || buildHistoryTier();
     var batchN = HISTORY_ROWS.length;
-    var total = state.historyDeleted ? 0 : (state.storeStock.history || batchN);
-    var count = $('#historyResultCount');
-    if (count) count.textContent = total;
-    var failCount = $('#historyFailCount');
-    if (failCount) failCount.textContent = HISTORY_FAIL_ROWS.length;
-    var failRow = $('#btnHistoryFailRow');
-    if (failRow) {
-      failRow.classList.add('hidden');
-      failRow.setAttribute('aria-hidden', 'true');
-    }
+    var written = state.historyDeleted ? 0 : (state.storeStock.history || batchN);
+    var archN = (t.archive || []).length;
     var lead = $('#historyResultLead');
     if (lead) {
-      if (state.historyDeleted) {
-        lead.textContent = '本批历史消费已删除，可重新导入。';
-      } else {
-        lead.textContent = '历史订单已入库，可在「工作台 · 店铺管理 · 历史订单」查看。';
-      }
+      lead.textContent = state.historyDeleted
+        ? '本批历史消费已删除，可重新导入。'
+        : '历史订单已导入，可在「工作台 · 店铺管理 · 历史订单」查看。';
     }
-    var src = $('#historyResultSource');
-    if (src) {
-      var srcBody = t.photoCount
-        ? '表 ' + t.excelCount + ' 份 + 照片 ' + t.photoCount + ' 张'
-        : '';
-      if (state.historyDeleted) {
-        src.textContent = '已删除本批' + (srcBody ? ' · ' + srcBody : ' · 只读核对');
-      } else {
-        src.textContent = srcBody ? '已写入本店 · ' + srcBody : '已写入本店，只读核对';
-      }
+    var sources = $('#historyResultSources');
+    if (sources) {
+      var parts = [];
+      if (t.excelCount) parts.push('Excel ' + t.excelCount + ' 个');
+      if (t.photoCount) parts.push('照片 ' + t.photoCount + ' 张');
+      sources.textContent = '本批来源：' + (parts.length ? parts.join(' · ') + ' · AI 识别' : '演示数据');
     }
-    var del = $('#btnHistoryDeleteBatch');
-    if (del) del.classList.toggle('hidden', !!state.historyDeleted);
+    var dash = $('#historyResultDash');
+    if (dash) {
+      dash.innerHTML = historyResultDashHtml(
+        written,
+        written ? ('合计 ' + fmtMoney(t.total)) : '合计 ¥0',
+        '只读核对，不影响业绩'
+      );
+    }
+    /* 历史成功写入本身即 L2 性质，完成页不再展示「未能成功导入」 */
+    setResultArchiveTip('#historyArchiveTip', !state.historyDeleted && archN > 0);
     var delCount = $('#historyDelCount');
-    if (delCount) delCount.textContent = total || batchN;
+    if (delCount) delCount.textContent = written || batchN;
   }
 
   function renderHistoryFail() {
@@ -6740,7 +6807,7 @@
     var all = checkAllStats();
     var total = all.importable;
     if (!total) {
-      showToast(all.error ? '没有达到导入门槛的数据' : '没有可导入的数据');
+      showToast(all.error ? '没有符合条件的数据' : '没有可导入的数据');
       return;
     }
 
@@ -6750,8 +6817,8 @@
     setImportStage('importing', 'import-check');
     runImportProgress({
       title: '正在导入',
-      sub: '写入 ' + total.toLocaleString('zh-CN') + ' 条可入库数据' +
-        (all.error ? ' · 跳过 ' + all.error.toLocaleString('zh-CN') + ' 条未达门槛' : ''),
+      sub: '写入 ' + total.toLocaleString('zh-CN') + ' 条可导入数据' +
+        (all.error ? ' · 跳过 ' + all.error.toLocaleString('zh-CN') + ' 条不符合条件' : ''),
       stages: [
         { at: 0, label: '准备数据' },
         { at: 30, label: '写入会员与持卡' },
@@ -7337,7 +7404,7 @@
     if (hrMask) hrMask.addEventListener('click', hideHistoryReimportSheet);
   }
 
-  /* 历史消费导入：核对页（Figma 6-09）/ 完成页（6-10）/ 失败明细 */
+  /* 历史消费导入：核对页 / 完成页 / 失败明细 */
   function bindHistoryImport() {
     var back = $('#btnHistoryPreviewBack');
     if (back) {
@@ -7349,12 +7416,6 @@
     var confirm = $('#btnHistoryPreviewConfirm');
     if (confirm) confirm.addEventListener('click', submitHistoryImport);
 
-    var failRow = $('#btnHistoryFailRow');
-    if (failRow) {
-      failRow.classList.add('hidden');
-      failRow.setAttribute('aria-hidden', 'true');
-    }
-
     var failDl = $('#btnHistoryFailDownload');
     if (failDl) {
       failDl.addEventListener('click', function () {
@@ -7362,12 +7423,27 @@
       });
     }
 
-    var goOrders = $('#btnHistoryResultGo');
-    if (goOrders) {
-      goOrders.addEventListener('click', function () {
-        exitHistoryMode();
+    var arch = $('#btnHistoryArchive');
+    if (arch) {
+      arch.addEventListener('click', function () {
+        openArchiveList('order', 'history-import-result');
+      });
+    }
+
+    var viewOrders = $('#btnHistoryViewOrders');
+    if (viewOrders) {
+      viewOrders.addEventListener('click', function () {
         state.viewReturn = 'history-import-result';
         go('history-orders');
+      });
+    }
+
+    var backWb = $('#btnHistoryBackWb');
+    if (backWb) {
+      backWb.addEventListener('click', function () {
+        exitHistoryMode();
+        state.viewReturn = null;
+        go('workbench');
       });
     }
 
@@ -7376,17 +7452,6 @@
       var dlg = $('#historyDelDialog');
       if (mask) mask.classList.remove('show');
       if (dlg) dlg.classList.remove('show');
-    }
-
-    var delBtn = $('#btnHistoryDeleteBatch');
-    if (delBtn) {
-      delBtn.addEventListener('click', function () {
-        if (state.historyDeleted) return;
-        var mask = $('#historyDelMask');
-        var dlg = $('#historyDelDialog');
-        if (mask) mask.classList.add('show');
-        if (dlg) dlg.classList.add('show');
-      });
     }
     var delCancel = $('#btnHistoryDelCancel');
     if (delCancel) delCancel.addEventListener('click', closeHistoryDel);
@@ -7826,6 +7891,19 @@
       });
     }
 
+    var resultMiss = $('#btnResultMiss');
+    if (resultMiss) {
+      resultMiss.addEventListener('click', function () {
+        openDigestList('member', 'import-result');
+      });
+    }
+    var resultArch = $('#btnResultArchive');
+    if (resultArch) {
+      resultArch.addEventListener('click', function () {
+        openArchiveList('member', 'import-result');
+      });
+    }
+
     /* data-result-view 由 renderResultStockLines 动态生成，用委托 */
     var resultStockHost = $('#resultStockList');
     if (resultStockHost) {
@@ -7833,13 +7911,6 @@
         var btn = e.target.closest('[data-result-view]');
         if (!btn) return;
         openResultCatView(btn.getAttribute('data-result-view'));
-      });
-    }
-
-    var delBatch = $('#btnImportDeleteBatch');
-    if (delBatch) {
-      delBatch.addEventListener('click', function () {
-        showDelBatchDialog();
       });
     }
 
@@ -7860,12 +7931,6 @@
         showToast('已删除已导入数据，会员与卡已回到导入前状态');
         go('import-guide');
       });
-    }
-
-    var failRow = $('#btnImportFailRow');
-    if (failRow) {
-      failRow.classList.add('hidden');
-      failRow.setAttribute('aria-hidden', 'true');
     }
 
     var failDownload = $('#btnImportFailDownload');
@@ -7973,7 +8038,7 @@
           markFailFixed(id);
         }
         hideFailFix();
-        showToast('已补录并入库');
+        showToast('已补录并导入');
       });
     }
     var failCancel = $('#btnFailFixCancel');
@@ -8352,18 +8417,21 @@
   }
 
   function onImportResultEnter() {
+    /* 历史消费完成页已独立；误入主链结果页时改道 */
     if (state.importMode === 'history') {
-      renderHistoryResultSummary();
-      renderResultSources();
-      setImportStage('done', 'import-result');
+      setImportStage('done', 'history-import-result');
+      go('history-import-result');
       return;
     }
     if (state.pendingStockApply) {
       applyBatchToStock();
       state.pendingStockApply = false;
     }
+    var title = $('#importResultTitle');
+    var lead = $('#importResultLead');
+    if (title) title.textContent = '本批处理完成';
+    if (lead) lead.textContent = '可导入的已写入；其余已按档存档，可随时查阅。';
     renderResultTierSummary();
-    /* v2.36：成功页删除「已导入」明细第二卡 */
     var stockHost = $('#resultStockList');
     if (stockHost) {
       stockHost.innerHTML = '';
@@ -8374,67 +8442,21 @@
     setImportStage('done', 'import-result');
   }
 
-  function renderHistoryResultSummary() {
-    var t = state.historyTier || buildHistoryTier();
-    var title = $('#importResultTitle');
-    var lead = $('#importResultLead');
-    if (title) title.textContent = '历史消费已导入';
-    if (lead) lead.textContent = '只写进「历史订单」；订单流水、业绩与会员余额都不受影响。';
-    /* 历史模式下用不到主链的失败明细 / 删除本批 / 再导历史入口 */
-    ['#btnImportFailRow', '#btnImportHistory', '#btnImportDeleteBatch', '#importResultMerge'].forEach(function (sel) {
-      var el = $(sel);
-      if (el) el.classList.add('hidden');
-    });
-    var host = $('#resultTierSummary');
-    if (!host) return;
-    host.innerHTML =
-      '<div class="result-tier-card">' +
-        '<div class="result-tier-row">' +
-          '<span class="result-tier-row__lab"><b>写入历史订单</b><em>' + t.digest + ' 笔 · ' + fmtMoney(t.total) + '</em></span>' +
-          '<span class="result-tier-row__num">' + t.digest + '</span>' +
-          '<button type="button" class="result-tier-row__go" data-hist-result="orders">去看</button>' +
-        '</div>' +
-        '<div class="result-tier-row">' +
-          '<span class="result-tier-row__lab"><b>仅存档</b><em>原件已留，可检索</em></span>' +
-          '<span class="result-tier-row__num">' + t.archive.length + '</span>' +
-          '<button type="button" class="result-tier-row__go" data-hist-result="archive">去看</button>' +
-        '</div>' +
-      '</div>';
-  }
-
   function renderResultTierSummary() {
-    if (state.importMode === 'history') { renderHistoryResultSummary(); return; }
-    ['#btnImportFailRow', '#btnImportHistory', '#btnImportDeleteBatch'].forEach(function (sel) {
-      var el = $(sel);
-      if (el) el.classList.remove('hidden');
-    });
     ensureTierDemo();
     var host = $('#resultTierSummary');
-    if (!host) return;
-    var l1 = (state.tierResult.l1 || []).length;
+    if (host) {
+      host.innerHTML = verifyDashHtml({
+        interactive: false,
+        memberN: countMemberPeople(),
+        cardN: importableRows('card').length,
+        priceN: importableRows('price').length + importableRows('product').length
+      });
+    }
     var l2 = (state.tierResult.l2 || []).length;
-    var l3n = 0;
-    (state.tierResult.l3Cats || []).forEach(function (k) {
-      if (state.importSelection[k]) l3n += checkStats(k).importable || batchCount(k) || 0;
-    });
-    host.innerHTML =
-      '<div class="result-tier-card">' +
-        '<div class="result-tier-row">' +
-          '<span class="result-tier-row__lab"><b>已导入</b><em>对上字段，已写入本店</em></span>' +
-          '<span class="result-tier-row__num">' + l3n + '</span>' +
-          '<button type="button" class="result-tier-row__go" data-result-tier="l3">去看</button>' +
-        '</div>' +
-        '<div class="result-tier-row">' +
-          '<span class="result-tier-row__lab"><b>识别摘要</b><em>可在各模块 ··· 查阅</em></span>' +
-          '<span class="result-tier-row__num">' + l2 + '</span>' +
-          '<button type="button" class="result-tier-row__go" data-result-tier="l2">去看</button>' +
-        '</div>' +
-        '<div class="result-tier-row">' +
-          '<span class="result-tier-row__lab"><b>仅存档</b><em>原件已留，可检索</em></span>' +
-          '<span class="result-tier-row__num">' + l1 + '</span>' +
-          '<button type="button" class="result-tier-row__go" data-result-tier="l1">去看</button>' +
-        '</div>' +
-      '</div>';
+    var l1 = (state.tierResult.l1 || []).length;
+    setResultMissRow('#btnResultMiss', '#resultMissCount', l2);
+    setResultArchiveTip('#resultArchiveTip', l1 > 0);
   }
 
   function bindWorkbench() {
@@ -8763,7 +8785,7 @@
     });
     (d.fails || []).forEach(function (x) {
       var kk = digestValKey(x);
-      if (!kk || kk === '入库') return;
+      if (!kk || kk === '导入') return;
       f[kk] = (x.edit || '').trim() || x.v;
     });
     // 优先内部英文字段键；中文键作兼容回退
