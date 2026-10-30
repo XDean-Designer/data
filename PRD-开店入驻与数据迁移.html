@@ -60,7 +60,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.54</td>
+<td>v2.61</td>
 </tr>
 <tr>
 <td>日期</td>
@@ -95,6 +95,41 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.61</td>
+<td>2026-10-30</td>
+<td><strong>主权益数值缩小并按「数字 + 单位」拆分</strong>：数字由 26px/700 降为 <strong>20px/700</strong>；<code>¥</code> / <code>折</code> / <code>次</code> 拆为独立 <code>span</code>，比数字<strong>小两档</strong>（16px/600）且<strong>浅一档</strong>（<code>#6B727B</code>），与数字基线对齐（<code>inline-flex</code> + <code>baseline</code>，间距 2px）。新增 <code>cardHeroHtml()</code>：前缀 <code>¥</code>、后缀 <code>折/次/人/个月</code> 归一化拆分；空值仍输出 <code>—</code>。仅代码层自检，未跑断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.60</td>
+<td>2026-10-30</td>
+<td><strong>会员卡版式再调整：去左上角图标、卡名回左上、主权益改左右同行、整体放大</strong>。<strong>① 结构</strong>：第一行卡名（19px/600）左 + 类型 chip（20px 高 / 11px）右；第二行「开卡价」13px/500 左 + 数值 26px/700 等宽右（基线对齐，<code>space-between</code>）；底部三格统计保留。<strong>② 放大</strong>：卡面内距 18/16，统计条高 44→62、标签 11→12px、值 13→14px/600，值允许两行（<code>-webkit-line-clamp: 2</code>）；卡片改为 <code>justify-content: space-between</code>，剩余高度均分到两处行距，<strong>不再在底部留大块空白</strong>。<strong>③ 口径</strong>：所有卡类型统一用「左标签 / 右数值」（储值=开卡价、计次=可用次数、折扣=折扣、套餐/周期=购价）；比例保持 <code>1.586:1</code>；删除 <code>.card-pass__brand</code> / <code>__brand-mark</code> / <code>__brand-ico</code>。仅代码层自检，未跑断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.59</td>
+<td>2026-10-30</td>
+<td><strong>核对页卡模板重做为「权益卡」：扁平、浅灰底、靠字体分层</strong>。<strong>① 结构</strong>：品牌行（22px 浅底标记 + 类型 chip）→ 卡名 17px/600 → 主权益（标签 10px 字距 .08em + 数字 24px/700 等宽）→ 底部三格统计条（上沿与格间均 1px <code>#EDEFF2</code> 发丝线，标签 10px/<code>#A3A9B0</code>、值 12px/600/<code>#333A42</code>）。<strong>② 配色</strong>：卡面统一浅灰 <code>#F5F6F8</code>，0.5px 描边 + <code>0 1px 2px rgba(16,24,40,.04)</code> 轻阴影，<strong>无渐变无高光</strong>；类型 chip 改淡底 + 深一档同色字（不再饱和实底）。<strong>③ 每类卡只允许一个视觉主体</strong>：储值=开卡价、计次=可用次数、折扣=折扣、套餐/周期=购价。<strong>④ 删除</strong> <code>.card-pass__chip</code> / <code>__grid</code> / <code>__cell</code> / <code>__hd</code>（装饰芯片与双列平铺字段）。仅代码层自检，未跑断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.58</td>
+<td>2026-10-30</td>
+<td><strong>邀请 sheet 80% 高；会员卡更浅底 + 银行卡比例；上下架 toast；核对顶卡加图标加粗</strong>。<strong>①</strong> <code>invite-sheet--xl</code> 高度改为 <code>80vh</code>。<strong>②</strong> 卡面底 <code>#F5F7FA</code>，近扁平。<strong>③</strong> 卡面 <code>aspect-ratio: 1.586/1</code>，卡头 + chip 装饰 + 双列紧凑字段（最多 6 格）。<strong>④</strong> Switch toast 为「已上架」「已下架」。<strong>⑤</strong> <code>verify-dash</code> 加用户/卡/清单图标，标签 13px/600、数字加粗加大，去掉过大空白。仅代码层自检，未跑断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.57</td>
+<td>2026-10-30</td>
+<td><strong>邀请 sheet 加高 + 插图循环动效；核对顶卡白底轻阴影；价目名称编辑显输入框；卡模板近扁平会员卡（卡头+字段）</strong>。<strong>①</strong> <code>invite-sheet--xl</code> 高度约 94vh；插图表格/箭头/手机 2.4s 循环，<code>prefers-reduced-motion</code> 静止。<strong>②</strong> <code>verify-dash</code> 卡白底 + <code>0 1px 4px</code> 轻阴影。<strong>③</strong> 点价目名称出现绿描边输入框（与价格编辑同口径），失焦仍自动保存。<strong>④</strong> 卡模板近扁平浅灰底 + 轻阴影；卡头（名+类型）+ 按类型展示较完整字段行。仅代码层自检，未跑断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.56</td>
+<td>2026-10-30</td>
+<td><strong>导入链路整批：邀请超大 sheet、选源内联 Excel、识别顶条、核对重构、下线失败补录、历史匹配改手机号/编号、价目识别获取 + 绿 Switch、卡模板拟物卡</strong>。<strong>① 邀请</strong>：<code>invite-sheet--xl</code> + 插画，「无需导入」。<strong>② 选源</strong>：点 Excel 卡直接落文件，标题栏「下载模板」（历史模式隐藏）；<code>import-source</code> 软跳选源。<strong>③ 识别中</strong>：顶条蓝提示。<strong>④ 核对</strong>：顶卡 verify-dash；价目合并 tab；失焦保存；卡模板 + 绿 Switch。<strong>⑤ 失败/补录</strong>入口常隐，失败页软跳结果。<strong>⑥ 历史匹配（6A-2）</strong>：手机号或会员编号命中后再校验姓名；取消「解除」；导入历史不反写会员号（6C-否）。<strong>⑦</strong>「识别获取」价目默认下架。仅代码层自检、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.55</td>
+<td>2026-10-30</td>
+<td><strong>会员卡对齐 Figma 455:245 + 首页 banner 布局/动效 + 空 soft-tip 防露底</strong>。会员历史卡半透明渐变与描边；首页 banner 顶距与 <code>-142px</code> 叠压使门店行到底边间距 25px；识别中/导入中三点动效；空 soft-tip 不占位。未跑断言、<strong>未提交</strong>。</td>
+</tr>
 <tr>
 <td>v2.54</td>
 <td>2026-10-30</td>
@@ -644,7 +679,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 <tr>
 <td>会员历史消费</td>
-<td>会员列表 → 顾客详情（占位）→「历史消费」；按<strong>顾客姓名</strong>挂靠会员，年份卡片 + 逐条「解除」（记录仍留历史订单）</td>
+<td>会员列表 → 顾客详情（占位）→「历史消费」；按<strong>手机号或会员编号</strong>命中后再校验姓名；年份卡片只读，<strong>无解除</strong></td>
 <td>§6.27 / §6.28</td>
 </tr>
 <tr>
@@ -654,7 +689,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 <tr>
 <td>失败闭环</td>
-<td>失败明细 / 手动补录半屏 / 添加卡 / 补录老卡 / 修改 / 删除 / 补录完成滑出 / 全部补录空态</td>
+<td>v2.56 起结果页失败入口常隐；深链 / 导航进失败页软跳对应结果页；补录半屏与老卡页保留在 DOM 但不作为主链入口</td>
 <td>§6.15–§6.18</td>
 </tr>
 <tr>
@@ -4427,13 +4462,13 @@ flowchart LR
 </tr>
 <tr>
 <td>同名提示</td>
-<td>店内存在同名会员（&gt; 1 位）时，档案卡下出现 <code>.mh-dup-tip</code> 浅黄提示条：「店内有 <em class="num-em">N</em> 位同名顾客，历史消费按姓名匹配，请先核对手机号再采信。」</td>
-<td>无同名则不显示</td>
+<td>v2.56 起改按手机号 / 会员编号匹配，同名不同号不会串挂；原型不再展示同名提示条</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
 
-<h2>6.28 会员历史消费（年份卡片 + 解除匹配）</h2>
+<h2>6.28 会员历史消费（年份卡片 · 手机号/编号匹配）</h2>
 <table>
 <thead>
 <tr>
@@ -4445,8 +4480,8 @@ flowchart LR
 <tbody>
 <tr>
 <td>匹配口径</td>
-<td>历史消费行<strong>「顾客姓名」与会员姓名完全相等</strong>即挂到该会员名下；<strong>不看手机号</strong>（消费记录里没有手机号）；姓名为空的行不匹配任何会员</td>
-<td>同名多位会员时<strong>每人都挂上</strong>，并各自提示「同名 N 人，请核对」</td>
+<td>历史行须带<strong>手机号或会员编号</strong>之一，与本店会员对应字段相等，且<strong>姓名完全相等</strong>才挂到该会员名下；无手机号且无编号的行<strong>不匹配</strong>任何会员；导入历史<strong>不</strong>把号反写到会员档案</td>
+<td>只对照本店已有会员；不因历史导入新建会员或补写手机号/编号</td>
 </tr>
 <tr>
 <td>标题栏</td>
@@ -4465,22 +4500,17 @@ flowchart LR
 </tr>
 <tr>
 <td>消费行</td>
-<td><code>.mh-row</code> 两段式（避免按钮嵌套）：可点区 <code>.mh-row__open</code> = 左「项目」（14px / 500）+ 次行「日期 · 支付方式」（12px 次级灰）；右金额（14px / 600，等宽数字）；行尾独立按钮「解除」（26px 高、圆角 13、浅灰底 <code>#F5F7F9</code> / 12px <code>#6B6B6B</code>）</td>
-<td>点可点区 → <strong>订单详情</strong>（<code>history-detail</code>），详情返回回到本页；点「解除」→ 解除匹配（下表）</td>
-</tr>
-<tr>
-<td>解除匹配</td>
-<td>把该行 id 记入 <code>state.historyUnmatched</code>；该行<strong>立即从本会员名下消失</strong>，合计与年份卡片同步重算（该年无记录则整卡消失）</td>
-<td>toast「已解除匹配，记录仍在历史订单」；<strong>记录本身不删除</strong>——历史订单里照旧可见，金额 / 日期 / 原始字段全不变</td>
+<td><code>.mh-row</code>：可点区 <code>.mh-row__open</code> = 左「项目」+ 次行「日期 · 支付方式 · 充值/消费标签」；右金额；<strong>无「解除」按钮</strong></td>
+<td>点可点区 → <strong>订单详情</strong>（<code>history-detail</code>），详情返回回到本页</td>
 </tr>
 <tr>
 <td>页脚说明</td>
-<td>12px 灰字：「解除匹配只把该条从本会员名下移出，记录仍留在「历史订单」，不会被删除。」</td>
+<td>12px 灰字：「按手机号或会员编号匹配后校验姓名；无手机号/编号的历史行不会挂到会员名下。」</td>
 <td>—</td>
 </tr>
 <tr>
 <td>空态</td>
-<td>标题「暂无历史消费」；说明「导入的历史记录里没有「姓名」的消费；同名记录被你解除匹配后也会回到这里。」</td>
+<td>标题「暂无历史消费」；说明「导入的历史记录里没有与「姓名」手机号或会员编号匹配的消费。」</td>
 <td>不提供直接导入入口（走历史订单页）</td>
 </tr>
 </tbody>
@@ -4505,17 +4535,12 @@ flowchart LR
 <tr>
 <td>有数据</td>
 <td>本批已入库</td>
-<td>列表可搜 / 可筛 / 可看详情；会员详情下按姓名自动挂上同名的历史记录</td>
+<td>列表可搜 / 可筛 / 可看详情；会员侧按手机号或会员编号 + 姓名挂靠</td>
 </tr>
 <tr>
-<td>已解除匹配</td>
-<td>该行 id 在 <code>state.historyUnmatched</code> 中</td>
-<td>从该会员「历史消费」下移除、合计重算（该年归零则整卡消失）；<strong>历史订单里照旧可见</strong>，金额与原始字段不变</td>
-</tr>
-<tr>
-<td>同名会员</td>
-<td>店内同名会员 &gt; 1 位</td>
-<td>每人各自挂上同一批记录，并在顾客详情与历史消费页顶部提示「同名 N 人，请核对手机号」；<strong>系统不做自动择一</strong></td>
+<td>同名不同号</td>
+<td>姓名相同但手机号 / 编号不同</td>
+<td>不串挂；仅号命中且姓名一致的会员可见该行</td>
 </tr>
 <tr>
 <td>已删除</td>
@@ -7216,8 +7241,8 @@ sequenceDiagram
 <tr><td>AC-H02</td><td>取消人工映射</td><td>历史链路<strong>不应</strong>出现字段映射区（<code>#histMapArea</code>、<code>#histSampleArea</code>、四行字段下拉、<code>#btnHistAdjust</code>、「标准表头」卡与样例表）；DOM 与 CSS<strong>均不应</strong>残留上述类名 / id</td></tr>
 <tr><td>AC-H03</td><td>专属核对/完成底栏提示</td><td>核对页底栏<strong>应</strong>为「导入后可在「历史订单」查看全部」+「确认导入」；完成页底栏<strong>应</strong>为「不进订单流水，仅用于查看核对；会员余额与业绩不受影响」+「返回工作台」；正文<strong>不应</strong>重复同一句小字</td></tr>
 <tr><td>AC-H04</td><td>核对页汇总卡 + 按月折叠</td><td>独立核对屏<strong>应</strong>有 <code>.hs-sum</code> 汇总卡（条数 / 合计 / 日期范围）与按月折叠列表（<code>.hist-month</code>）：卡头左「YYYY-MM」、右「N 笔 · ¥X」；展开后最多 4 行 <code>.hist-month__sample</code>（姓名 · 支付方式 · 金额）；点卡头展开收起且<strong>同时只展开一个月</strong>；样例行<strong>只读</strong>，不点进详情</td></tr>
-<tr><td>AC-H05</td><td>顾客详情入口与姓名匹配</td><td>会员列表点行<strong>应</strong>进入 <code>#screen-member-detail</code>（顶部「示意占位」说明条）；「消费明细」节内<strong>应有</strong>「历史消费」入口行（32px 浅绿图标块 + 主文案 14px / 600 + 次数与合计 12px + 右「只读」+ chevron）；匹配<strong>只按顾客姓名完全相等</strong>，<strong>不应</strong>读取手机号做匹配；店内存在同名会员时<strong>应</strong>出现「同名 N 人，请核对手机号」提示条；无匹配时入口<strong>仍可点</strong>且次行为「暂无匹配到同名历史记录」</td></tr>
-<tr><td>AC-H06</td><td>会员历史消费与解除匹配</td><td><code>#screen-member-history</code> <strong>应为</strong>年份卡片：卡头左年份 17px / 600、右该年合计 15px / 600 + 笔数 12px + chevron，年份降序、默认全收起、同时只展开一年；消费行<strong>应为</strong>两段式（可点区 + 独立「解除」按钮，26px 高 / 圆角 13 / <code>#F5F7F9</code> 底 / 12px <code>#6B6B6B</code>），<strong>不应</strong>把「解除」做成嵌套在整行按钮内部的按钮；点「解除」后该行<strong>应</strong>立即从本会员名下消失、合计与年份卡<strong>应</strong>同步重算（该年归零则整卡消失），历史订单里该条<strong>应</strong>照旧存在且字段不变；点可点区<strong>应</strong>进 <code>history-detail</code>，返回<strong>应</strong>回本页</td></tr>
+<tr><td>AC-H05</td><td>顾客详情入口与号+姓名匹配</td><td>会员列表点行<strong>应</strong>进入 <code>#screen-member-detail</code>（顶部「示意占位」）；标题栏右侧「历史消费」进会员历史；匹配<strong>应</strong>先命中手机号或会员编号、再校验姓名全等；无号行<strong>不应</strong>挂到任何会员；导入历史<strong>不应</strong>反写会员手机号/编号</td></tr>
+<tr><td>AC-H06</td><td>会员历史消费（无解除）</td><td><code>#screen-member-history</code> <strong>应为</strong>顶部会员卡 + 年份卡片（默认全收起、同时只展开一年）；消费行<strong>应</strong>可点进 <code>history-detail</code>、<strong>不应</strong>出现「解除」；页脚<strong>应</strong>说明按手机号或会员编号匹配后校验姓名</td></tr>
 <tr><td>AC-D10</td><td>例外不外溢</td><td>开关橙 <code>#FF7043</code><strong>不得</strong>出现在按钮 / 标签 / 选中态；环形图 <code>conic-gradient</code> <strong>不得</strong>被复用到卡片或进度条</td></tr>
 </tbody>
 </table>
@@ -7384,7 +7409,7 @@ sequenceDiagram
 <tr><td>AC-N20</td><td>拍照页水印<strong>只应有线框与一行表头</strong>，不应出现任何示例数值与类别小标题；不透明度约 0.3。取景区应同时可见四角括号与扫描线，且二者压在水印之上。</td></tr>
 <tr><td>AC-N21</td><td>按快门后白色闪光应在 0.28s 内结束，<strong>结束 500ms 后取景区不应残留任何白色遮罩</strong>（闪光类应已摘除）。标题栏右侧不应出现「已拍 N 张」。</td></tr>
 <tr><td>AC-N22</td><td>从相册勾选或预览里「选择这张」后，快门左侧叠图顶层应为该张照片（46×46、白描边），且已选栏自动展开；取消勾选后叠图应回到上一张或空态。</td></tr>
-<tr><td>AC-N23</td><td>核对页：会员列表<strong>不应出现按卡类型 / 卡名分组的分组头</strong>，应为平铺；卡模板每个卡类型大卡内每张卡应为独立卡片且保留上架开关；分项卡的大数值与数值条应取与该分项分段条、图例一致的同一颜色（不应全部为绿色）。</td></tr>
+<tr><td>AC-N23</td><td>核对页：会员列表<strong>不应出现按卡类型 / 卡名分组的分组头</strong>，应为平铺；卡模板每张卡<strong>应为</strong>独立会员卡（<code>.card-pass</code>）且保留上架开关；<strong>卡面应为</strong>银行卡比例（<code>aspect-ratio: 1.586/1</code>）、纯浅灰底 <code>#F5F6F8</code>、0.5px 描边 + 轻阴影，<strong>不应</strong>出现渐变、高光扫光或装饰芯片；<strong>卡内层级应为</strong>第一行「卡名 19px/600 左 + 类型 chip 右」→ 第二行「主权益标签 13px/500 左 + 数值 20px/700 等宽右，基线对齐」→ 底部三格统计条（高 62px，1px <code>#EDEFF2</code> 发丝线分隔，标签 12px、值 14px/600 可两行），<strong>不应</strong>在左上角出现任何图标块，<strong>一张卡只允许</strong>一个 20px 主数字；<code>¥</code> / <code>折</code> / <code>次</code> 等单位<strong>应为</strong>独立元素、比数字小两档（16px/600）且颜色更浅（<code>#6B727B</code>），<strong>不应</strong>与数字同字号同色；类型 chip <strong>应为</strong>淡底 + 深一档同色字，<strong>不应</strong>为饱和实底白字；分项卡的大数值与数值条应取与该分项分段条、图例一致的同一颜色（不应全部为绿色）。</td></tr>
 <tr><td>AC-N24</td><td>识别摘要详情<strong>不应再出现顶部带「复制」的原文卡</strong>，页面首个区块应为「已识别字段」。</td></tr>
 <tr><td>AC-N25</td><td>批次完成后（结果页 → 返回首页 → 再进「数据导入」）应从头开始：待识别清单为 0、不回到结果页；有存量进「本店概况」，无存量进「选择导入方式」。</td></tr>
 <tr><td>AC-N26</td><td>卡模板卡砖右上角的类型角标应按类型分色：储值卡蓝、计次卡粉、折扣卡紫、套餐卡黄、周期卡橙；仅有角标着色，卡类型分组标题文字保持中性色。</td></tr>

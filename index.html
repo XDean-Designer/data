@@ -34,14 +34,14 @@
     <div class="g-t">数据导入</div>
     <button type="button" class="nav-item" data-flow="import-overview"><span class="idx">概</span>迁移中心</button>
     <button type="button" class="nav-item" data-flow="import-select"><span class="idx">I</span>导入数据</button>
-    <button type="button" class="nav-item" data-flow="import-source"><span class="idx">II</span>上传 Excel</button>
+    <button type="button" class="nav-item hidden" data-flow="import-source" aria-hidden="true" tabindex="-1"><span class="idx">II</span>上传 Excel</button>
     <button type="button" class="nav-item" data-flow="import-camera"><span class="idx">拍</span>拍照</button>
     <button type="button" class="nav-item" data-flow="import-analyze"><span class="idx">识</span>识别中</button>
     <button type="button" class="nav-item" data-flow="import-cards"><span class="idx">III</span>分档结果</button>
     <button type="button" class="nav-item" data-flow="import-confirm"><span class="idx">IV</span>确认有效项</button>
     <button type="button" class="nav-item" data-flow="import-check"><span class="idx">核</span>数据核对</button>
     <button type="button" class="nav-item" data-flow="import-result"><span class="idx">VI</span>导入结果</button>
-    <button type="button" class="nav-item" data-flow="import-fail"><span class="idx">VII</span>失败明细</button>
+    <button type="button" class="nav-item hidden" data-flow="import-fail" aria-hidden="true" tabindex="-1"><span class="idx">VII</span>失败明细</button>
     <button type="button" class="nav-item" data-flow="legacy-card"><span class="idx">C</span>添加卡<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="legacy-detail"><span class="idx">C·</span>补录老卡<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="members"><span class="idx">M</span>会员列表<span class="nav-ph">占位</span></button>
@@ -60,7 +60,7 @@
     <button type="button" class="nav-item" data-flow="member-history"><span class="idx">客·</span>会员历史消费</button>
     <button type="button" class="nav-item" data-flow="history-import-preview"><span class="idx">历·</span>核对历史</button>
     <button type="button" class="nav-item" data-flow="history-import-result"><span class="idx">历✓</span>历史完成</button>
-    <button type="button" class="nav-item" data-flow="history-import-fail"><span class="idx">历✗</span>历史失败</button>
+    <button type="button" class="nav-item hidden" data-flow="history-import-fail" aria-hidden="true" tabindex="-1"><span class="idx">历✗</span>历史失败</button>
   </div>
   <div class="nav-group">
     <div class="g-t">空态</div>
@@ -75,7 +75,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.53</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.61</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -407,7 +407,10 @@
                 </span>
                 <span class="import-banner__text">
                   <b id="importBannerTitle">数据导入</b>
-                  <span id="importBannerSub">把老店数据导进来</span>
+                  <span class="import-banner__subrow">
+                    <span id="importBannerSub">把老店数据导进来</span>
+                    <span class="import-banner__dots" id="importBannerDots" aria-hidden="true"><i></i><i></i><i></i></span>
+                  </span>
                 </span>
                 <span class="import-banner__go" id="importBannerGo">进入</span>
               </button>
@@ -745,6 +748,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span class="title">选择导入方式</span>
+          <button type="button" class="hdr-link" id="btnSelectDownloadTpl" data-open-tpl>下载模板</button>
         </header>
         <div class="scroll-body import-body import-body--select">
         <ol class="v3-step v3-step--slim" aria-label="导入进度：第 1 步，共 3 步">
@@ -752,7 +756,7 @@
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
-          <p class="soft-tip soft-tip--inline hidden" id="importHistoryNote"><span class="soft-tip__body">消费记录没有固定模板：Excel 或拍照都可以；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。</span></p>
+          <p class="soft-tip soft-tip--inline hidden" id="importHistoryNote"><span class="soft-tip__body">消费记录没有固定模板：Excel 或拍照都可以；识别<strong>日期 / 金额 / 姓名</strong>，有<strong>手机号或会员编号</strong>才挂到本店会员；不进订单流水。</span></p>
           <div class="src-entry src-entry--hero">
             <button type="button" class="src-hero is-excel" id="btnEnterExcel">
               <span class="src-hero__art" aria-hidden="true">
@@ -802,7 +806,7 @@
             <h2>选择 Excel 文件</h2>
             <p id="sourceLead">推荐按官方标准模板填写，可完美识别。其它表也能识别，可能要多核对几行。</p>
           </div>
-          <p class="soft-tip soft-tip--inline hidden" id="sourceHistoryNote"><span class="soft-tip__body">消费记录表：列名不必固定，系统会自己找<strong>日期 / 金额 / 顾客姓名</strong>，无需手动指定；手写流水可在上一步拍照。</span></p>
+          <p class="soft-tip soft-tip--inline hidden" id="sourceHistoryNote"><span class="soft-tip__body">消费记录表：列名不必固定，系统会自己找<strong>日期 / 金额 / 姓名 / 手机号或会员编号</strong>；手写流水可在上一步拍照。</span></p>
           <div class="tpl-promo" id="sourceTplPromo" role="note">
             <div class="tpl-promo__body">
               <b>用官方标准模板填写，可完美识别导入</b>
@@ -889,6 +893,10 @@
           </button>
           <span class="title">AI 识别中</span>
         </header>
+        <div class="analyze-banner" role="status">
+          <span class="analyze-banner__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v5M12 7.2h.01"/></svg></span>
+          <span class="analyze-banner__txt">识别不会中断。可随时回首页，从横幅点「继续」接着做。</span>
+        </div>
         <div class="scroll-body import-body">
           <div class="conv-hero">
             <div class="v3-eq" id="analyzeEq" role="img" aria-label="AI 正在识别">
@@ -908,7 +916,6 @@
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" data-leave-import id="btnAnalyzeHome">回首页</button>
           </div>
-          <p class="analyze-home-cap">不会中断 · 可从首页横幅继续</p>
         </div>
       </div>
 
@@ -974,7 +981,7 @@
         <div class="scroll-body import-body check-body" id="checkBody">
           <ol class="v3-step v3-step--slim" aria-label="导入进度：第 3 步，共 3 步"><li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li><li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li><li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li></ol>
           <div class="soft-tip soft-tip--warn hidden" id="checkClearWarn" role="status"></div>
-          <p class="check-shelf-tip" id="checkShelfTip">卡模板、价目项目、价目产品可点右侧切换<strong>上架 / 下架</strong>；不论状态都会导入。</p>
+          <p class="check-shelf-tip" id="checkShelfTip">卡模板与价目可用右侧开关切换<strong>上架 / 下架</strong>；默认下架，不论状态都会导入。</p>
           <div class="check-verify-wrap" id="checkVerifyMetrics"></div>
           <div class="hidden" aria-hidden="true">
             <div id="checkSubNav"></div>
@@ -1024,7 +1031,7 @@
           <div class="result-tiers" id="resultTierSummary"></div>
           <div class="hidden" aria-hidden="true"><div id="resultStockList"></div></div>
           <p class="v3-notice is-warn hidden" id="importResultMerge"></p>
-          <button type="button" class="result-fail" id="btnImportFailRow">
+          <button type="button" class="result-fail hidden" id="btnImportFailRow" aria-hidden="true" tabindex="-1">
             <span class="result-fail__body">
               <b><em class="v3-num" id="importFailCount">2</em> 条失败</b><span id="importFailTail">，可手动补录</span>
             </span>
@@ -1114,7 +1121,7 @@
               </div>
             </div>
           </div>
-          <button type="button" class="result-fail" id="btnHistoryFailRow">
+          <button type="button" class="result-fail hidden" id="btnHistoryFailRow" aria-hidden="true" tabindex="-1">
             <span class="result-fail__body"><b><em class="v3-num" id="historyFailCount">0</em> 条失败</b><span>，下载后修正再传</span></span>
             <span class="result-fail__link">查看明细</span>
             <svg class="result-fail__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
@@ -1627,13 +1634,36 @@
       </div>
 
       <div class="overlay-mask" id="inviteMask" aria-hidden="true"></div>
-      <div class="invite-sheet" id="inviteSheet" role="dialog" aria-labelledby="inviteTitle">
+      <div class="invite-sheet invite-sheet--xl" id="inviteSheet" role="dialog" aria-labelledby="inviteTitle" aria-describedby="inviteSub">
         <div class="invite-sheet__handle"></div>
-        <h3 id="inviteTitle">把老系统数据带过来？</h3>
-        <p>会员与持卡信息、会员卡模板、价目表可自助导入，不必先填模板。</p>
-        <div class="invite-sheet__actions">
-          <button type="button" class="btn-primary" id="btnInviteStart">开始导入</button>
-          <button type="button" class="btn-ghost" id="btnInviteLater">稍后再说</button>
+        <div class="invite-xl">
+          <h3 id="inviteTitle">把老系统数据带过来</h3>
+          <p id="inviteSub">会员、卡模板、价目表可自助导入，不必先填模板。</p>
+          <div class="invite-xl__art" aria-hidden="true">
+            <svg class="invite-xl__svg" viewBox="0 0 280 160" width="280" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g class="invite-anim invite-anim--sheet">
+                <rect x="16" y="36" width="88" height="100" rx="12" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1.5"/>
+                <path d="M28 56h64M28 72h48M28 88h56M28 104h40" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="76" cy="118" r="6" fill="#D1D5DB"/>
+              </g>
+              <g class="invite-anim invite-anim--arrow">
+                <path d="M118 86h36" stroke="#F32F41" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M142 74l16 12-16 12" stroke="#F32F41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </g>
+              <g class="invite-anim invite-anim--phone">
+                <rect x="168" y="28" width="96" height="116" rx="18" fill="#FFF1F2" stroke="#F32F41" stroke-width="1.8"/>
+                <rect x="184" y="48" width="64" height="10" rx="5" fill="#FECACA"/>
+                <rect x="184" y="68" width="48" height="8" rx="4" fill="#FECACA" opacity=".7"/>
+                <rect x="184" y="96" width="64" height="28" rx="8" fill="#fff" stroke="#FCA5A5"/>
+                <path d="M196 110h40" stroke="#F32F41" stroke-width="2" stroke-linecap="round"/>
+                <text x="216" y="132" text-anchor="middle" fill="#F32F41" font-size="11" font-family="Noto Sans SC,sans-serif" font-weight="600">SaaS</text>
+              </g>
+            </svg>
+          </div>
+          <div class="invite-sheet__actions">
+            <button type="button" class="btn-primary" id="btnInviteStart">开始导入</button>
+            <button type="button" class="invite-xl__skip" id="btnInviteLater">无需导入</button>
+          </div>
         </div>
       </div>
 

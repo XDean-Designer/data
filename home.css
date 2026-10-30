@@ -69,18 +69,19 @@
   display: flex; align-items: center; justify-content: space-between;
 }
 
-/* 数据导入进度 banner：挂在 vh-body 顶部（文档流，避开 hero 背景遮挡） */
+/* 数据导入进度 banner：挂在 vh-body 顶部（与下方卡同宽；顶距 0 轻量上移） */
 .import-banner {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: stretch;
   gap: 0;
-  margin: 10px 12px 0;
+  margin: 0;
   background: #fff;
   border-radius: 12px;
   border: 0.5px solid rgba(60, 60, 67, 0.12);
   overflow: hidden;
+  box-sizing: border-box;
 }
 .import-banner[hidden] { display: none !important; }
 .vh-body > .import-banner + .vh-kpi { margin-top: 10px; }
@@ -107,6 +108,7 @@
   color: #F32F41;
   display: flex; align-items: center; justify-content: center;
 }
+.import-banner__ico svg { display: block; }
 .import-banner__text {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 2px;
@@ -115,14 +117,49 @@
   font-size: 14px; font-weight: 600; line-height: 20px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.import-banner__text span {
+.import-banner__subrow {
+  display: flex; align-items: center; gap: 4px; min-width: 0;
+}
+.import-banner__subrow > #importBannerSub {
   font-size: 12px; color: #929292; line-height: 16px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0;
+}
+.import-banner__dots {
+  display: none;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+.import-banner.is-busy .import-banner__dots { display: inline-flex; }
+.import-banner__dots i {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: #929292;
+  opacity: 0.28;
+  animation: importBannerDot 1.05s ease-in-out infinite;
+}
+.import-banner__dots i:nth-child(2) { animation-delay: 0.18s; }
+.import-banner__dots i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes importBannerDot {
+  0%, 80%, 100% { opacity: 0.28; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-1px); }
 }
 .import-banner__go {
   flex: 0 0 auto;
   font-size: 12px; font-weight: 600; color: #F32F41;
   padding-right: 4px;
+  line-height: 16px;
+}
+.import-banner.is-done .import-banner__go {
+  padding: 4px 10px;
+  margin-right: 2px;
+  border-radius: 999px;
+  border: 1px solid #F32F41;
+  color: #F32F41;
+  background: #fff;
+  font-weight: 600;
+  line-height: 16px;
 }
 .import-banner__close {
   flex: 0 0 auto;
@@ -138,6 +175,19 @@
 .import-banner__close:active { background: rgba(0, 0, 0, 0.04); }
 .import-banner.is-progress .import-banner__ico { background: #E8F8F2; color: #2BA471; }
 .import-banner.is-done .import-banner__ico { background: #E8F8F2; color: #2BA471; }
+/* 仅识别中 / 导入中：左图标轻脉动 */
+.import-banner.is-busy .import-banner__ico {
+  animation: importBannerIcoPulse 1.4s ease-in-out infinite;
+}
+@keyframes importBannerIcoPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.88; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .import-banner__dots i,
+  .import-banner.is-busy .import-banner__ico { animation: none; }
+  .import-banner__dots i { opacity: 0.7; }
+}
 .vh-store__left {
   display: flex; align-items: flex-start; gap: 6px;
   border: 0; background: transparent; padding: 0; cursor: pointer;
@@ -176,7 +226,8 @@
   /* Figma 瀵煎嚭宸叉槸鐧借壊鎻忚竟锛屼笉鍐?invert */
 }
 
-.vh-body { position: relative; margin-top: -90px; padding: 0 12px; z-index: 3; }
+/* 门店行底(16+37)→banner 顶间距 25：hero 220 − (53+25) = 142 */
+.vh-body { position: relative; margin-top: -142px; padding: 0 12px; z-index: 3; }
 
 .vh-kpi {
   background: #fff;
