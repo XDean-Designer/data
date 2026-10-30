@@ -78,11 +78,7 @@
     convertDone: false,
     convertRunning: false,
     convertTimers: [],
-    /* 兼容：映射 / 预览 / 真实模式等旧内核仍会读到这些字段（入口已下线，仅防未定义） */
-    mode: 'demo',
-    aiBridge: null,
-    aiModel: '',
-    aiVisionModel: '',
+    /* 兼容：旧映射/上传字段（入口已下线，仅防未定义） */
     uploadStd: {},
     uploadFocus: null,
     uploadHi: null,
@@ -96,9 +92,6 @@
     tplGen: null,
     importPreviewType: 'member',
     previewIdx: null,
-    realSheets: null,
-    realErrors: [],
-    realUsage: null,
     historyImporting: false,
     checkIgnoreArm: false,
     transferRunning: false,
@@ -617,14 +610,13 @@
     if (state.importMode === 'history') exitHistoryMode();
   }
 
-  var VIEW_LIST_FLOWS = ['members', 'card-list', 'price-list', 'stock-list', 'order-list'];
+  var VIEW_LIST_FLOWS = ['members', 'card-list', 'price-list', 'order-list'];
 
   function openResultCatView(type) {
     state.viewReturn = 'import-result';
     if (type === 'member') go('members');
     else if (type === 'card') go('card-list');
     else if (type === 'price') go('price-list');
-    else if (type === 'stock') go('stock-list');
     else showToast(IMPORT_CAT_SHORT[type] + '列表为原型占位，以线上系统为准');
   }
 
@@ -4183,205 +4175,22 @@
     }
   }
 
-  /* ---- 实测 AI：真实文件与本地桥 ---- */
-
-  var RtaBridge = window.RtaBridge || null;
-
-  /* 真实模式已下线：原型全部用演示数据。下面这些 real* / bridge* 函数保留作历史实现，
-     已无任何调用入口（ai-server/ 目录也保留，但页面不再引用）。 */
-  function isRealMode() {
-    return false;
-  }
-
-  function loadMode() {
-    var m = null;
-    try { m = localStorage.getItem(MODE_KEY); } catch (e) { m = null; }
-    var q = /[?&]mode=(demo|real)\b/.exec(location.search);
-    if (q) m = q[1];            // URL 优先：手机抽屉里不好点的时候用 ?mode=real
-    if (m !== 'demo' && m !== 'real') m = 'demo';
-    return m;
-  }
-
-  function setMode(mode, opts) {
-    if (mode !== 'demo' && mode !== 'real') return;
-    var changed = state.mode !== mode;
-    state.mode = mode;
-    try { localStorage.setItem(MODE_KEY, mode); } catch (e) {}
-    // 一批数据只属于一种来源：切模式就把本批清掉，否则演示造数和真数据会混在同一个概览里
-    if (changed && (hasRealFiles() || hasRealPhotos() || state.convertDone || state.checkData)) {
-      resetBatch();
-    }
-    renderModeSwitch();
-    if (isRealMode()) probeBridge();
-    if (!(opts && opts.quiet)) {
-      showToast(mode === 'real'
-        ? '已切到真实模式：选真实 Excel / 照片，真调模型'
-        : '已切到演示模式：用内置造数，不联网');
-    }
-  }
-
-  function resetBatch() {
-    state.importFiles = { member: [], card: [], price: [] };
-    state.importPhotos = { member: [], card: [], price: [] };
-    state.uploadStd = {};
-    state.convertDone = false;
-    state.convertRunning = false;
-    state.realSheets = null;
-    state.realErrors = [];
-    state.realUsage = null;
-    state.checkData = null;
-    if (state.convertTimers) {
-      state.convertTimers.forEach(function (t) { clearTimeout(t); });
-      state.convertTimers = [];
-    }
-    renderUploadList();
-    renderImportSelect();
-    renderCamera();
-  }
-
-  function renderModeSwitch() {
-    var host = $('#navMode');
-    if (!host) return;
-    $all('[data-mode-btn]').forEach(function (b) {
-      var on = b.getAttribute('data-mode-btn') === state.mode;
-      b.classList.toggle('is-on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    var hint = $('#navModeHint');
-    if (!hint) return;
-    if (!isRealMode()) {
-      hint.textContent = '内置造数 · 不联网';
-      hint.className = 'nav-mode__hint';
-      return;
-    }
-    if (state.aiBridge === false) {
-      hint.textContent = 'AI 桥未启动 · 会退回演示';
-      hint.className = 'nav-mode__hint is-warn';
-    } else if (state.aiBridge === true) {
-      hint.textContent = '已连 ' + (state.aiModel || 'deepseek');
-      hint.className = 'nav-mode__hint is-ok';
-    } else {
-      hint.textContent = '正在连接 AI 桥…';
-      hint.className = 'nav-mode__hint';
-    }
-  }
-
-  function probeBridge() {
-    if (!RtaBridge) { state.aiBridge = false; renderModeSwitch(); return; }
-    RtaBridge.health(function (ok, info) {
-      state.aiBridge = !!ok;
-      if (ok && info) {
-        state.aiModel = info.model || 'deepseek-chat';
-        state.aiVisionModel = info.visionModel || info.model || '';
-      }
-      renderModeSwitch();
-    });
-  }
-
-  // 本批真正选了文件的记录（演示造出来的假文件没有 .file）
-  function realFileEntries() {
-    var out = [];
-    ['member', 'card', 'price'].forEach(function (k) {
-      catFiles(k).forEach(function (f) {
-        if (f && f.file) out.push({ cat: k, file: f.file });
-      });
-    });
-    return out;
-  }
-
-  function hasRealFiles() {
-    return realFileEntries().length > 0;
-  }
-
-  // 本批要送去识别的照片（只取来源是「拍照」且真的拍到了的类别）
-  function realPhotoEntries() {
-    var out = [];
-    ['member', 'card', 'price'].forEach(function (k) {
-      if (state.importSources[k] !== 'photo') return;
-      var list = state.importPhotos[k] || [];
-      if (!list.length) return;
-      out.push({ cat: k, photos: list });
-    });
-    return out;
-  }
-
-  function hasRealPhotos() {
-    return realPhotoEntries().length > 0;
-  }
-
-  function bridgeReady(cb) {
-    if (!RtaBridge) { cb(false); return; }
-    if (state.aiBridge !== null) { cb(state.aiBridge); return; }
-    RtaBridge.health(function (ok, info) {
-      state.aiBridge = !!ok;
-      if (ok && info) {
-        state.aiModel = info.model || 'deepseek-chat';
-        state.aiVisionModel = info.visionModel || info.model || '';
-      }
-      renderModeSwitch();
-      cb(state.aiBridge);
-    });
-  }
-
-  function addPickedFile(cat, file) {
-    var arr = catFiles(cat);
-    if (arr.length >= MAX_FILES_PER_CAT) {
-      showToast('最多 ' + MAX_FILES_PER_CAT + ' 个表，先移除一个');
-      return;
-    }
-    var sizeTxt = RtaBridge ? RtaBridge.sizeText(file.size) : Math.round(file.size / 1024) + ' KB';
-    state.importFiles[cat] = arr.concat([{
-      name: file.name,
-      size: sizeTxt,
-      file: file
-    }]);
-    delete state.uploadStd[cat];
-    state.convertDone = false;
-    state.realSheets = null;
-    showToast('已添加 ' + file.name + '（' + IMPORT_CAT_SHORT[cat] + ' · 实测）');
-    renderUploadList();
-    renderImportSelect();
-  }
-
+  /* 演示选文件：不调系统选择器，直接落假文件 */
   function pickFileFor(cat) {
     var arr = catFiles(cat);
     if (arr.length >= MAX_FILES_PER_CAT) {
       showToast('最多 ' + MAX_FILES_PER_CAT + ' 个表，先移除一个');
       return;
     }
-    if (!isRealMode()) {
-      // 演示模式：不碰真实文件系统，直接造一个假文件，行为与改造前一致
-      var n = arr.length + 1;
-      state.importFiles[cat] = arr.concat([{
-        name: IMPORT_CAT[cat] + '导入表' + (n > 1 ? ' ' + n : '') + '.xlsx',
-        size: '1.2 MB'
-      }]);
-      state.convertDone = false;
-      state.realSheets = null;
-      showToast('已添加演示文件（演示模式不读真实文件）');
-      renderUploadList();
-      renderImportSelect();
-      return;
-    }
-    bridgeReady(function (ok) {
-      if (!ok) {
-        // 真实模式但桥没起 → 说清楚为什么退回演示，而不是静默造数
-        var n2 = arr.length + 1;
-        state.importFiles[cat] = arr.concat([{
-          name: IMPORT_CAT[cat] + '导入表' + (n2 > 1 ? ' ' + n2 : '') + '.xlsx',
-          size: '1.2 MB'
-        }]);
-        state.convertDone = false;
-        state.realSheets = null;
-        showToast('AI 桥未启动，已退回演示数据（先在 ai-server 目录跑 python server.py）');
-        renderUploadList();
-        renderImportSelect();
-        return;
-      }
-      RtaBridge.pickFile(false, function (files) {
-        if (files && files.length) addPickedFile(cat, files[0]);
-      });
-    });
+    var n = arr.length + 1;
+    state.importFiles[cat] = arr.concat([{
+      name: IMPORT_CAT[cat] + '导入表' + (n > 1 ? ' ' + n : '') + '.xlsx',
+      size: '1.2 MB'
+    }]);
+    state.convertDone = false;
+    showToast('已添加演示文件');
+    renderUploadList();
+    renderImportSelect();
   }
 
   /* 相册 / 系统相机：手机通过 http 访问时 getUserMedia 不可用（非安全上下文），
@@ -6581,20 +6390,6 @@
       renderConvertResult();
       return;
     }
-    // 真实模式：只要本批有真 Excel 或真照片，就走实测链路
-    if (isRealMode()) {
-      if (hasRealFiles() || hasRealPhotos()) {
-        runRealConversion();
-        return;
-      }
-      // 真实模式绝不造数：造出来的行看着像真的，会让人误判模型效果
-      var nextBtn = $('#btnConvertNext');
-      if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = '没有可转换的内容'; }
-      var leadEl = $('#convertLead');
-      if (leadEl) leadEl.textContent = '真实模式下本批没有真实文件或照片，请回上一步选 Excel 或拍照。';
-      showToast('真实模式：本批还没有真实文件或照片');
-      return;
-    }
     state.convertRunning = true;
     var allStd = convertAllStandard();
     resetConvertUI(allStd);
@@ -6634,132 +6429,6 @@
       }
     }, 380 + steps.length * 480 + 320));
     state.convertTimers = timers;
-  }
-
-  /* ---- 实测转换：真的解析文件、真的调模型 ---- */
-
-  function setConvStep(i, allDone) {
-    var steps = $all('[data-conv-step]');
-    steps.forEach(function (x, j) {
-      x.classList.toggle('is-done', allDone ? true : j < i);
-      x.classList.toggle('is-on', allDone ? false : j === i);
-    });
-  }
-
-  function finishRealConversion(results, errors) {
-    state.convertRunning = false;
-    state.convertDone = true;
-    state.realSheets = [];
-    state.realErrors = errors || [];
-    state.realUsage = { prompt: 0, completion: 0, latency: 0, calls: 0, photoCalls: 0 };
-
-    var entries = Object.keys(results);
-    entries.forEach(function (cat) {
-      var res = results[cat];
-      (res.sheets || []).forEach(function (s) { state.realSheets.push(s); });
-      var u = (res.sheets || []).reduce(function (acc, s) {
-        // 照片表：tokens 记在 ocr 上（识别本身），映射那一次的记在 llm 上
-        var oc = s.ocr || null;
-        if (oc) {
-          var ous = oc.usage || {};
-          acc.prompt += ous.prompt_tokens || 0;
-          acc.completion += ous.completion_tokens || 0;
-          acc.latency += oc.latencyMs || 0;
-          acc.calls += oc.calls || 0;
-          acc.photoCalls += oc.calls || 0;
-        }
-        var us = (s.llm && s.llm.usage) || {};
-        acc.prompt += us.prompt_tokens || 0;
-        acc.completion += us.completion_tokens || 0;
-        if (s.llm && s.llm.latencyMs) { acc.latency += s.llm.latencyMs; acc.calls += 1; }
-        return acc;
-      }, state.realUsage);
-      state.realUsage = u;
-    });
-
-    // 概览只放**真实解析出来的行**：本批没实测的类别不进概览，
-    // 免得把演示造的数据混进来让人误以为是真的。
-    var data = {};
-    entries.forEach(function (cat) { data[cat] = results[cat].rows || []; });
-    state.checkData = data;
-    ['member', 'card', 'price'].forEach(function (k) { if (data[k]) recomputeCheck(k); });
-
-    setConvStep(0, true);
-    var eq = $('#convertEq');
-    if (eq) { eq.classList.add('is-done'); eq.setAttribute('aria-label', '转换完成'); }
-    var title = $('#convertTitle');
-    if (title) title.textContent = '已转成标准模板';
-    var lead = $('#convertLead');
-    if (lead) {
-      var mapped = state.realSheets.reduce(function (s, x) { return s + (x.stats ? x.stats.mapped : 0); }, 0);
-      var cols = state.realSheets.reduce(function (s, x) { return s + (x.stats ? x.stats.columns : 0); }, 0);
-      lead.textContent = 'AI 实测：' + cols + ' 列里对齐 ' + mapped + ' 列' +
-        (cols > mapped ? '，其余进概览逐行核对。' : '。');
-    }
-    renderConvertResult();
-    var all = checkAllStats();
-    var next = $('#btnConvertNext');
-    if (next) {
-      next.disabled = false;
-      next.textContent = all.importable ? '去核对 ' + all.importable.toLocaleString('zh-CN') + ' 行' : '去核对数据';
-    }
-    if (state.realErrors.length) {
-      showToast(state.realErrors[0]);
-    }
-  }
-
-  function runRealConversion() {
-    var fileEntries = realFileEntries();
-    var photoEntries = realPhotoEntries();
-    if (!fileEntries.length && !photoEntries.length) return;
-    if (!RtaBridge) { showToast('AI 桥未就绪'); return; }
-
-    state.convertRunning = true;
-    state.realSheets = null;
-    state.realErrors = [];
-    resetConvertUI(false);
-    setConvStep(0);
-
-    // 按类别分组：同一个类别一次请求里同时带文件与照片，后端按表合并行
-    var byCat = {};
-    function slot(cat) {
-      if (!byCat[cat]) byCat[cat] = { files: [], photos: [] };
-      return byCat[cat];
-    }
-    fileEntries.forEach(function (e) { slot(e.cat).files.push(e.file); });
-    photoEntries.forEach(function (e) { slot(e.cat).photos = e.photos; });
-
-    var cats = Object.keys(byCat);
-    var results = {};
-    var errors = [];
-    var idx = 0;
-
-    function nextCat() {
-      if (idx >= cats.length) {
-        setConvStep(2);
-        setTimeout(function () {
-          setConvStep(3);
-          finishRealConversion(results, errors);
-        }, 60);
-        return;
-      }
-      var cat = cats[idx++];
-      var job = byCat[cat];
-      RtaBridge.convert(cat, job.files, {
-        onRead: function () { setConvStep(1); },
-        onSent: function () { setConvStep(2); },
-        onDone: function (res) {
-          results[cat] = res;
-          (res.warnings || []).forEach(function (w) { errors.push(w); });
-          nextCat();
-        },
-        onError: function (msg) {
-          errors.push(IMPORT_CAT_SHORT[cat] + ' 转换失败：' + msg);
-          nextCat();
-        }
-      }, job.photos);
-    }
-    nextCat();
   }
 
   function renderConvertResult() {
@@ -6805,104 +6474,8 @@
         '</div>' +
       '</div>';
     host.classList.remove('hidden');
-    if (state.realSheets && state.realSheets.length) {
-      host.insertAdjacentHTML('beforeend', realPanelHtml());
-    }
   }
 
-  /* 实测明细面板：把「哪个源列被 AI 认成了什么、依据是什么」摊开给人看。
-     这是评估模型唯一有用的界面——只看最终行是对不出错的。 */
-  function realPanelHtml() {
-    var sheets = state.realSheets || [];
-    var usage = state.realUsage || { prompt: 0, completion: 0, latency: 0, calls: 0 };
-
-    var blocks = sheets.map(function (s) {
-      var rows = (s.mapping || []).map(function (m) {
-        var std = m.std || '未识别';
-        var cls = m.std ? (m.confidence >= 0.8 ? 'is-ok' : 'is-warn') : 'is-none';
-        var via = m.via === 'llm' ? 'AI' : (m.via === 'rule' ? '词典' : (m.via === 'blocked' ? '拦截' : '—'));
-        return '<div class="ai-col ' + cls + '">' +
-            '<span class="ai-col__src">' + esc(m.src) + '</span>' +
-            '<span class="ai-col__arrow" aria-hidden="true">→</span>' +
-            '<span class="ai-col__std">' + esc(std) + '</span>' +
-            '<span class="ai-col__conf">' + (m.std ? Math.round(m.confidence * 100) + '%' : '') + '</span>' +
-            '<span class="ai-col__via">' + via + '</span>' +
-          '</div>' +
-          (m.evidence ? '<p class="ai-col__why">' + esc(m.evidence) + '</p>' : '');
-      }).join('');
-
-      var st = s.stats || {};
-      var llm = s.llm || {};
-      var isPhoto = s.source === 'photo';
-      var meta = [
-        isPhoto
-          ? ('照片 ' + ((s.photos && s.photos.length) || 1) + ' 张')
-          : '真实文件',
-        '识别为「' + (s.targetLabel || s.target) + '」',
-        st.columns + ' 列 / 对齐 ' + st.mapped + ' 列'
-      ];
-      if (!isPhoto && s.headerRow && s.headerRow > 1) meta.push('表头在第 ' + s.headerRow + ' 行');
-      if (s.truncated) meta.push('已截断到 3000 行');
-
-      // 把「AI 没认出来」和「原表根本没有这列」分开说 —— 这两种情况处理方式完全不同
-      var cs = s.columnStatus || {};
-      var miss = [], warn = [];
-      Object.keys(cs).forEach(function (std) {
-        if (cs[std].status === '需修正') miss.push(std);
-        else if (cs[std].status === '建议确认') warn.push(std);
-      });
-      var gap = '';
-      function brief(list) {
-        if (!list.length) return '';
-        var head = list.slice(0, 6).join('、');
-        return list.length > 6 ? head + ' 等 ' + list.length + ' 项' : head;
-      }
-      if (miss.length) {
-        gap += '<p class="ai-sheet__gap">原表缺必填列：' + esc(brief(miss)) + '</p>';
-      }
-      if (warn.length) {
-        gap += '<p class="ai-sheet__gap is-warn">非必填未命中：' + esc(brief(warn)) + '</p>';
-      }
-
-      var ocr = s.ocr || null;
-      var llmLine;
-      if (ocr) {
-        var ol = '照片识别 ' + esc((ocr.promptVersion || '')) +
-          ' · ' + ocr.calls + ' 张 · ' + (ocr.latencyMs || 0) + 'ms · ' +
-          ((ocr.usage && ocr.usage.total_tokens) || 0) + ' tokens';
-        llmLine = '<p class="ai-sheet__llm">' + ol + '</p>';
-      } else if (llm.called) {
-        llmLine = '<p class="ai-sheet__llm">模型 ' + esc(llm.model || 'deepseek') +
-          ' · ' + (llm.latencyMs || 0) + 'ms · ' +
-          ((llm.usage && llm.usage.total_tokens) || 0) + ' tokens' +
-          (llm.schemaErrors && llm.schemaErrors.length ? ' · 输出有 ' + llm.schemaErrors.length + ' 处不合规已丢弃' : '') +
-          '</p>';
-      } else {
-        llmLine = '<p class="ai-sheet__llm">词典已全部命中，未调用模型</p>';
-      }
-
-      return '<div class="ai-sheet">' +
-          '<div class="ai-sheet__hd"><b>' + esc(s.file || '') + '</b>' +
-            '<span>' + esc(s.sheet || '') + '</span></div>' +
-          '<p class="ai-sheet__meta">' + meta.map(esc).join(' · ') + '</p>' +
-          gap +
-          '<div class="ai-sheet__cols">' + rows + '</div>' +
-          llmLine +
-        '</div>';
-    }).join('');
-
-    var errs = (state.realErrors || []).map(function (e) {
-      return '<p class="ai-detail__err">' + esc(e) + '</p>';
-    }).join('');
-
-    return '<div class="ai-detail">' +
-        '<div class="ai-detail__hd"><b>AI 实测明细</b>' +
-          '<span>' + usage.calls + ' 次模型调用 · ' + (usage.prompt + usage.completion) + ' tokens</span>' +
-        '</div>' +
-        blocks + errs +
-        '<p class="ai-detail__tip">置信度低于 80% 的列在概览里标「建议确认」，必填列没对上标「需修正」。</p>' +
-      '</div>';
-  }
 
   function esc(s) {
     return String(s === null || s === undefined ? '' : s)
@@ -7725,7 +7298,6 @@
         if (type === 'member') go('members');
         else if (type === 'card') go('card-list');
         else if (type === 'price') go('price-list');
-        else if (type === 'stock') go('stock-list');
         else showToast(IMPORT_CAT_SHORT[type] + '列表为原型占位，以线上系统为准');
       });
     });
@@ -8654,7 +8226,6 @@
         if (key === 'price') { state.viewReturn = null; go('price-list'); return; }
         if (key === 'card') { state.viewReturn = null; go('card-list'); return; }
         if (key === 'customer') { state.viewReturn = null; go('members'); return; }
-        if (key === 'stock') { state.viewReturn = null; go('stock-list'); return; }
         showToast('演示占位');
       });
     });
@@ -9777,56 +9348,4 @@
   } else {
     boot();
   }
-
-  /* 本地实测用的调试入口：只在 ?__test=1 时挂到 window。
-     用途：自动化 / 控制台里绕过系统文件选择框，直接塞一个 File 进来跑实测。 */
-  if (/[?&]__test=1\b/.test(location.search)) {
-    window.__rtbDebug = {
-      addRealFile: addPickedFile,
-      addPhoto: function (cat, dataUrl, name) {
-        state.importSources[cat] = 'photo';
-        state.importPhotos[cat].push({ id: 'p' + Date.now().toString(36), src: dataUrl,
-                                       file: { name: name || '照片.bmp' } });
-        state.convertDone = false;
-        state.realSheets = null;
-        renderImportSelect();
-        renderCamera();
-      },
-      setMode: setMode,
-      go: go,
-      runConversion: runConversion,
-      select: function (cats) {
-        state.importSelection = { member: false, card: false, price: false };
-        (cats || []).forEach(function (k) { state.importSelection[k] = true; });
-      },
-      snapshot: function () {
-        return {
-          mode: state.mode,
-          bridge: state.aiBridge,
-          convertDone: state.convertDone,
-          convertRunning: state.convertRunning,
-          realFiles: realFileEntries().length,
-          realPhotos: realPhotoEntries().reduce(function (s, e) { return s + e.photos.length; }, 0),
-          cats: checkCats(),
-          stats: checkCats().reduce(function (acc, k) { acc[k] = checkStats(k); return acc; }, {}),
-          sheets: (state.realSheets || []).map(function (s) {
-            return { file: s.file, sheet: s.sheet, target: s.target,
-                     mapped: s.stats && s.stats.mapped, columns: s.stats && s.stats.columns };
-          }),
-          errors: state.realErrors,
-          sample: (function () {
-            var out = {};
-            checkCats().forEach(function (k) {
-              out[k] = checkRows(k).slice(0, 3).map(function (r) {
-                return { f: r.f, aiFields: r.aiFields,
-                         problems: (r.problems || []).map(function (p) { return p.level + ':' + p.field + ':' + p.msg; }) };
-              });
-            });
-            return out;
-          })()
-        };
-      }
-    };
-  }
 })();
-

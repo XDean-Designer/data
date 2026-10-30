@@ -7936,34 +7936,6 @@ a:focus-visible,
 }
 .import-fail-item__fix:active { background: var(--n-50); }
 
-/* ===== 历史模式：真实模式已下线（v2.15），以下为遗留桥接样式，仅当手动注入 ai-bridge 时生效 ===== */
-.ai-detail { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-.ai-detail__hd { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
-.ai-detail__hd b { font-size: var(--fs-body); font-weight: 600; color: #333333; }
-.ai-detail__hd span { margin-left: auto; font-size: var(--fs-sub); color: #929292; }
-.ai-sheet { padding: 10px 0; border-top: 0.5px solid var(--card-divider); }
-.ai-sheet:first-of-type { border-top: 0; padding-top: 0; }
-.ai-sheet__hd { display: flex; align-items: baseline; gap: 6px; }
-.ai-sheet__hd b { font-size: var(--fs-sub); font-weight: 600; color: #333333; }
-.ai-sheet__hd span { font-size: var(--fs-badge); color: #929292; }
-.ai-sheet__meta { font-size: var(--fs-badge); color: #929292; margin: 4px 0 8px; }
-.ai-sheet__cols { display: flex; flex-direction: column; }
-.ai-col { display: flex; align-items: center; gap: 6px; height: 30px; font-size: var(--fs-sub); }
-.ai-col__src { flex: 1 1 auto; min-width: 0; color: var(--text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ai-col__arrow { flex: 0 0 auto; color: var(--text-disabled); }
-.ai-col__std { flex: 0 0 auto; font-weight: 600; color: var(--text); }
-.ai-col.is-none .ai-col__std { font-weight: 400; color: var(--text-disabled); }
-.ai-col.is-warn .ai-col__std { color: var(--warning-ink); }
-.ai-col__conf { flex: 0 0 auto; width: 32px; text-align: right; font-size: var(--fs-badge); color: #929292; }
-.ai-col__via { flex: 0 0 auto; width: 30px; text-align: right; font-size: var(--fs-badge); color: var(--text-disabled); }
-.ai-col__why { font-size: var(--fs-badge); color: #929292; margin: -2px 0 6px; }
-.ai-sheet__llm { font-size: var(--fs-badge); color: #929292; margin: 6px 0 0; }
-.ai-detail__err { font-size: var(--fs-badge); color: var(--warning-ink); margin: 6px 0 0; }
-.ai-detail__tip { font-size: var(--fs-badge); color: #929292; margin: 10px 0 0; }
-.ai-sheet__gap { font-size: var(--fs-badge); color: var(--brand-ink); margin: 0 0 6px; }
-.ai-sheet__gap.is-warn { color: var(--warning-ink); }
-
-
 /* ===== v2.15 · 导入数据（选来源）/ 已拿到清单 / 识别结果分类卡片 =====
    设计语言沿用 v3「校准台」：白卡、无描边、无阴影、无渐变，
    分隔线 1px + scaleY(.5) 的 0.5px 视觉线并左右缩进 16px。 */
@@ -8386,6 +8358,10 @@ a:focus-visible,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.soft-tip__body {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .tpl-promo { margin-top: 16px; }

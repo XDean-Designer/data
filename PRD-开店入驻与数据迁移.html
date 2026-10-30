@@ -60,7 +60,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.52</td>
+<td>v2.54</td>
 </tr>
 <tr>
 <td>日期</td>
@@ -68,7 +68,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 <tr>
 <td>交互原型（唯一可视依据）</td>
-<td>同目录 <code>index.html</code>（390 × 844；主流程按<strong>三档识别</strong>（原始存档 / 识别摘要 / 可入库）组织；<strong>历史消费共用前置拾取（Excel / 拍照可混批 5+5，无模板），核对 / 完成 / 失败为独立屏</strong>（Figma 410-3625 / 410-3976），另有「顾客详情」占位屏与「会员历史消费」年份卡片子屏；新增确认有效项、存档/摘要列表与详情、出处预览、库存管理占位等 screen；首页快捷区含「更多」+ 关 banner 聚光灯引导工作台「数据导入」；弹层含标准模板、标记说明、导入进度、聚光灯层；深链 <code>index.html?flow=&lt;id&gt;</code>）；左侧导航「文档」直达本页</td>
+<td>同目录 <code>index.html</code>（390 × 844；主流程按<strong>三档识别</strong>（原始存档 / 识别摘要 / 可入库）组织；<strong>历史消费共用前置拾取（Excel / 拍照可混批 5+5，无模板），核对 / 完成 / 失败为独立屏</strong>（Figma 410-3625 / 410-3976），另有「顾客详情」占位屏与「会员历史消费」年份卡片子屏；新增确认有效项、存档/摘要列表与详情、出处预览等 screen；首页快捷区含「更多」+ 关 banner 聚光灯引导工作台「数据导入」；弹层含标准模板、标记说明、导入进度、聚光灯层；深链 <code>index.html?flow=&lt;id&gt;</code>）；左侧导航「文档」直达本页</td>
 </tr>
 <tr>
 <td>画布</td>
@@ -95,6 +95,16 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.54</td>
+<td>2026-10-30</td>
+<td><strong>历史导入顶部说明排版</strong>：引导页 <code>#importHistoryNote</code>、选择方式页 <code>#sourceHistoryNote</code> 正文包入 <code>.soft-tip__body</code>，避免 <code>.soft-tip</code> 的 flex 把裸文本与 <code>&lt;strong&gt;</code> 拆成多列；新增 <code>.soft-tip__body</code> 样式。文案不变。已做引用自检；未跑自动化断言、<strong>未提交</strong>。</td>
+</tr>
+<tr>
+<td>v2.53</td>
+<td>2026-10-30</td>
+<td><strong>下线库存管理占位 + 删除 AI 实测桥 / 提示词工程</strong>。<strong>① 库存</strong>：删除侧栏 / 工作台「库存管理」、<code>#screen-stock-list</code>、<code>excel模板/RTB库存商品导入模版.xlsx</code> 与相关跳转；「本店已有导入存量」UI（<code>.v3-stock</code>）与价目表·产品「可售数量」保留。<strong>② AI 后端</strong>：整包删除 <code>ai-server/</code>（含 prompts / OCR / llm / golden）、<code>ai-bridge.js</code>，以及 <code>app.js</code> 内实测桥死代码与 <code>app.css</code> 实测明细样式；原型仅保留演示链路与「AI 识别」产品文案，<strong>不承载</strong>提示词工程与真 API。<strong>③ PRD</strong>：删 §14 实测 AI 章；§15.9 / AC-N12 / AC-N34 同步；Out 增补。已做 <code>node --check app.js</code>；未跑断言、<strong>未提交</strong>。</td>
+</tr>
 <tr>
 <td>v2.52</td>
 <td>2026-10-30</td>
@@ -660,7 +670,8 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <li><strong>运营代导工具链改造</strong>：可继续作为内部能力，但不进开店主路径。  </li>
 <li><strong>员工 / 提成 / 其他对象导入</strong>（P2）：不在本期方案展开。  </li>
 <li><strong>历史消费参与经营计算</strong>（Out）：历史订单<strong>不合并进订单流水</strong>、不参与业绩 / 提成 / 会员余额，也不提供按历史消费重算经营分析；本期只做查看与核对。  </li>
-<li><strong>真实文件上传、真实 OCR、真实后台转换</strong>：原型用演示数据 + 确定性进度层（0% → 100% 走完即成功）模拟导入。  </li>
+<li><strong>真实文件上传、真实 OCR、真实后台转换</strong>：原型用演示数据 + 确定性进度层（0% → 100% 走完即成功）模拟导入；<strong>不在本仓库放置</strong> AI 桥、提示词工程、模型调用实现（交给 AI 功能开发同事）。  </li>
+<li><strong>库存管理业务模块</strong>：不进数据导入；原型不再提供库存管理占位页 / 工作台入口 / 库存导入模板。  </li>
 <li><strong>店员只读壳</strong>：原型只演示店主路径（权限口径见 §9.2）。  </li>
 <li><strong>分流偏好持久化</strong>：原型每次进入分流页都按当次选择走，不做「同账号不反复弹」的服务端记忆。  </li>
 </ul>
@@ -1476,7 +1487,7 @@ flowchart LR
 <p><strong>标记方式</strong>：左侧导航对应条目右侧带「占位」角标；进入页面时，内容区顶部出现一条 20px 高提示条「示意占位 · 实际开发以线上系统真实页面为准」（<code>.ph-note</code>）。<strong>纯标注</strong> —— 不拦截点击、不改变跳转，流程仍可完整点通。</p>
 <p><strong>连带约定</strong>：① <strong>补录链路</strong>（失败明细 → 手动补录半屏 → 添加卡 / 补录老卡）中，<strong>半屏本身仍属设计范围</strong>，只有落点页以线上会员卡模块为准；② <code>inviteSheet</code>（邀请半屏）挂在首页 / 工作台、浮球（fab）为全局元素 —— 两个落点页标占位后，它们的<strong>展示位不再作为设计对象</strong>，但触发条件、文案与权限口径仍以 §6.6 为准；③ §13 的设计规范对齐<strong>只覆盖 §3.5 之外的页面</strong>。</p>
 <ul>
-<li><strong>已删除、不再出现在原型中</strong>：<code>learn</code>（学习培训占位页）、<code>stub-rts</code>（获客壳）、<code>stub-rtp</code>（小店壳）。分流页的获客 / 卖货 / 学习三支本来就是 toast，不进任何页面；这三页只能从左侧开发导航进入，属残留页，v1.6 起连同导航条目、占位样式与相关脚本一并移除。深链 <code>?flow=learn</code> 等已失效，会按默认落点回首页。</li>
+<li><strong>已删除、不再出现在原型中</strong>：<code>learn</code>（学习培训占位页）、<code>stub-rts</code>（获客壳）、<code>stub-rtp</code>（小店壳）、<code>stock-list</code>（库存管理占位，v2.53）、以及仓库内 <code>ai-server/</code> 与 <code>ai-bridge.js</code>（v2.53，防干扰 AI 研发）。分流页的获客 / 卖货 / 学习三支本来就是 toast，不进任何页面；这三页只能从左侧开发导航进入，属残留页，v1.6 起连同导航条目、占位样式与相关脚本一并移除。深链 <code>?flow=learn</code> 等已失效，会按默认落点回首页。</li>
 </ul>
 
 <hr />
@@ -2207,7 +2218,7 @@ flowchart LR
 </tr>
 </tbody>
 </table>
-<p><strong>原型评审入口（v2.22）</strong>：左侧导航「空态」分组可强制进真实页空态——历史·真无 / 历史·筛选无 / 原始存档 / 识别摘要。占位示意页（会员列表、卡模板、价目表、库存）不参与空态改造。</p>
+<p><strong>原型评审入口（v2.22）</strong>：左侧导航「空态」分组可强制进真实页空态——历史·真无 / 历史·筛选无 / 原始存档 / 识别摘要。占位示意页（会员列表、卡模板、价目表）不参与空态改造。</p>
 <h2>5.9 兜底与异常</h2>
 <ul>
 <li><strong>刷新丢失</strong>：原型所有引导态（<code>pendingInvite</code>、<code>fabVisible</code>、<code>importSelection</code>、映射确认、失败补录内容）均在内存中，刷新即回到 <code>login</code>。<strong>v2.10 起该行为不再依赖「URL 没带 flow」</strong>：<code>go()</code> 每次跳页都会把当前 flow 写进地址栏（<code>history.replaceState</code>，便于中途 F5 也留在原地），因此 <code>boot()</code> 用 Navigation Timing 的 <code>type === 'reload'</code> 判定「这是刷新」→ <strong>忽略地址栏的 <code>?flow=</code>，一律落 <code>login</code></strong>；<strong>正常打开 / 点击链接带来的 <code>?flow=</code> 深链照旧生效</strong>；<code>?capture=</code> 抓取路由<strong>豁免</strong>该规则（截图需要刷新直达，不得被弹回登录页）。理由：刷新后 <code>state</code> 已清空，停在链路中段只会是「有页面、没数据」的假状态。线上是否需要断点续传 / 任务恢复【待联调确认】。  </li>
@@ -3722,7 +3733,7 @@ flowchart LR
 <tr>
 <td>入库清单</td>
 <td><strong>白卡内可点行</strong>（<code>.v3-stock</code>，行高 52px）：18px 面性类别图标（品牌红）+ 名称（14px）+ 状态词「已入库」（11px 绿）+ 数量（数字 16px / 600 + 单位 11px 灰）+ 右箭头；行间 0.5px 内缩发丝线（分隔线左缩进 16px，右到边）</td>
-<td>点任一行 → 对应业务列表（会员 / 卡模板 / 价目 / 库存等）；<strong>整行可点</strong>。从本页进入后，列表标题栏返回应回本页（<code>viewReturn=import-result</code>），不应直达工作台</td>
+<td>点任一行 → 对应业务列表（会员 / 卡模板 / 价目表等）；<strong>整行可点</strong>。从本页进入后，列表标题栏返回应回本页（<code>viewReturn=import-result</code>），不应直达工作台</td>
 </tr>
 <tr>
 <td>三档摘要卡</td>
@@ -4160,7 +4171,7 @@ flowchart LR
 <tr>
 <td>1 · 选择导入方式</td>
 <td><code>import-select</code>（选择导入方式，共用）</td>
-<td><strong>Excel 与拍照两张卡都出</strong>（不再隐藏拍照卡）；步骤条上方提示行（<code>#importHistoryNote</code>）：「消费记录没有固定模板：Excel 或拍照都可以；按 <strong>日期 / 金额 / 顾客姓名</strong> 识别，不进订单流水。」；待识别清单按<strong>表格 / 照片</strong>两段展示、可混批，上限 <strong>5 份表 + 5 张照片</strong>；主按钮「开始识别（N 份）」</td>
+<td><strong>Excel 与拍照两张卡都出</strong>（不再隐藏拍照卡）；步骤条上方提示行（引导页 <code>#importHistoryNote</code> / 选择方式页 <code>#sourceHistoryNote</code>）：正文包在 <code>.soft-tip__body</code> 内，文案分别为「消费记录没有固定模板：Excel 或拍照都可以；按 <strong>日期 / 金额 / 顾客姓名</strong> 识别，不进订单流水。」与「消费记录表：列名不必固定，系统会自己找 <strong>日期 / 金额 / 顾客姓名</strong>，无需手动指定；手写流水可在上一步拍照。」（整句内联加粗，不应被 flex 拆成多列）；待识别清单按<strong>表格 / 照片</strong>两段展示、可混批，上限 <strong>5 份表 + 5 张照片</strong>；主按钮「开始识别（N 份）」</td>
 </tr>
 <tr>
 <td>2a · 上传 Excel</td>
@@ -7232,122 +7243,8 @@ sequenceDiagram
 <p><strong>本地查看</strong>：打开 <code>RTA开店流程与数据导入/index.html</code>（390×844），左侧导航逐屏切换；本页右上「打开交互原型」亦可直达。</p>
 
 <hr />
-<h1>14. 原型自测：模式切换与实测 AI</h1>
-<p>这一章只讲<strong>原型用来验证 AI 效果的开关</strong>，不是产品功能。线上产品没有「演示 / 真实」之分——真实模式所走的链路就是产品应有的链路，演示模式只是为了在没有后端时也能走完交互。</p>
-
-<h2>14.1 开关位置</h2>
-<ul>
-<li>位置：左侧导航顶部（品牌区之下），标题「数据来源」，分段控件两枚：<strong>演示</strong> / <strong>真实</strong>。</li>
-<li>状态提示一行：演示＝「内置造数 · 不联网」；真实＝「正在连接 AI 桥…」→「已连 deepseek-flash」或「AI 桥未启动 · 会退回演示」。</li>
-<li>记忆：选择写入 <code>localStorage.rtb_ai_mode</code>，重新打开保持上次选择；<strong>默认演示</strong>。</li>
-<li>备用入口：<code>?mode=real</code> / <code>?mode=demo</code>，URL 参数优先于本地记忆。手机端的导航是左滑抽屉，这个参数是不用翻抽屉也能切的通路。</li>
-</ul>
-
-<h2>14.2 两种模式的差别</h2>
-<table>
-<thead>
-<tr><th>环节</th><th>演示模式</th><th>真实模式</th></tr>
-</thead>
-<tbody>
-<tr><td>选择 Excel</td><td>不打开文件选择器，直接落一个假文件（名如「价目表导入表.xlsx · 1.2 MB」）</td><td>打开真实文件选择器，选中后显示真实文件名与体积</td></tr>
-<tr><td>拍照</td><td>快门落 canvas 生成的样张（印着「演示照片」）</td><td>快门取真实取景帧；拿不到取景则<strong>不出图</strong>，提示改用「照片」</td></tr>
-<tr><td>照片入口</td><td>点「照片」提示「演示模式请直接按快门」</td><td>点「照片」调系统相机 / 相册，选中的图进本批</td></tr>
-<tr><td>转换</td><td>本地造数（会员 1433 行 / 价目 42 项等），有动画无网络</td><td>上传到本地桥，真解析文件、真调模型；无真实数据时<strong>拒绝造数</strong></td></tr>
-<tr><td>核对 / 概览</td><td>内置造数 + 内置问题标记</td><td>只放本批真实解析出来的行；没实测的类别不进概览</td></tr>
-<tr><td>AI 实测明细</td><td>不出现</td><td>出现：逐表列出「源列 → 标准字段 / 置信度 / 依据」，照片表另给识别口径</td></tr>
-</tbody>
-</table>
-
-<h2>14.3 切模式即清空本批</h2>
-<p>切换模式时若本批已有文件、照片、转换结果或概览数据，<code>resetBatch()</code> 会一并清空，转换页落到「等待开始」空态（标题「等待开始」、按钮「开始转换」禁用、说明写清「本批已清空，请回上一步…」）。理由：一批数据只应属于一种来源，混在一起时无法判断某一行是真跑出来的还是造的。</p>
-
-<h2>14.4 真实模式不造数</h2>
-<ul>
-<li><strong>转换</strong>：<code>runConversion()</code> 在真实模式下若既无真实文件也无照片，不进演示分支，改把按钮置为「没有可转换的内容」并说明原因。</li>
-<li><strong>快门</strong>：<code>captureShot()</code> 在真实模式下拿不到取景帧时不再回落样张——样张送去识别会产出「看着像真的」的假行，比直接报错更难发现。</li>
-<li><strong>桥不可用</strong>：选文件时若 <code>/api/ai/health</code> 不通，仍落演示文件，但 toast 明确写「AI 桥未启动，已退回演示数据」。</li>
-</ul>
-
-<h2>14.5 照片链路</h2>
-<ol>
-<li><strong>视觉层</strong>（<code>ai-server/src/ocr_table.py</code>，prompt 版本 <code>t3-1.0.0</code>）：照片 → <code>{columns, rows}</code>。送模型前把最长边压到 1600px。</li>
-<li><strong>成表</strong>：每张照片先算<strong>表头指纹</strong>（<code>dict_match.norm</code> 归一后以 <code>|</code> 拼接）。指纹相同的照片合并为一张表（连拍同一张表的上下半截），指纹不同则各成一张表；宽度不足的行补空串、超出的截断。</li>
-<li><strong>映射</strong>：合并后的表交给与 Excel 相同的 <code>convert_sheet()</code>——规则层（同义词词典）→ 语义层（模型，仅规则层没吃掉的列）→ 校验层（置信度阈值 / 必填判定）。所以照片与 Excel 在映射之后完全同构，只有入口不同。</li>
-<li><strong>结果标注</strong>：照片表的 <code>source = 'photo'</code>，带 <code>photos[]</code>（来源文件名）与 <code>ocr</code>（调用次数 / 延迟 / tokens / 图片尺寸）。</li>
-</ol>
-
-<h2>14.6 不猜</h2>
-<ul>
-<li>prompt 硬约束：看不清的单元格<strong>留空字符串</strong>，不按上下文补全；装饰文字（店名、拍摄日期）不进 <code>columns</code>；金额照抄原文不换算。</li>
-<li>表头没读到的照片<strong>整张拦下</strong>，告警「照片 X 没读到表头，无法对齐列名；请重拍并把表头拍进画面」——不拿第一行硬当表头，错位后整表串列比留空更难发现。</li>
-<li>合计行、标题行不主动删除（删除属业务判断），由校验层按字段规则判出来。</li>
-</ul>
-
-<h2>14.7 模型</h2>
-<ul>
-<li><code>DEFAULT_MODEL</code>：<code>deepseek-chat</code> → <code>deepseek-flash</code>。原值是能调通的遗留别名，但不在该 Key 的 <code>/models</code> 返回里；换成本 Key 实际列出的模型，避免依赖未列出别名。</li>
-<li><code>VISION_MODEL</code>：<code>deepseek-flash</code>——该 Key 下唯一 <code>input_modalities</code> 含 <code>image</code> 的模型（<code>deepseek-v4-pro</code> 仅文本）。</li>
-<li>可用环境变量覆盖：<code>DEEPSEEK_MODEL</code> / <code>DEEPSEEK_VISION_MODEL</code>。</li>
-<li>换模型后 5 个黄金用例复跑：准确率 100%、召回 100%、错挂 0、漏挂 0、误挂 0。</li>
-</ul>
-
-<h2>14.8 手机端相机限制</h2>
-<p><code>getUserMedia</code> 只在安全上下文可用（<code>https</code> 或 <code>localhost</code>）。手机用 <code>http://&lt;内网IP&gt;:8787</code> 访问时取不到流，实时取景不可用，因此：</p>
-<ul>
-<li>拍照屏原「相册（占位）」改为可用入口<strong>「照片」</strong>：<code>input[type=file][accept=image/*][capture=environment]</code>，手机上直接拉起系统相机，桌面端为文件选择。这是 http 下<strong>唯一</strong>能拿到真照片的路。</li>
-<li>降级提示按模式区分：演示模式「无法调用相机，已切换演示模式」；真实模式「这里拿不到相机取景（http 访问或未授权），点『照片』调系统相机」。</li>
-<li>要在手机上用实时取景，需 <code>https</code>（自签证书需手动信任）或在手机本机 <code>localhost</code> 打开。</li>
-</ul>
-
-<h2>14.9 明细面板</h2>
-<ul>
-<li>表头：来源名（照片表显示「照片 N 张」，Excel 显示原文件名）· 「识别为「价目表」」· 「M 列 / 对齐 N 列」。</li>
-<li>Excel 表若有前置标题行，追加「表头在第 K 行」；表被截断时追加「已截断到 3000 行」。</li>
-<li>照片表追加一行识别口径：<code>照片识别 t3-1.0.0 · 2 张 · 7038ms · 1384 tokens</code>。</li>
-<li>顶部汇总「N 次模型调用 · M tokens」把照片识别与列映射的消耗合在一起计。</li>
-</ul>
-
-<h2>14.10 验收项（按规格「应为」）</h2>
-<table>
-<thead>
-<tr><th>编号</th><th>验收项</th></tr>
-</thead>
-<tbody>
-<tr><td>AC-M01</td><td>导航顶部应为「数据来源」分段控件，当前模式按钮为品牌红实底白字，另一枚为透明底灰字。</td></tr>
-<tr><td>AC-M02</td><td>模式选择应写入 <code>localStorage</code>，重新打开原型应保持上次选择；<code>?mode=real|demo</code> 应覆盖本地记忆；无任何记录时应为演示模式。</td></tr>
-<tr><td>AC-M03</td><td>真实模式下「选择文件」应打开系统文件选择器并只接受 <code>.xlsx/.xls/.csv</code>；演示模式下不应打开选择器，应直接出现一个假文件。</td></tr>
-<tr><td>AC-M04</td><td>真实模式下拍照屏「照片」应拉起系统相机 / 相册（<code>capture=environment</code>）；选中的图片应进本批并在缩略条显示。</td></tr>
-<tr><td>AC-M05</td><td>真实模式且本批无真实文件 / 照片时，转换页不应产出任何行，按钮应为「没有可转换的内容」并禁用，说明应提示回上一步选数据。</td></tr>
-<tr><td>AC-M06</td><td>真实模式拿不到取景帧时按快门，不应产生照片（不得以样张充数），应提示改用「照片」。</td></tr>
-<tr><td>AC-M07</td><td>切换模式且有本批数据时，应清空文件 / 照片 / 转换结果 / 概览，并落到「等待开始」空态。</td></tr>
-<tr><td>AC-M08</td><td>真实模式转换后，核对的类别与行数应只来自本批真实解析结果；未实测的类别不应出现演示造数。</td></tr>
-<tr><td>AC-M09</td><td>同一类别的多张照片，表头归一后完全相同的应合并为一张表并累加行；不同的应各成一张表。</td></tr>
-<tr><td>AC-M10</td><td>照片里未读到的表头，应在结果里整张跳过并给出「请重拍并把表头拍进画面」的告警，不得以首行充表头。</td></tr>
-<tr><td>AC-M11</td><td>照片中看不清的单元格应为空值，不得被模型按上下文补全。</td></tr>
-<tr><td>AC-M12</td><td>「AI 实测明细」中照片表应标注「照片 N 张」并给出识别口径（prompt 版本 / 张数 / 延迟 / tokens）。</td></tr>
-<tr><td>AC-M13</td><td>AI 桥未启动时选文件应退回演示文件，并以 toast 说明「AI 桥未启动，已退回演示数据」。</td></tr>
-</tbody>
-</table>
-
-<h2>14.11 改动文件</h2>
-<table>
-<thead>
-<tr><th>文件</th><th>改动</th></tr>
-</thead>
-<tbody>
-<tr><td><code>index.html</code></td><td>导航顶部新增 <code>.nav-mode</code>（标题 + 两枚 <code>[data-mode-btn]</code> + <code>#navModeHint</code>）；拍照屏「相册（占位）」改为「照片」（去掉占位角标）；导航 PRD 版本字样改 v2.14</td></tr>
-<tr><td><code>shell.css</code></td><td>新增 <code>.site-nav .nav-mode*</code>（分段控件 / 选中态 / 三色状态提示）；仅原型外壳，不进产品 UI 规范</td></tr>
-<tr><td><code>app.js</code></td><td>新增 <code>state.mode</code> / <code>MODE_KEY</code> / <code>isRealMode()</code> / <code>loadMode()</code> / <code>setMode()</code> / <code>renderModeSwitch()</code> / <code>probeBridge()</code> / <code>resetBatch()</code> / <code>setConvertIdle()</code> / <code>realPhotoEntries()</code> / <code>hasRealPhotos()</code> / <code>pickPhotoFor()</code>；<code>pickFileFor()</code> 按模式分流；<code>runConversion()</code> 真实模式拒绝造数；<code>runRealConversion()</code> 同类别文件与照片同请求；<code>finishRealConversion()</code> 汇总并入照片 tokens；<code>realPanelHtml()</code> 区分照片 / 文件并输出识别口径；<code>captureShot()</code> 真实模式不以样张充数；<code>setCameraDemo()</code> 提示文案按模式区分；相册按钮改调 <code>pickPhotoFor()</code>；<code>__rtbDebug</code> 增 <code>setMode</code> / <code>addPhoto</code></td></tr>
-<tr><td><code>ai-bridge.js</code></td><td><code>pickFile()</code> 抽出 <code>pickInput()</code>，新增 <code>pickImage(multiple, cb)</code>（<code>capture=environment</code>）；<code>convert()</code> 新增第 4 参 <code>photos</code>，与文件同请求发出</td></tr>
-<tr><td><code>ai-server/server.py</code></td><td>新增 <code>header_signature()</code> / <code>process_photos()</code>；<code>handle_convert()</code> 接受 <code>photos[]</code>；<code>convert_sheet()</code> 输出 <code>source</code>；<code>/api/ai/health</code> 增 <code>visionModel</code> / <code>photoPromptVersion</code></td></tr>
-<tr><td><code>ai-server/src/ocr_table.py</code></td><td>新增：照片 → 表格的视觉层（system / user prompt、压图、JSON 解析与重试、列 / 行归一）</td></tr>
-<tr><td><code>ai-server/src/llm.py</code></td><td><code>DEFAULT_MODEL</code> 改 <code>deepseek-flash</code>，新增 <code>VISION_MODEL</code></td></tr>
-</tbody>
-</table>
-
-<h2>14.12 自查口径</h2>
-<p><strong>已做</strong>：<code>node --check app.js</code>、<code>node --check ai-bridge.js</code>、<code>python -m py_compile server.py src/ocr_table.py</code> 均通过；本地桥运行时端到端走查——① 演示模式一轮转换（会员 1433 / 价目 42，无网络、无明细面板）；② 切真实且本批为空时转换页拒绝造数；③ 同一批里价目表走 Excel、会员走照片，明细分别标注「真实文件」「照片 1 张」；④ 两张连拍照片合并为 1 张表 4 行，值全对；⑤ 无表头照片整张拦下并告警；⑥ 会员照片 6 列 6/6 对齐，缺卡号 / 缺姓名的单元格保持为空未被补全；⑦ 换模型后 5 个黄金用例仍 100% 准确 / 100% 召回。<br />
-<strong>未做</strong>：未跑 <code>_tmp_verify_*.mjs</code> 形式的断言脚本、未出截图比对、未做线上复测。GitHub Pages 上无本地桥，真实模式只能退到演示，实测需本机跑 <code>python ai-server/server.py --lan</code> 后在 <code>http://&lt;内网IP&gt;:8787/</code> 打开。</p>
+<h1>14. （已删除）原型自测 / 实测 AI</h1>
+<p><strong>v2.53</strong>：原「演示 / 真实」模式开关、本地 AI 桥、<code>ai-server</code> 提示词与 OCR 实测说明整章删除。AI 后端实现不在本 PRD 范围；交互原型一律演示数据。相关验收见 §15.9 / AC-N12。</p>
 
 <hr />
 
@@ -7366,11 +7263,11 @@ sequenceDiagram
 <tr><td>字段映射</td><td><code>import-map</code> 屏 + 确认锁；<code>import-tpl-gen</code>；<code>import-preview</code> / <code>-detail</code></td><td><strong>四屏全部删除</strong>，AI 自动对齐；用户只在「核对」里改具体行</td></tr>
 <tr><td>Excel 与照片</td><td>按类别二选一，同类不能混</td><td><strong>可混批</strong>：同一批里既有 Excel 又有照片，AI 统一识别后归类</td></tr>
 <tr><td>进度条</td><td>4 步（选择 → 提供 → 转换 → 核对）</td><td><strong>3 步</strong>（提供 → 识别 → 核对）</td></tr>
-<tr><td>真实模式</td><td>侧栏「演示 / 真实」开关 + <code>ai-bridge.js</code> + <code>ai-server/</code></td><td><strong>下线</strong>：无开关、无桥接调用，全部演示数据；<code>ai-server/</code> 目录保留</td></tr>
+<tr><td>真实模式 / AI 桥</td><td>侧栏「演示 / 真实」开关 + <code>ai-bridge.js</code> + <code>ai-server/</code></td><td><strong>已删除</strong>（v2.53）：无开关、无桥接、无提示词工程目录；全部演示数据</td></tr>
 <tr><td>历史消费</td><td>专用四屏（上传+指定字段合并页 / 核对 / 完成 / 失败明细）+ 人工指定日期·金额·姓名三列</td><td><strong>v2.46</strong>：共享前置拾取（Excel/拍照可混 5+5、无模板）+ 独立核对/完成/失败三屏（Figma 410-3625 / 410-3976）；取消人工映射</td></tr>
 </tbody>
 </table>
-<p><strong>随之失效的旧章节</strong>：§6.8（类型页 · 每类含来源）、§6.10.2（确认待识别内容）、§6.11 中「页面结构」下的映射 tab 与「确认锁」部分、§3.2 中 <code>import-queue</code> / <code>import-map</code> / <code>import-tpl-gen</code> / <code>import-preview</code> / <code>import-preview-detail</code> 各行的「进入 / 出边」列、以及 §14 全章（真实模式）。这些章节<strong>仅供追溯</strong>，规格以本章为准。</p>
+<p><strong>随之失效的旧章节</strong>：§6.8（类型页 · 每类含来源）、§6.10.2（确认待识别内容）、§6.11 中「页面结构」下的映射 tab 与「确认锁」部分、§3.2 中 <code>import-queue</code> / <code>import-map</code> / <code>import-tpl-gen</code> / <code>import-preview</code> / <code>import-preview-detail</code> 各行的「进入 / 出边」列、以及原 §14（真实模式 / 实测 AI，v2.53 已删）。规格以本章与现行页面为准；修订记录里的旧叙述仅供追溯。</p>
 
 <h3>15.2 页面顺序（现行）</h3>
 <pre><code>本店概况 / 流程引导（无存量）
@@ -7393,7 +7290,7 @@ sequenceDiagram
 <tr><td>分区标题</td><td>「这次要导入什么」+ 说明「文件和照片都行；不用先选类别，AI 会自己认。」</td></tr>
 <tr><td>两枚大入口</td><td>按 Figma <code>node-id=410-619</code> 落地：两枚<strong>大卡</strong>纵向排列，<strong>每枚高 182px</strong>、圆角 12、白底、<strong>2px 描边</strong>（Excel <code>#E8F8F2</code> / 拍照 <code>#EEF5FC</code>）、无阴影；内距 <code>10 / 14 / 10 / 10</code>、图文间距 14、两卡间距 10。左为 <strong>96×84</strong> 圆角 10 的插图（Excel：淡绿底 + 绿色表格页；拍照：淡蓝底 + 蓝色纸质表 + 手机取景），右为两行文案——主标「<strong>Excel 导入</strong> / <strong>拍照导入</strong>」（16px / 700 / <code>#333</code> / 行高 24），副标「表格文件 · xls / xlsx / csv」「纸质价目表、手写本，对准拍」（12px / 400 / <code>#6B6B6B</code> / 行高 18）。</td></tr>
 <tr><td>已拿到清单</td><td>分区标题「已经拿到 <em>N</em> 份」+「还能继续加，Excel 与照片可以混着来。」；每行左侧格式图标（Excel / 照片缩略图）、主文案文件名或「照片 N」、副行「大小 · 待识别」或「拍照 · 待识别」、右侧「移除」；0 份时显示空态「还没有添加任何数据。点上面的入口开始。」</td></tr>
-<tr><td>底栏</td><td>提示条「不用挑类别，也不用整理表头：AI 会判断这批数据是会员、卡模板、价目表、库存商品还是店铺产品。」+ 主按钮「开始识别（N 份）」；0 份时禁用且文案「先添加数据」</td></tr>
+<tr><td>底栏</td><td>提示条「不用挑类别，也不用整理表头：AI 会判断这批数据是会员、卡模板、价目表·项目还是价目表·产品。」+ 主按钮「开始识别（N 份）」；0 份时禁用且文案「先添加数据」</td></tr>
 <tr><td>交互</td><td>点「我有 Excel 表格」→ 进上传页，<strong>进页不自动落文件</strong>（空列表或保留已选）；点「选择文件」才追加演示文件（原型不调系统选择器）。点「只有手机能拍照」→ 直接进拍照页；清单里「移除」即从待识别池删掉（Excel 与照片共用一个 <code>data-pending-del</code>，按 id 归属分流）。<strong>线上</strong>须进页后点选并唤起系统文件选择器上传真实文件</td></tr>
 </tbody>
 </table>
@@ -7451,12 +7348,12 @@ sequenceDiagram
 <li><strong>复位</strong>：离开历史链路时 <code>importMode</code> 一律回 <code>'main'</code>。</li>
 </ul>
 
-<h3>15.9 真实模式下线</h3>
+<h3>15.9 AI 实测桥与提示词工程（v2.53 已从本仓库删除）</h3>
 <ul>
-<li>删除侧栏 <code>.nav-mode</code> 整段（含 <code>#navModeHint</code>）与 <code>&lt;script src="ai-bridge.js"&gt;</code>。</li>
-<li><code>isRealMode()</code> 恒返回 <code>false</code>；<code>state.mode</code> 保留为 <code>'demo'</code> 仅作兼容字段，不再有切换入口、不读写 <code>localStorage.rtb_ai_mode</code>、不探测 AI 桥。</li>
-<li><code>ai-server/</code> 与 <code>ai-bridge.js</code> 文件保留在仓库，但页面不引用；<code>real*</code> / <code>bridge*</code> 函数保留为历史实现，已无调用入口。</li>
-<li>拍照页降级文案不再区分模式，统一为「这里拿不到相机取景，可用左下角「照片」从相册选，或点重试」。</li>
+<li>删除侧栏 <code>.nav-mode</code>、<code>ai-bridge.js</code>、<strong>整个 <code>ai-server/</code></strong>（含 <code>prompts/</code>、<code>ocr_table.py</code>、<code>llm.py</code>、golden、samples）以及 <code>app.js</code> 内 <code>real*</code> / <code>bridge*</code> / 实测明细面板死代码。</li>
+<li>本原型与 PRD<strong>不规定</strong>列映射提示词、视觉 OCR prompt、模型选型或 API 契约——交给负责 AI 功能开发的同事，避免本仓库残留实现干扰其方案。</li>
+<li>产品 UI 仍可出现「AI 正在识别」等<strong>演示文案</strong>；实现一律为前端造数 + 进度动画，不调外部模型。</li>
+<li>拍照页降级文案统一为「这里拿不到相机取景，可用左下角「照片」从相册选，或点重试」。</li>
 </ul>
 
 <h3>15.10 验收项（按规格书写，非「已实测」）</h3>
@@ -7474,14 +7371,14 @@ sequenceDiagram
 <tr><td>AC-N06</td><td>识别结果卡片上<strong>不应有任何可编辑控件</strong>（无输入框、无下拉、无勾选框），点击卡片不应改变其状态。</td></tr>
 <tr><td>AC-N07</td><td>「下一步：核对」应先进标准表转换，再由「去核对 N 行」进数据概览；全链路<strong>不应出现任何「指定字段 / 字段映射」页面</strong>。</td></tr>
 <tr><td>AC-N08</td><td>数据概览的分类 tab 与总计应覆盖本次识别出的全部类别（<strong>最多 4 类</strong>）；<code>product</code> 的行内编辑器应提供 8 个字段；<strong>不应</strong>存在库存品类的第 5 个 tab 与其编辑器。</td></tr>
-<tr><td>AC-N09</td><td>库存商品：商品名 / 规格 / 单位 / 数量任一为空或数量非非负整数应判「需修正」；数量为 0 应为「建议确认」。店铺产品：产品名称或产品售价为空 / 售价无法解析或为负应判「需修正」；上架状态非「上架 / 下架」应为「建议确认」；仅缺产品分类不应判需修正（可为建议确认）。</td></tr>
+<tr><td>AC-N09</td><td>店铺产品：产品名称或产品售价为空 / 售价无法解析或为负应判「需修正」；上架状态非「上架 / 下架」应为「建议确认」；仅缺产品分类不应判需修正（可为建议确认）。</td></tr>
 <tr><td>AC-N14</td><td>会员资料仅缺手机号 / 卡号 / 渠道等选填、但会员姓名齐全且无无法识别字段时，该行<strong>应</strong>计为可导入。任一选填字段值为乱码或金额列解析失败时，该行<strong>应</strong>为需修正。</td></tr>
 <tr><td>AC-N15</td><td>卡模板缺卡名、或缺充值余额/购买价格、或权益列全空时<strong>应</strong>为需修正；卡名 + 价格齐全且至少一项权益有值、且无无法识别字段时<strong>应</strong>可导入。</td></tr>
 <tr><td>AC-N16</td><td>识别结果页「这些可放心导入」仅含达门槛类别；未达门槛行应出现在「识别摘要」；可识别已填 &lt;30% 的 Excel（演示如「库存盘点表」）应出现在「原始存档」且不进入即将导入条数。</td></tr>
 <tr><td>AC-N17</td><td>核对页顶卡应为「分段对比条 + 图例 + 分项网格」的数据预览卡，<strong>不应</strong>再显示「N 即将导入」总数文案与「另有 N 条未达入库门槛…不会写入」提示；确认导入进度应只统计可导入行；未达门槛行不应写入存量。</td></tr>
 <tr><td>AC-N10</td><td>整批删除确认对话框应<strong>按本次已有数据的类别动态列出数量</strong>，缺数据的类别不应出现 0 值条目。</td></tr>
 <tr><td>AC-N11</td><td>历史消费导入应<strong>共享前置拾取 + 独立核对/完成</strong>：进入后 Excel 与拍照两张卡都出、上传页无模板下载、可混批 5+5；全链路<strong>不应出现任何「指定字段 / 字段映射」区块</strong>；识别完直进独立核对页（汇总卡 + 按月折叠样例），确认后进独立完成页（含失败行与整批删除）。</td></tr>
-<tr><td>AC-N12</td><td>左侧导航<strong>不应出现「演示 / 真实」切换控件</strong>；页面不应加载 <code>ai-bridge.js</code>；任何入口都不应发起 AI 桥请求。</td></tr>
+<tr><td>AC-N12</td><td>左侧导航<strong>不应出现「演示 / 真实」切换控件</strong>；仓库<strong>不应</strong>再包含 <code>ai-bridge.js</code> / <code>ai-server/</code>；任何入口都不应发起 AI 桥或模型 API 请求；原型仅演示数据。</td></tr>
 <tr><td>AC-N13</td><td>导入链路进度条应为 3 步（提供 / 识别 / 核对），不应再出现「选择」或「转换」步骤名。</td></tr>
 <tr><td>AC-N19</td><td>选择导入方式页两枚入口应为 Figma <code>410-619</code> 规格：每卡高 182px、圆角 12、2px 描边（Excel <code>#E8F8F2</code> / 拍照 <code>#EEF5FC</code>）、左 96×84 插图、右主标 16px/700、副标 12px/<code>#6B6B6B</code>；不应再出现 21px 主标或无描边白卡。</td></tr>
 <tr><td>AC-N20</td><td>拍照页水印<strong>只应有线框与一行表头</strong>，不应出现任何示例数值与类别小标题；不透明度约 0.3。取景区应同时可见四角括号与扫描线，且二者压在水印之上。</td></tr>
@@ -7498,7 +7395,7 @@ sequenceDiagram
 <tr><td>AC-N31</td><td>核对页顶部类型卡（<code>.verify-stat</code>）应<strong>可点</strong>：点某类型卡应<strong>切到该类别 tab</strong>（筛选、展开态、编辑态一并复位）并<strong>平滑滚到下方数据列表顶部</strong>；卡片应为 <code>button</code> 语义、带 <code>aria-label="查看&lt;类别&gt;数据列表"</code>，按下有底色反馈。</td></tr>
 <tr><td>AC-N32</td><td>导入链路各屏步骤条应为<strong>小圆点 + 1px 连线</strong>：未到达 7px 空心环、已完成 6px 实心品牌点、当前步 8px 实心品牌点（更大一号）且标签 600；连线 1px、两端各让 7px，只连接已完成 / 当前相邻两段时着品牌色；整条高度 <strong>≤ 30px</strong>；<strong>不应</strong>再出现 22px 及以上圆环、圆内勾图标或 3px 外发光。</td></tr>
 <tr><td>AC-N33</td><td>价目表·项目 / 价目表·产品的数据卡片应有<strong>明确文字层级</strong>：大类名（分组标题）<strong>应为</strong> 12px / 500 / <code>#8E8E8E</code> 的组眉标、右侧条数 11px / <code>#B0B0B0</code>；项目名与产品名<strong>应为</strong> 15px / 600 / <code>#1A1A1A</code>（主信息，字号与字重均高于大类名）；价格<strong>应为</strong> 15px / 600；三者行高 <code>21px</code>，行高恒 52px。卡模板 / 会员列表的分组标题<strong>不应</strong>被改动（仍为 13px / 600 / <code>#1A1A1A</code>）。</td></tr>
-<tr><td>AC-N34</td><td>导入链路<strong>不应</strong>再出现「库存品类」第 5 类：核对页 tab 与顶部类型卡<strong>最多 4 个</strong>（会员 / 卡模板 / 价目表·项目 / 价目表·产品）；<code>ensureCheckData()</code> <strong>不应</strong>再构建库存行；识别摘要里的 <code>stock</code> 域应<strong>落回价目表·产品</strong>而非新建第 5 类；<code>buildStockRows</code> / <code>checkProblemsStock</code> / <code>CHECK_FIELDS.stock</code> 等<strong>不应</strong>残留。工作台「库存管理」占位页与价目表·产品的可售数量字段<strong>不属于</strong>本项，应保留。</td></tr>
+<tr><td>AC-N34</td><td>导入链路<strong>不应</strong>再出现「库存品类」第 5 类：核对页 tab 与顶部类型卡<strong>最多 4 个</strong>（会员 / 卡模板 / 价目表·项目 / 价目表·产品）；<code>ensureCheckData()</code> <strong>不应</strong>再构建库存行；识别摘要里的 <code>stock</code> 域应<strong>落回价目表·产品</strong>而非新建第 5 类；<code>buildStockRows</code> / <code>checkProblemsStock</code> / <code>CHECK_FIELDS.stock</code> 等<strong>不应</strong>残留。价目表·产品的可售数量字段应保留；工作台 / 侧栏<strong>不应</strong>再出现「库存管理」入口或 <code>stock-list</code> 屏（v2.53 已删）。</td></tr>
 </tbody>
 </table>
 

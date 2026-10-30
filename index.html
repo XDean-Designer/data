@@ -47,7 +47,6 @@
     <button type="button" class="nav-item" data-flow="members"><span class="idx">M</span>会员列表<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="card-list"><span class="idx">卡</span>会员卡模板<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="price-list"><span class="idx">价</span>价目表<span class="nav-ph">占位</span></button>
-    <button type="button" class="nav-item" data-flow="stock-list"><span class="idx">库</span>库存管理<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="order-list"><span class="idx">流</span>订单流水<span class="nav-ph">占位</span></button>
     <button type="button" class="nav-item" data-flow="archive-list"><span class="idx">档</span>原始存档</button>
     <button type="button" class="nav-item" data-flow="digest-list"><span class="idx">摘</span>识别摘要</button>
@@ -76,7 +75,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.52</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.53</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -533,7 +532,6 @@
               <button type="button" class="wb-tile" data-wb="card"><span class="wb-tile__icon"><img src="assets/workbench/card.png" alt="" width="42" height="42"></span><span class="wb-tile__label">卡管理</span></button>
               <button type="button" class="wb-tile" data-wb="store"><span class="wb-tile__icon"><img src="assets/workbench/store.png" alt="" width="42" height="42"></span><span class="wb-tile__label">门店管理</span></button>
               <button type="button" class="wb-tile" data-wb="decor"><span class="wb-tile__icon"><img src="assets/workbench/decor.png" alt="" width="42" height="42"></span><span class="wb-tile__label">店铺装修</span></button>
-              <button type="button" class="wb-tile" data-wb="stock"><span class="wb-tile__trial">限时体验</span><span class="wb-tile__icon"><img src="assets/workbench/stock.png" alt="" width="42" height="42"></span><span class="wb-tile__label">库存管理</span></button>
               <button type="button" class="wb-tile" data-wb="device"><span class="wb-tile__icon"><img src="assets/workbench/device.png" alt="" width="42" height="42"></span><span class="wb-tile__label">设备管理</span></button>
               <button type="button" class="wb-tile" data-wb="popup"><span class="wb-tile__icon"><img src="assets/workbench/popup.png" alt="" width="42" height="42"></span><span class="wb-tile__label">小程序弹窗</span></button>
               <button type="button" class="wb-tile" data-wb="tuangou-set"><span class="wb-tile__icon"><img src="assets/workbench/tuangou-set.svg" alt="" width="42" height="42"></span><span class="wb-tile__label">团购设置</span></button>
@@ -754,7 +752,7 @@
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li>
           <li class="v3-step__item"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li>
         </ol>
-          <p class="soft-tip soft-tip--inline hidden" id="importHistoryNote">消费记录没有固定模板：Excel 或拍照都可以；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。</p>
+          <p class="soft-tip soft-tip--inline hidden" id="importHistoryNote"><span class="soft-tip__body">消费记录没有固定模板：Excel 或拍照都可以；按<strong>日期 / 金额 / 顾客姓名</strong>识别，不进订单流水。</span></p>
           <div class="src-entry src-entry--hero">
             <button type="button" class="src-hero is-excel" id="btnEnterExcel">
               <span class="src-hero__art" aria-hidden="true">
@@ -804,7 +802,7 @@
             <h2>选择 Excel 文件</h2>
             <p id="sourceLead">推荐按官方标准模板填写，可完美识别。其它表也能识别，可能要多核对几行。</p>
           </div>
-          <p class="soft-tip soft-tip--inline hidden" id="sourceHistoryNote">消费记录表：列名不必固定，系统会自己找<strong>日期 / 金额 / 顾客姓名</strong>，无需手动指定；手写流水可在上一步拍照。</p>
+          <p class="soft-tip soft-tip--inline hidden" id="sourceHistoryNote"><span class="soft-tip__body">消费记录表：列名不必固定，系统会自己找<strong>日期 / 金额 / 顾客姓名</strong>，无需手动指定；手写流水可在上一步拍照。</span></p>
           <div class="tpl-promo" id="sourceTplPromo" role="note">
             <div class="tpl-promo__body">
               <b>用官方标准模板填写，可完美识别导入</b>
@@ -1371,30 +1369,6 @@
             <div class="proto-list__item"><b>染发</b><span>项目 · ¥368 / 次</span></div>
             <div class="proto-list__item"><b>头皮护理</b><span>项目 · ¥168 / 次</span></div>
             <div class="proto-list__item"><b>造型设计</b><span>项目 · ¥128 / 次</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- stock-list：库存管理占位 -->
-      <div class="screen hidden" id="screen-stock-list" data-flow="stock-list">
-        <div class="ph-note" role="note">示意占位 · 实际开发以线上系统真实页面为准</div>
-        <header class="page-title-bar">
-          <button type="button" class="back" data-go="workbench" aria-label="返回">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span class="title">库存管理</span>
-          <button type="button" class="title-more" data-more-menu="stock" aria-label="更多"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
-          <div class="title-menu" data-more-panel="stock" hidden>
-            <button type="button" data-arch-open="archive" data-arch-domain="stock">原始存档</button>
-            <button type="button" data-arch-open="digest" data-arch-domain="stock">识别摘要</button>
-          </div>
-        </header>
-        <div class="scroll-body import-body">
-          <p class="proto-note">原型占位 · 库存管理以线上系统的真实页面为准</p>
-          <div class="proto-list">
-            <div class="proto-list__item"><b>施华蔻染膏 6-0</b><span>规格 60ml · 采购价 ¥48 · 库存 26</span></div>
-            <div class="proto-list__item"><b>欧莱雅护色洗发水</b><span>规格 500ml · 采购价 ¥62 · 库存 18</span></div>
-            <div class="proto-list__item"><b>烫发纸（盒）</b><span>规格 100 张 · 采购价 ¥15 · 库存 40</span></div>
           </div>
         </div>
       </div>
