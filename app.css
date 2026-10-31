@@ -1775,8 +1775,6 @@
   margin: 8px 0 20px;
   min-height: 120px;
 }
-.invite-xl__art svg,
-.invite-xl__svg { max-width: 100%; height: auto; overflow: visible; }
 .invite-xl .invite-sheet__actions { margin-top: auto; gap: 12px; }
 .invite-xl .btn-primary { width: 100%; height: 48px; border-radius: 24px; font-size: 16px; }
 .invite-xl__skip {
@@ -1790,37 +1788,216 @@
 }
 .invite-xl__skip:active { opacity: .65; }
 
-/* 邀请插图：表格 → 箭头 → 手机 循环轻动效（约 2.4s） */
-.invite-anim { transform-box: fill-box; transform-origin: center; }
-.invite-anim--sheet {
-  animation: invite-sheet-bob 2.4s ease-in-out infinite;
+/* 邀请插图：表格 → 箭头 → 手机（纯合成层动画，4.6s 一轮，末尾留静止）
+   旧版对 SVG <g> 做 transform/opacity，浏览器逐帧重绘整块 SVG → 打开半屏时掉帧；
+   这里拆成 HTML 图层，只动 transform / opacity，底图不参与重绘。 */
+.invite-xl__art { position: relative; }
+.inv-anim {
+  position: relative;
+  width: 280px;
+  height: 160px;
+  flex: none;
+  max-width: 100%;
+  contain: layout paint;
 }
-.invite-anim--arrow {
-  animation: invite-arrow-pulse 2.4s ease-in-out infinite;
+.inv-anim > * { position: absolute; }
+
+/* 手机背后的品牌色光晕：每轮脉冲一次 */
+.inv-glow {
+  left: 172px; top: 32px;
+  width: 108px; height: 108px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(243, 47, 65, .18) 0%, rgba(243, 47, 65, 0) 68%);
+  opacity: 0;
+  transform: scale(.85);
+  animation: invGlow 4.6s cubic-bezier(.4, 0, .2, 1) infinite;
+  will-change: transform, opacity;
 }
-.invite-anim--phone {
-  animation: invite-phone-float 2.4s ease-in-out infinite;
+
+/* 左：老系统表格 */
+.inv-sheet {
+  left: 16px; top: 36px;
+  width: 88px; height: 100px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: #F3F4F6;
+  border: 1.5px solid #D1D5DB;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0) scale(.97);
+  animation: invSheet 4.6s cubic-bezier(.4, 0, .2, 1) infinite;
+  will-change: transform, opacity;
 }
-@keyframes invite-sheet-bob {
-  0%, 100% { transform: translateY(0); opacity: 1; }
-  40% { transform: translateY(-3px); opacity: .92; }
-  55% { transform: translateY(1px); opacity: 1; }
+.inv-sheet__row {
+  position: absolute;
+  left: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: #9CA3AF;
+  overflow: hidden;
 }
-@keyframes invite-arrow-pulse {
-  0%, 100% { transform: translateX(0); opacity: .55; }
-  35% { transform: translateX(0); opacity: .55; }
-  50% { transform: translateX(5px); opacity: 1; }
-  65% { transform: translateX(2px); opacity: .85; }
+.inv-sheet__row--1 { top: 20px; width: 64px; }
+.inv-sheet__row--2 { top: 36px; width: 48px; }
+.inv-sheet__row--3 { top: 52px; width: 56px; }
+.inv-sheet__row--4 { top: 68px; width: 40px; }
+.inv-sheet__row i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #F32F41;
+  opacity: 0;
+  transform-origin: left center;
+  animation: invRow 4.6s cubic-bezier(.4, 0, .2, 1) infinite;
+  will-change: transform, opacity;
 }
-@keyframes invite-phone-float {
-  0%, 40% { transform: translateY(4px); opacity: .72; }
-  55%, 75% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(2px); opacity: .85; }
+.inv-sheet__row--1 i { animation-delay: .10s; }
+.inv-sheet__row--2 i { animation-delay: .24s; }
+.inv-sheet__row--3 i { animation-delay: .38s; }
+.inv-sheet__row--4 i { animation-delay: .52s; }
+.inv-sheet__dot {
+  position: absolute;
+  left: 54px; top: 76px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #D1D5DB;
+}
+
+/* 中：飞向手机的数据块（无中间箭头） */
+.inv-chip {
+  left: 118px;
+  width: 12px; height: 7px;
+  border-radius: 3px;
+  background: #FCA5A5;
+  opacity: 0;
+  --tx: 58px;
+  --ty: 32px;
+  animation: invChip 4.6s cubic-bezier(.34, .9, .3, 1) infinite;
+  will-change: transform, opacity;
+}
+.inv-chip--1 { top: 60px; }
+.inv-chip--2 { top: 74px; width: 10px; --tx: 64px; --ty: 24px; animation-delay: .14s; }
+.inv-chip--3 { top: 88px; width: 14px; height: 6px; --tx: 70px; --ty: 16px; animation-delay: .28s; }
+
+/* 右：新系统手机 */
+.inv-phone {
+  left: 168px; top: 28px;
+  width: 96px; height: 116px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: #FFF1F2;
+  border: 1.8px solid #F32F41;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0) scale(.96);
+  animation: invPhone 4.6s cubic-bezier(.4, 0, .2, 1) infinite;
+  will-change: transform, opacity;
+}
+.inv-phone__bar {
+  position: absolute;
+  left: 16px; top: 20px;
+  width: 64px; height: 10px;
+  border-radius: 5px;
+  background: #FECACA;
+}
+.inv-phone__line {
+  position: absolute;
+  left: 16px; top: 40px;
+  width: 48px; height: 8px;
+  border-radius: 4px;
+  background: #FECACA;
+  opacity: .7;
+}
+.inv-phone__pill {
+  position: absolute;
+  left: 16px; top: 68px;
+  width: 64px; height: 28px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #FCA5A5;
+}
+.inv-phone__pill i {
+  position: absolute;
+  left: 12px; top: 13px;
+  width: 40px; height: 2px;
+  border-radius: 2px;
+  background: #F32F41;
+}
+.inv-phone__tick {
+  position: absolute;
+  right: 14px; top: 66px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #F32F41;
+  opacity: 0;
+  transform: scale(.4) rotate(-12deg);
+  animation: invTick 4.6s cubic-bezier(.34, 1.36, .5, 1) infinite;
+  will-change: transform, opacity;
+}
+.inv-phone__tick::after {
+  content: "";
+  position: absolute;
+  left: 6px; top: 5px;
+  width: 5px; height: 9px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(40deg);
+}
+.inv-phone__brand {
+  position: absolute;
+  left: 0; right: 0; top: 100px;
+  text-align: center;
+  font-family: "Noto Sans SC", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #F32F41;
+}
+
+@keyframes invSheet {
+  0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(.97); }
+  8% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  46% { opacity: 1; transform: translate3d(0, -1px, 0) scale(1); }
+  88% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  96%, 100% { opacity: 0; transform: translate3d(0, 6px, 0) scale(.98); }
+}
+@keyframes invRow {
+  0%, 10% { opacity: 0; transform: scaleX(.15); }
+  16% { opacity: .95; transform: scaleX(1); }
+  26% { opacity: 0; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+@keyframes invChip {
+  0%, 26% { opacity: 0; transform: translate3d(0, 0, 0) scale(.5); }
+  30% { opacity: 1; transform: translate3d(2px, -4px, 0) scale(1); }
+  42% { opacity: 1; transform: translate3d(calc(var(--tx) * .55), calc(var(--ty) * .55 - 10px), 0) scale(1); }
+  52% { opacity: 0; transform: translate3d(var(--tx), var(--ty), 0) scale(.6); }
+  100% { opacity: 0; transform: translate3d(var(--tx), var(--ty), 0) scale(.5); }
+}
+@keyframes invPhone {
+  0%, 12% { opacity: 0; transform: translate3d(0, 10px, 0) scale(.96); }
+  26% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  72% { opacity: 1; transform: translate3d(0, -2px, 0) scale(1.01); }
+  88% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  97%, 100% { opacity: 0; transform: translate3d(0, 6px, 0) scale(.98); }
+}
+@keyframes invTick {
+  0%, 66% { opacity: 0; transform: scale(.4) rotate(-12deg); }
+  74% { opacity: 1; transform: scale(1.06) rotate(0deg); }
+  80% { opacity: 1; transform: scale(1) rotate(0deg); }
+  90%, 100% { opacity: 0; transform: scale(1) rotate(0deg); }
+}
+@keyframes invGlow {
+  0%, 60% { opacity: 0; transform: scale(.85); }
+  74% { opacity: 1; transform: scale(1.06); }
+  92%, 100% { opacity: 0; transform: scale(1.12); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .invite-anim--sheet,
-  .invite-anim--arrow,
-  .invite-anim--phone { animation: none; }
+  .inv-anim,
+  .inv-anim * { animation: none !important; }
+  .inv-sheet,
+  .inv-phone { opacity: 1; transform: none; }
+  .inv-chip,
+  .inv-phone__tick,
+  .inv-glow,
+  .inv-sheet__row i { opacity: 0; }
 }
 
 .analyze-banner {
@@ -3524,66 +3701,46 @@
   padding-top: 40px;
 }
 
-/* 历史订单详情：金额抬头 + 两列 diff */
+/* 历史订单详情：主卡（金额 / 日期 / 姓名 / 支付方式）+ 次卡（原表其他内容） */
 .history-detail-body { padding: 12px 16px 28px; }
-.history-detail-card {
-  padding: 22px 16px 18px;
-  border-radius: 14px;
+.hd-card {
   background: var(--card);
-  text-align: center;
+  border-radius: 14px;
   box-shadow: 0 0 0 0.5px rgba(0,0,0,.05);
 }
-.history-detail-card__amount {
+.hd-card--main {
+  padding: 22px 16px 8px;
+}
+.hd-amount {
   font-size: var(--fs-hero);
   line-height: var(--lh-hero);
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   letter-spacing: -.5px;
+  text-align: center;
 }
-.history-detail-card__when {
-  margin-top: 4px;
+.hd-date {
+  margin-top: 6px;
   font-size: var(--fs-caption);
   line-height: var(--lh-caption);
   color: var(--text-sec);
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
-.history-detail-card__who {
-  margin-top: 2px;
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  color: var(--text);
+.hd-hr {
+  height: 0.5px;
+  margin: 16px 0 2px;
+  background: var(--card-divider);
 }
-.history-detail-sec {
-  margin-top: 12px;
-  padding: 4px 16px 8px;
-  border-radius: 14px;
-  background: var(--card);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,.05);
-}
-.history-detail-sec__title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 14px 0 4px;
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 600;
-  color: var(--text);
-}
-.history-detail-sec__title i {
-  font-style: normal;
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-}
-.hist-diff__row {
+.hd-row {
   position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 9px 0;
+  padding: 10px 0;
 }
-.hist-diff__row + .hist-diff__row::before {
+.hd-row + .hd-row::before {
   content: "";
   position: absolute;
   left: 0;
@@ -3594,13 +3751,13 @@
   transform: scaleY(.5);
   transform-origin: top;
 }
-.hist-diff__k {
+.hd-k {
   flex: 0 0 76px;
   font-size: var(--fs-caption);
   line-height: var(--lh-body);
   color: var(--text-sec);
 }
-.hist-diff__v {
+.hd-v {
   flex: 1;
   min-width: 0;
   font-size: var(--fs-body);
@@ -3609,7 +3766,23 @@
   text-align: right;
   word-break: break-all;
 }
-.hist-diff__v.is-raw { color: var(--text-sec); }
+.hd-card--sub {
+  margin-top: 12px;
+  padding: 2px 16px 4px;
+}
+.hd-card--sub .hd-k {
+  font-size: 12px;
+  color: #8E8E8E;
+}
+.hd-card--sub .hd-v.is-sub {
+  font-size: 13px;
+  color: var(--text-sec);
+}
+.history-detail-body .history-foot-note {
+  margin-top: 8px;
+  padding-left: 0;
+  padding-right: 0;
+}
 
 /* ===== 标准表头卡（上传页共用） ===== */
 .hdr-card {
@@ -9491,8 +9664,12 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   gap: 28px;
   padding: 14px 16px;
   background: #D8EDFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
 }
-.verify-dash__main:active { background: #CFE6FB; }
+.verify-dash__main:active {
+  background: #CFE6FB;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+}
 .verify-dash__stack {
   display: flex;
   flex-direction: column;
@@ -9613,7 +9790,10 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   cursor: default;
   pointer-events: none;
 }
-.verify-dash.is-static .verify-dash__main:active { background: #D8EDFF; }
+.verify-dash.is-static .verify-dash__main:active {
+  background: #D8EDFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+}
 .verify-dash.is-static .verify-dash__card:active {
   background: #FFFFFF;
   box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
@@ -9718,7 +9898,7 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   width: auto;
   min-width: 112px;
   max-width: 42%;
-  height: 44px;
+  height: 48px;
   padding: 0 12px;
   font-size: 14px;
   font-weight: 500;

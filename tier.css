@@ -519,6 +519,21 @@
   color: #B0B0B0;
   cursor: default;
 }
+/* 只缺选填时：忽略没对上的几项，直接导入 */
+.digest-foot .digest-skip {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: #6B6B6B;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  cursor: pointer;
+}
+.digest-foot .digest-skip:active { opacity: .65; }
 
 /* —— 出处预览 —— */
 .src-preview {
@@ -1207,22 +1222,40 @@
 .mh-profile {
   margin-bottom: 12px; padding: 16px;
   border-radius: 14px;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+  border: 0.5px solid rgba(217, 67, 67, 0.1);
   background: linear-gradient(180deg, rgba(255, 217, 218, 0.5) 0%, rgba(255, 240, 212, 0.5) 100%);
   overflow: hidden;
   box-sizing: border-box;
 }
 .mh-profile__who {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 10px;
   margin-bottom: 0;
+}
+.mh-profile__avatar {
+  flex: none; width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden;
+  background: rgba(217, 67, 67, 0.08);
+  border: 1px solid rgba(217, 67, 67, 0.14);
+  box-sizing: border-box;
+}
+.mh-profile__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mh-profile__avatar i {
+  display: none; font-style: normal;
+  font-size: 16px; font-weight: 500; color: #D94343;
+}
+.mh-profile__avatar.is-broken img { display: none; }
+.mh-profile__avatar.is-broken i { display: block; }
+.mh-profile__meta {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; gap: 3px;
 }
 .mh-profile__name,
 .mh-profile__phone {
   display: flex; align-items: center; gap: 4px; min-width: 0;
-  flex: 1 1 0;
+  flex: none;
 }
-.mh-profile__phone { justify-content: flex-end; padding-right: 2px; }
+.mh-profile__phone { justify-content: flex-start; padding-right: 0; }
 .mh-profile__ico { flex: none; display: block; }
 .mh-profile__name b {
   font-size: 18px; font-weight: 500; color: #1A1A1A; letter-spacing: .2px;

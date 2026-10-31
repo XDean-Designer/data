@@ -147,9 +147,9 @@
   ];
 
   var PREVIEW_TYPE_META = {
-    member: { title: '会员与持卡明细', sub: '抽样 10 条 · 点行核对字段', count: 126 },
-    card: { title: '卡模板明细', sub: '全部模板 · 点行核对字段', count: 4 },
-    price: { title: '价目表明细', sub: '抽样 10 条 · 点行核对字段', count: 42 },
+    member: { title: '会员与持卡明细', sub: '抽样 10 条 · 点行核对内容', count: 126 },
+    card: { title: '卡模板明细', sub: '全部模板 · 点行核对内容', count: 4 },
+    price: { title: '价目表明细', sub: '抽样 10 条 · 点行核对内容', count: 42 },
   };
 
   /* 本批导入造数；再导合并时的「新增 / 更新」演示拆分 */
@@ -393,6 +393,9 @@
 
   // 历史消费：只识别日期 / 金额 / 顾客姓名，其余列原样保留（v2.45 起不再提供手动指定字段）
   /* 历史订单演示：项目文案区分「充值类」与「消费类」（可重叠，见 historyRowFlags） */
+  // 会员历史消费卡片头像：网络真实人像占位（加载失败自动回落为姓氏首字）
+  var MEMBER_AVATAR_URL = 'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=facearea&facepad=2.6&w=120&h=120&q=80';
+
   var HISTORY_ROWS = [
     { id: 'h01', date: '2025-12-28', amount: 1280, name: '李女士', phone: '', memberNo: '', raw: { 项目: '染发 + 护理', 支付方式: '微信', 门店: '悦己美发沙龙', 备注: '项目消费' } },
     { id: 'h02', date: '2025-12-19', amount: 168, name: '王先生', phone: '', memberNo: '', raw: { 项目: '洗剪吹', 支付方式: '现金', 门店: '悦己美发沙龙', 备注: '' } },
@@ -2778,12 +2781,21 @@
 
   /* 内部英文字段键 → 中文展示名（对齐 CHECK_FIELDS.label） */
   function checkFieldLabel(cat, key) {
-    if (!key) return '字段';
+    if (!key) return '内容';
     var list = (typeof CHECK_FIELDS !== 'undefined' && CHECK_FIELDS[cat]) || [];
     for (var i = 0; i < list.length; i++) {
       if (list[i].key === key) return list[i].label;
     }
     return key;
+  }
+
+  /* 该项是否属于「必须有」的信息（用于判断能否跳过未识别项直接导入） */
+  function checkFieldRequired(cat, key) {
+    var list = (typeof CHECK_FIELDS !== 'undefined' && CHECK_FIELDS[cat]) || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].key === key) return !!list[i].req;
+    }
+    return false;
   }
 
   function digestFromErrorRow(cat, row) {
@@ -2792,14 +2804,17 @@
       ((IMPORT_CAT_SHORT[cat] || cat) + ' · 不符合条件');
     var fails = (row.problems || []).filter(function (p) { return p.level === 'error'; }).map(function (p) {
       var key = p.field || '';
+      var msg = p.msg || '无法导入';
       return {
         key: key,
-        k: key ? checkFieldLabel(cat, key) : '字段',
-        v: p.msg || '无法导入',
-        edit: ''
+        k: key ? checkFieldLabel(cat, key) : '内容',
+        v: msg,
+        edit: '',
+        /* 必填项 / 权益类缺失 → 不允许跳过；其余为选填，可忽略后直接导入 */
+        req: !key || checkFieldRequired(cat, key) || /为空|必填|权益/.test(msg)
       };
     });
-    if (!fails.length) fails = [{ key: '', k: '导入', v: '未达必填或含无法识别内容', edit: '' }];
+    if (!fails.length) fails = [{ key: '', k: '导入', v: '未达必填或含无法识别内容', edit: '', req: true }];
     var fields = [];
     Object.keys(f).forEach(function (key) {
       if (fields.length >= 4) return;
@@ -3004,7 +3019,7 @@
       '<section class="tier-sec tier-sec--mute">' +
         '<div class="tier-mute-card">' +
           '<div class="tier-sec__hd"><h3>识别摘要</h3><em>' + l2.length + ' 条</em></div>' +
-          '<p class="tier-mute-tip">缺必填，或已填字段无法识别 / 数字解析失败。不会导入；可在业务页 ··· →「识别摘要」查看或补全。</p>' +
+          '<p class="tier-mute-tip">缺必填，或已填的内容认不出来 / 数字解析失败。不会导入；可在业务页 ··· →「识别摘要」查看或补上。</p>' +
           digBody +
         '</div>' +
       '</section>' +
@@ -5004,7 +5019,7 @@
   }
 
   function markUnreadable(add, field, label) {
-    add(field, 'error', (label || '字段') + '无法识别，不能导入');
+    add(field, 'error', (label || '内容') + '无法识别，不能导入');
   }
 
   function isPastDate(str) {
@@ -5592,7 +5607,7 @@
     return '<div class="check-editor">' +
       '<div class="check-editor__grid">' + main.map(function (f) { return checkFieldHtml(cat, row, f); }).join('') + '</div>' +
       (more.length
-        ? '<details class="check-editor__more"><summary>更多字段（' + more.length + '）</summary>' +
+        ? '<details class="check-editor__more"><summary>更多信息（' + more.length + '）</summary>' +
           '<div class="check-editor__grid">' + more.map(function (f) { return checkFieldHtml(cat, row, f); }).join('') + '</div></details>'
         : '') +
       '<div class="check-editor__acts">' +
@@ -6281,7 +6296,7 @@
     if (blocked.length) {
       html += '<section class="verify-group is-blocked">' +
         '<div class="verify-group__hd"><b>不符合条件</b><span>' + blocked.length + ' 条</span></div>' +
-        '<p class="verify-group__hint">缺必填或含无法识别字段，确认导入时不会写入。</p>' +
+        '<p class="verify-group__hint">缺必填或含认不出的内容，确认导入时不会写入。</p>' +
         blocked.slice(0, 6).map(function (r) {
           var bCat = (state.checkData.price || []).indexOf(r) >= 0 ? 'price'
             : ((state.checkData.product || []).indexOf(r) >= 0 ? 'product' : cat);
@@ -6703,7 +6718,7 @@
       var title = $('#convertTitle');
       if (title) title.textContent = allStd ? '标准模板已读取' : '已转成标准模板';
       var lead = $('#convertLead');
-      if (lead) lead.textContent = '未识别字段已标出，进概览逐行核对。';
+      if (lead) lead.textContent = '没认出来的内容已标出，进概览逐行核对。';
       ensureCheckData();
       renderConvertResult();
       var all = checkAllStats();
@@ -7011,13 +7026,22 @@
       return;
     }
     var s = memberHistorySummary(m);
-    var icoUser = '<svg class="mh-profile__ico mh-profile__ico--user" viewBox="0 0 20 20" width="20" height="20" fill="none" aria-hidden="true"><path d="M2.81569 18H17.1843C17.6348 18 18 17.5942 18 17.0937C18 13.9474 15.3714 11.3968 10 11.3968C4.62857 11.3968 2 13.9474 2 17.0937C2 17.5942 2.36519 18 2.81569 18ZM13 5C13 6.65685 11.6569 8 10 8C8.34314 8 7 6.65685 7 5C7 3.34315 8.34314 2 10 2C11.6569 2 13 3.34315 13 5Z" stroke="#FF7272" stroke-width="2"/></svg>';
     var icoPhone = '<svg class="mh-profile__ico mh-profile__ico--phone" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M13.7756 12.514C13.7756 12.514 13.0031 13.2726 12.8138 13.4951C12.5055 13.8241 12.1421 13.9795 11.6659 13.9795C11.6201 13.9795 11.5712 13.9795 11.5254 13.9765C10.6186 13.9186 9.77596 13.5652 9.14396 13.2635C7.41589 12.4287 5.89848 11.2434 4.63754 9.7413C3.59642 8.48903 2.90031 7.33121 2.43929 6.08807C2.15534 5.3294 2.05154 4.7383 2.09734 4.18072C2.12787 3.82423 2.26526 3.52868 2.51867 3.27579L3.55979 2.2368C3.70939 2.09664 3.86815 2.02047 4.02386 2.02047C4.21621 2.02047 4.37192 2.13625 4.46962 2.23375C4.47267 2.2368 4.47572 2.23985 4.47878 2.2429C4.66502 2.41657 4.8421 2.59633 5.02834 2.78829C5.12299 2.88579 5.22069 2.98329 5.31839 3.08384L6.15189 3.91564C6.47553 4.23861 6.47553 4.53721 6.15189 4.86018C6.06335 4.94854 5.97787 5.0369 5.88932 5.12221C5.63286 5.38424 5.83433 5.18319 5.56871 5.42084C5.5626 5.42694 5.55649 5.42998 5.55344 5.43608C5.29087 5.69811 5.33972 5.95405 5.39468 6.12772C5.39773 6.13686 5.40078 6.146 5.40384 6.15515C5.62061 6.67921 5.92592 7.17281 6.39 7.76086L6.39305 7.7639C7.23572 8.79985 8.12418 9.60727 9.10423 10.2258C9.22941 10.305 9.35764 10.369 9.47977 10.4299C9.58968 10.4848 9.69349 10.5366 9.78203 10.5914C9.79424 10.5975 9.80645 10.6067 9.81867 10.6127C9.92247 10.6645 10.0202 10.6889 10.1209 10.6889C10.3743 10.6889 10.5331 10.5305 10.585 10.4787L11.1835 9.88146C11.2873 9.77786 11.4521 9.65294 11.6445 9.65294C11.8338 9.65294 11.9895 9.77177 12.0841 9.87536C12.0872 9.87841 12.0872 9.87841 12.0902 9.88146L13.7725 11.5603C14.087 11.8711 13.7756 12.514 13.7756 12.514Z" stroke="#6B6B6B" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    /* 圆形真实头像占位（网络图，加载失败回落为姓氏首字） */
+    var avatar =
+      '<span class="mh-profile__avatar">' +
+        '<img src="' + MEMBER_AVATAR_URL + '" alt="" loading="lazy" referrerpolicy="no-referrer" ' +
+          'onerror="this.parentNode.classList.add(\'is-broken\')" />' +
+        '<i>' + esc(String(m.name || '客').slice(0, 1)) + '</i>' +
+      '</span>';
     var profile =
       '<div class="mh-profile">' +
         '<div class="mh-profile__who">' +
-          '<div class="mh-profile__name">' + icoUser + '<b>' + esc(m.name) + '</b></div>' +
-          '<div class="mh-profile__phone">' + icoPhone + '<span>' + esc(m.phone || '未留手机号') + '</span></div>' +
+          avatar +
+          '<div class="mh-profile__meta">' +
+            '<div class="mh-profile__name"><b>' + esc(m.name) + '</b></div>' +
+            '<div class="mh-profile__phone">' + icoPhone + '<span>' + esc(m.phone || '未留手机号') + '</span></div>' +
+          '</div>' +
         '</div>' +
         '<div class="mh-profile__stats" role="group" aria-label="历史订单汇总">' +
           '<div class="mh-profile__cell"><em>' + fmtMoney(s.recharge) + '</em><span>累计充值</span></div>' +
@@ -7193,15 +7217,11 @@
     }).join('');
   }
 
-  function histDiffRows(pairs, rawMode) {
-    return pairs.map(function (p) {
-      var bad = p[2];
-      var cls = 'hist-diff__v' + (rawMode || bad ? ' is-raw' : '') + (bad && !rawMode ? ' is-bad' : '');
-      return '<div class="hist-diff__row">' +
-        '<span class="hist-diff__k">' + p[0] + '</span>' +
-        '<span class="' + cls + '">' + p[1] + '</span>' +
-      '</div>';
-    }).join('');
+  function hdRow(k, v, sub) {
+    return '<div class="hd-row">' +
+      '<span class="hd-k">' + k + '</span>' +
+      '<span class="hd-v' + (sub ? ' is-sub' : '') + '">' + v + '</span>' +
+    '</div>';
   }
 
   function renderHistoryDetail() {
@@ -7216,28 +7236,25 @@
       body.innerHTML = '<div class="v3-empty"><p class="v3-empty__title">记录不存在</p><p class="v3-empty__hint">该记录可能已被删除，返回列表重新选择。</p></div>';
       return;
     }
-    var rawPairs = Object.keys(row.raw).map(function (k) {
+    /* 支付方式提升到主卡，原表其余内容进次卡（不再重复展示） */
+    var payMethod = row.raw['支付方式'] || '未填';
+    var rawPairs = Object.keys(row.raw).filter(function (k) {
+      return k !== '支付方式';
+    }).map(function (k) {
       return [k, row.raw[k] || '未填'];
     });
     body.innerHTML =
-      '<div class="history-detail-card">' +
-        '<div class="history-detail-card__amount">' + fmtMoney(row.amount) + '</div>' +
-        '<div class="history-detail-card__when">' + row.date + '</div>' +
-        '<div class="history-detail-card__who">' + (row.name || '未留姓名') + '</div>' +
+      '<div class="hd-card hd-card--main">' +
+        '<div class="hd-amount">' + fmtMoney(row.amount) + '</div>' +
+        '<div class="hd-date">' + row.date + '</div>' +
+        '<div class="hd-hr"></div>' +
+        hdRow('顾客姓名', row.name || '未留姓名') +
+        hdRow('支付方式', payMethod) +
       '</div>' +
-      '<div class="history-detail-sec">' +
-        '<div class="history-detail-sec__title">已识别<i>3 项</i></div>' +
-        histDiffRows([
-          ['消费日期', row.date],
-          ['金额', fmtMoney(row.amount)],
-          ['顾客姓名', row.name || '未填']
-        ]) +
+      '<div class="hd-card hd-card--sub">' +
+        rawPairs.map(function (p) { return hdRow(p[0], p[1], true); }).join('') +
       '</div>' +
-      '<div class="history-detail-sec">' +
-        '<div class="history-detail-sec__title">原始字段<i>' + rawPairs.length + ' 项</i></div>' +
-        histDiffRows(rawPairs, true) +
-      '</div>' +
-      '<p class="history-foot-note">只读：历史订单不参与开单、业绩与会员余额计算</p>';
+      '<p class="history-foot-note">历史订单不参与开单、业绩与会员余额计算</p>';
   }
 
   function openHistoryFilter() {
@@ -8453,7 +8470,7 @@
         priceN: importableRows('price').length + importableRows('product').length
       });
     }
-    var l2 = (state.tierResult.l2 || []).length;
+    var l2 = openDigestPendingCount();
     var l1 = (state.tierResult.l1 || []).length;
     setResultMissRow('#btnResultMiss', '#resultMissCount', l2);
     setResultArchiveTip('#resultArchiveTip', l1 > 0);
@@ -8745,7 +8762,7 @@
     var screen = $('#screen-digest-list');
     if (host) {
       var tip = rows.length
-        ? '<p class="digest-list-tip">点进详情可把缺的字段补上，补完后就能导入系统。</p>'
+        ? '<p class="digest-list-tip">点进详情可把缺的信息补上，补好就能导入。</p>'
         : '';
       var showKind = state.archiveDomain === 'price';
       host.innerHTML = tip + rows.map(function (d) {
@@ -8753,7 +8770,11 @@
         var kind = showKind ? domainKindTag(d.domain) : '';
         var metaBits = d.fields.map(function (f) { return f.k + ' ' + f.v; }).slice(0, 2);
         if (kind) metaBits.unshift(kind);
-        if (miss) metaBits.push('缺 ' + miss + ' 项可补');
+        if (d.promoted) {
+          metaBits.push(d.skippedCount ? '已导入（' + d.skippedCount + ' 项未填）' : '已导入');
+        } else if (miss) {
+          metaBits.push('缺 ' + miss + ' 项可补');
+        }
         return '<button type="button" class="arch-row" data-digest-id="' + d.id + '">' +
           '<span class="arch-row__ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h11M8 12h11M8 18h7"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>' +
           '<span class="arch-row__body"><span class="arch-row__title">' + esc(d.title) +
@@ -8767,7 +8788,23 @@
     if (screen) screen.classList.toggle('is-list-empty', rows.length === 0);
   }
 
-  function promoteDigestToCheck(d) {
+  /* 成功页 / 业务页 ··· / 概况进来的补全：批次已结束或已离开核对壳 → 直接写入，不回核对页 */
+  function digestPromoteDirectWrite() {
+    if (importBatchClosed()) return true;
+    var ret = state.archiveReturn || '';
+    if (ret === 'import-result' || ret === 'history-import-result' || ret === 'import-overview') return true;
+    if (ret === 'workbench' || ret === 'home') return true;
+    if (VIEW_LIST_FLOWS.indexOf(ret) >= 0) return true;
+    return false;
+  }
+
+  function openDigestPendingCount() {
+    return (state.tierResult.l2 || []).filter(function (x) { return !x.promoted; }).length;
+  }
+
+  function promoteDigestToCheck(d, opts) {
+    var skipFails = !!(opts && opts.skipFails);
+    var direct = digestPromoteDirectWrite();
     /* 库存品类已并入价目表·产品：识别摘要里的 stock 域一律落回 product */
     var cat = d.domain === 'product' ? 'product'
       : (d.domain === 'price' ? 'price'
@@ -8784,6 +8821,7 @@
       if (kk) f[kk] = x.v;
     });
     (d.fails || []).forEach(function (x) {
+      if (skipFails) return; /* 忽略未填的选填项：不把原表里的乱码值写进去 */
       var kk = digestValKey(x);
       if (!kk || kk === '导入') return;
       f[kk] = (x.edit || '').trim() || x.v;
@@ -8811,18 +8849,32 @@
       problems: [],
       ignored: false,
       aiFields: [],
-      fromDigest: true
+      fromDigest: true,
+      written: !!direct
     };
     state.checkData[cat].unshift(row);
     if (cat === 'card') enrichPriceFromCards();
     recomputeCheck(cat);
     if (state.checkData.price) recomputeCheck('price');
+    var skipped = skipFails ? (d.fails || []).length : 0;
     d.promoted = true;
+    d.skippedCount = skipped;
+    d.promotedDirect = !!direct;
     collectPlan();
     state.checkTab = cat;
+    if (direct) {
+      state.storeStock[cat] = (state.storeStock[cat] || 0) + 1;
+      if (state.importTask.stage === 'done' || state.importTask.resumeFlow === 'import-result') {
+        setImportStage('done', 'import-result');
+      }
+      var ret = state.archiveReturn || 'import-result';
+      go(ret);
+      showToast(skipped ? '已跳过 ' + skipped + ' 项未填内容，已导入' : '已导入');
+      return;
+    }
     setImportStage('check', 'import-check');
     go('import-check');
-    showToast('已补充，进入核对导入');
+    showToast(skipped ? '已跳过 ' + skipped + ' 项未填内容，进入核对导入' : '已补充，进入核对导入');
   }
 
   function renderDigestDetail() {
@@ -8834,16 +8886,38 @@
       host.innerHTML = '<p class="proto-note">未找到该摘要</p>';
       return;
     }
-    (d.fails || []).forEach(function (f) { if (f.edit === undefined) f.edit = ''; });
+    (d.fails || []).forEach(function (f) {
+      if (f.edit === undefined) f.edit = '';
+      /* 旧数据没有必填标记：保守当作必填，不提供跳过 */
+      if (f.req === undefined) f.req = true;
+    });
+    var failList = d.fails || [];
+    var recognized = d.fields || [];
+    var reqFails = failList.filter(function (f) { return f.req; });
+    /* 必填都认出来了、缺的只是选填 → 允许忽略这几项直接导入 */
+    var canSkip = failList.length > 0 && !reqFails.length;
+    var directCtx = digestPromoteDirectWrite();
+    var tip = canSkip
+      ? '没对上的都是可以空着的项：补好再导入，或直接跳过。'
+      : (reqFails.length
+        ? '「' + reqFails[0].k + '」还没认出来，补上才能导入。'
+        : (directCtx
+          ? '补好后点下方按钮，即可导入。'
+          : '补好后点下方按钮，进入「核对导入」。'));
+    var doneLab = d.promotedDirect
+      ? (d.skippedCount ? '已导入（' + d.skippedCount + ' 项未填）' : '已导入')
+      : (d.skippedCount ? '已加入本批（' + d.skippedCount + ' 项未填）' : '已加入本批导入');
     host.innerHTML =
-      '<div class="digest-block"><div class="digest-block__hd">已识别字段</div>' +
-        d.fields.map(function (f) {
-          return '<div class="digest-kv"><b>' + esc(f.k) + '</b><span>' + esc(f.v) + '</span></div>';
-        }).join('') +
+      '<div class="digest-block"><div class="digest-block__hd">已认出来的内容</div>' +
+        (recognized.length
+          ? recognized.map(function (f) {
+            return '<div class="digest-kv"><b>' + esc(f.k) + '</b><span>' + esc(f.v) + '</span></div>';
+          }).join('')
+          : '<p class="digest-edit-tip">这一条暂时没有能直接用的内容。</p>') +
       '</div>' +
-      '<div class="digest-block"><div class="digest-block__hd">未能对应字段 · 可补充</div>' +
-        '<p class="digest-edit-tip">把缺的信息补全后，就能导入系统。</p>' +
-        (d.fails || []).map(function (f, i) {
+      '<div class="digest-block"><div class="digest-block__hd">这几项还没对上 · 可以补</div>' +
+        '<p class="digest-edit-tip">把缺的信息补上，就能导入。</p>' +
+        failList.map(function (f, i) {
           return '<label class="digest-edit">' +
             '<span class="digest-edit__lab">' + esc(f.k) + '</span>' +
             '<span class="digest-edit__hint">' + esc(f.v) + '</span>' +
@@ -8856,10 +8930,13 @@
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg>' +
       '</button>' +
       '<div class="digest-foot">' +
-        '<p class="digest-foot__tip">补充完整后点下方按钮，将进入「核对导入」。</p>' +
+        '<p class="digest-foot__tip">' + esc(tip) + '</p>' +
         '<button type="button" class="btn-primary" id="btnDigestPromote"' + (d.promoted ? ' disabled' : '') + '>' +
-          (d.promoted ? '已加入本批导入' : '补充完成，导入') +
+          (d.promoted ? doneLab : '补好了，导入') +
         '</button>' +
+        (canSkip && !d.promoted
+          ? '<button type="button" class="digest-skip" id="btnDigestSkip">这几项先不填，直接导入</button>'
+          : '') +
       '</div>';
     var srcBtn = $('#btnDigestSource');
     if (srcBtn) {
@@ -8882,6 +8959,12 @@
           return;
         }
         promoteDigestToCheck(d);
+      };
+    }
+    var skipBtn = $('#btnDigestSkip');
+    if (skipBtn && !d.promoted) {
+      skipBtn.onclick = function () {
+        promoteDigestToCheck(d, { skipFails: true });
       };
     }
   }

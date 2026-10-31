@@ -75,7 +75,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.61</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.66</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -1622,25 +1622,29 @@
           <h3 id="inviteTitle">把老系统数据带过来</h3>
           <p id="inviteSub">会员、卡模板、价目表可自助导入，不必先填模板。</p>
           <div class="invite-xl__art" aria-hidden="true">
-            <svg class="invite-xl__svg" viewBox="0 0 280 160" width="280" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g class="invite-anim invite-anim--sheet">
-                <rect x="16" y="36" width="88" height="100" rx="12" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1.5"/>
-                <path d="M28 56h64M28 72h48M28 88h56M28 104h40" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
-                <circle cx="76" cy="118" r="6" fill="#D1D5DB"/>
-              </g>
-              <g class="invite-anim invite-anim--arrow">
-                <path d="M118 86h36" stroke="#F32F41" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M142 74l16 12-16 12" stroke="#F32F41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              </g>
-              <g class="invite-anim invite-anim--phone">
-                <rect x="168" y="28" width="96" height="116" rx="18" fill="#FFF1F2" stroke="#F32F41" stroke-width="1.8"/>
-                <rect x="184" y="48" width="64" height="10" rx="5" fill="#FECACA"/>
-                <rect x="184" y="68" width="48" height="8" rx="4" fill="#FECACA" opacity=".7"/>
-                <rect x="184" y="96" width="64" height="28" rx="8" fill="#fff" stroke="#FCA5A5"/>
-                <path d="M196 110h40" stroke="#F32F41" stroke-width="2" stroke-linecap="round"/>
-                <text x="216" y="132" text-anchor="middle" fill="#F32F41" font-size="11" font-family="Noto Sans SC,sans-serif" font-weight="600">SaaS</text>
-              </g>
-            </svg>
+            <div class="inv-anim">
+              <span class="inv-glow"></span>
+
+              <div class="inv-sheet">
+                <span class="inv-sheet__row inv-sheet__row--1"><i></i></span>
+                <span class="inv-sheet__row inv-sheet__row--2"><i></i></span>
+                <span class="inv-sheet__row inv-sheet__row--3"><i></i></span>
+                <span class="inv-sheet__row inv-sheet__row--4"><i></i></span>
+                <span class="inv-sheet__dot"></span>
+              </div>
+
+              <span class="inv-chip inv-chip--1"></span>
+              <span class="inv-chip inv-chip--2"></span>
+              <span class="inv-chip inv-chip--3"></span>
+
+              <div class="inv-phone">
+                <span class="inv-phone__bar"></span>
+                <span class="inv-phone__line"></span>
+                <span class="inv-phone__pill"><i></i></span>
+                <span class="inv-phone__tick"></span>
+                <span class="inv-phone__brand">SaaS</span>
+              </div>
+            </div>
           </div>
           <div class="invite-sheet__actions">
             <button type="button" class="btn-primary" id="btnInviteStart">开始导入</button>
