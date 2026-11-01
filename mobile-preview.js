@@ -117,6 +117,97 @@
 
   /* ---------- 键盘避让 ---------- */
 
+  var focusEnsureTimer = null;
+  var focusEnsureRafs = [];
+
+  function isEditableField(el) {
+    if (!el || !el.tagName) return false;
+    var tag = el.tagName.toLowerCase();
+    if (tag === 'textarea' || tag === 'select') return true;
+    if (tag !== 'input') return false;
+    var type = (el.type || 'text').toLowerCase();
+    if (
+      type === 'button' || type === 'submit' || type === 'reset' ||
+      type === 'checkbox' || type === 'radio' || type === 'file' ||
+      type === 'hidden' || type === 'image' || type === 'range' ||
+      type === 'color'
+    ) return false;
+    return true;
+  }
+
+  function findScrollParent(el) {
+    var node = el && el.parentElement;
+    while (node && node !== document.body && node !== document.documentElement) {
+      var style = window.getComputedStyle(node);
+      var oy = style.overflowY;
+      if (
+        (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+        node.scrollHeight > node.clientHeight + 1
+      ) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  function ensureFocusedInputVisible() {
+    if (!root.classList.contains('view-mobile')) return;
+    var el = document.activeElement;
+    if (!isEditableField(el)) return;
+    var vv = window.visualViewport;
+    if (!vv) return;
+
+    var rect = el.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) return;
+
+    var margin = 16;
+    var titleReserve = 56; /* 标题栏大致占位，避免贴顶 */
+    var visibleTop = (vv.offsetTop || 0) + margin + titleReserve;
+    var visibleBottom = (vv.offsetTop || 0) + vv.height - margin;
+    if (visibleBottom <= visibleTop + 40) return;
+
+    if (rect.top >= visibleTop && rect.bottom <= visibleBottom) return;
+
+    var scale = mobileScale();
+    var deltaScreen = 0;
+    if (rect.bottom > visibleBottom) deltaScreen = rect.bottom - visibleBottom;
+    else if (rect.top < visibleTop) deltaScreen = rect.top - visibleTop;
+
+    var scroller = findScrollParent(el);
+    if (scroller) {
+      scroller.scrollTop += deltaScreen / scale;
+      return;
+    }
+    try {
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+    } catch (err) {
+      try { el.scrollIntoView(true); } catch (err2) {}
+    }
+  }
+
+  function scheduleEnsureFocusedInput() {
+    if (focusEnsureTimer) clearTimeout(focusEnsureTimer);
+    while (focusEnsureRafs.length) {
+      try { cancelAnimationFrame(focusEnsureRafs.pop()); } catch (e) {}
+    }
+    function tick() {
+      ensureFocusedInputVisible();
+    }
+    focusEnsureRafs.push(requestAnimationFrame(function () {
+      tick();
+      focusEnsureRafs.push(requestAnimationFrame(tick));
+    }));
+    /* iOS 键盘升起有动画，多拍几次兜住 */
+    focusEnsureTimer = setTimeout(function () {
+      tick();
+      focusEnsureTimer = setTimeout(function () {
+        tick();
+        focusEnsureTimer = setTimeout(tick, 220);
+      }, 160);
+    }, 50);
+  }
+
   function updateKeyboardInset() {
     if (!root.classList.contains('view-mobile')) {
       root.style.setProperty('--kb-h', '0px');
@@ -127,13 +218,16 @@
       root.style.setProperty('--kb-h', '0px');
       return;
     }
-    /* iOS Safari 键盘弹出时 innerHeight 不变，只有 visualViewport.height 变；
-       Android 压缩布局视口时两者一起变小，差值自然趋近 0，不会重复抬升。 */
-    var overlap = (window.innerHeight || 0) - vv.height;
+    /* iOS Safari：innerHeight 不变，visualViewport.height 变小，且可能带 offsetTop；
+       Android 压缩布局视口时两者一起变，差值趋近 0，不会重复抬升。 */
+    var overlap = (window.innerHeight || 0) - vv.height - (vv.offsetTop || 0);
     if (!isFinite(overlap) || overlap < 0) overlap = 0;
     if (overlap < CONFIG.kbJitterPx) overlap = 0; /* 地址栏抖动不算键盘 */
     var logical = overlap / mobileScale();
     root.style.setProperty('--kb-h', Math.round(logical) + 'px');
+    if (logical > 0 && isEditableField(document.activeElement)) {
+      scheduleEnsureFocusedInput();
+    }
   }
 
   /* ---------- 开关 ---------- */
@@ -327,8 +421,24 @@
       updateScale();
       updateKeyboardInset();
     }, { passive: true });
-    window.visualViewport.addEventListener('scroll', updateKeyboardInset, { passive: true });
+    window.visualViewport.addEventListener('scroll', function () {
+      updateKeyboardInset();
+      if (isEditableField(document.activeElement)) scheduleEnsureFocusedInput();
+    }, { passive: true });
   }
+
+  document.addEventListener('focusin', function (e) {
+    if (!root.classList.contains('view-mobile')) return;
+    if (!isEditableField(e.target)) return;
+    scheduleEnsureFocusedInput();
+  }, true);
+
+  document.addEventListener('focusout', function () {
+    if (focusEnsureTimer) {
+      clearTimeout(focusEnsureTimer);
+      focusEnsureTimer = null;
+    }
+  }, true);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindNavDrawer);

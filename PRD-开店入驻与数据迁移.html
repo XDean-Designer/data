@@ -60,7 +60,7 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.66</td>
+<td>v2.67</td>
 </tr>
 <tr>
 <td>日期</td>
@@ -95,6 +95,11 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.67</td>
+<td>2026-11-01</td>
+<td><strong>手机模式键盘避让：页内输入框可编辑</strong>。<strong>①</strong> <code>visualViewport</code> 算 <code>--kb-h</code> 时计入 <code>offsetTop</code>；聚焦 <code>input/textarea/select</code> 后把焦点滚进可视区（只滚最近滚动容器，不碰 <code>.phone-inner</code>）。<strong>②</strong> <code>.scroll-body::after</code> 按键盘高度垫空白 + <code>scroll-padding-bottom</code>，不覆盖既有底栏 padding。<strong>③</strong> 贴底栏 / 半屏统一 <code>bottom: var(--kb-h)</code>：<code>import-foot</code> / <code>confirm-cta-bar</code> / <code>fail-fix-sheet</code> / <code>preview-detail-sheet</code> / 邀请与筛选 sheet。<strong>④</strong> 口径：改 <code>mobile-preview.js</code> / <code>shell.css</code> + 本 PRD；已做 <code>node --check</code>；<strong>未提交</strong>。</td>
+</tr>
 <tr>
 <td>v2.66</td>
 <td>2026-11-01</td>

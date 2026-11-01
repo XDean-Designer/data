@@ -225,13 +225,36 @@ html.view-mobile .page-title-bar .title {
 }
 
 /* ===== 系统键盘避让（--kb-h 由 mobile-preview.js 依 visualViewport 算出，逻辑 px） =====
-   底部浮层让开键盘：蒙层本身仍 inset:0（整屏变暗不断层），只把蒙层内边距垫高，
-   贴底的 sheet 随之抬起；居中 Dialog 用 transform 整块上移。 */
+   ① 页内滚动区用 ::after 垫出键盘高度（不覆盖既有 padding-bottom），
+      再加 scroll-padding，焦点才能滚到键盘上方；
+   ② 贴底栏 / 半屏抬起；③ 居中 Dialog 略上移。 */
+html.view-mobile .scroll-body {
+  scroll-padding-bottom: calc(var(--kb-h, 0px) + 24px);
+}
+html.view-mobile .scroll-body::after {
+  content: '';
+  display: block;
+  height: var(--kb-h, 0px);
+  pointer-events: none;
+}
 html.view-mobile .picker-mask--bottom {
   padding-bottom: var(--kb-h, 0px);
 }
-html.view-mobile .dialog {
-  transform: translateY(calc(-1 * var(--kb-h, 0px)));
+html.view-mobile .import-foot,
+html.view-mobile .confirm-cta-bar,
+html.view-mobile .fail-fix-sheet,
+html.view-mobile .preview-detail-sheet,
+html.view-mobile .filter-sheet,
+html.view-mobile .invite-sheet {
+  bottom: var(--kb-h, 0px);
+}
+html.view-mobile .fail-fix-sheet {
+  max-height: calc(85% - var(--kb-h, 0px));
+  scroll-padding-bottom: 24px;
+}
+html.view-mobile .dialog,
+html.view-mobile .dialog-mask.show .dialog-card {
+  transform: translateY(calc(-1 * var(--kb-h, 0px) * 0.45));
 }
 
 /* capture modes */
