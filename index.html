@@ -69,13 +69,9 @@
     <button type="button" class="nav-item" data-empty="archive"><span class="idx">空</span>原始存档</button>
     <button type="button" class="nav-item" data-empty="digest"><span class="idx">空</span>识别摘要</button>
   </div>
-  <div class="nav-group">
-    <div class="g-t">对标研究</div>
-    <a class="nav-link" href="对标-登录入驻体验优化.html" target="_blank"><span class="idx">B</span>入驻链路对标</a>
-  </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.68</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.71</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -998,7 +994,7 @@
           </div>
         </div>
         <div class="v3-foot">
-          <p class="soft-tip soft-tip--foot" id="checkFootNote">只写入符合条件的数据；未符合条件的数据不会被写入，但提供存档。</p>
+          <p class="soft-tip soft-tip--foot" id="checkFootNote">必填缺失或认不出的行会直接丢弃；上传的表与照片都会存档。</p>
           <div class="v3-foot__main">
             <button type="button" class="btn-primary" id="btnCheckSubmit">确认导入</button>
           </div>
@@ -1027,14 +1023,14 @@
           </div>
           <div class="result-dash-host" id="resultTierSummary"></div>
           <button type="button" class="result-miss hidden" id="btnResultMiss" aria-hidden="true">
-            <span class="result-miss__body"><b><em class="v3-num" id="resultMissCount">0</em> 条未能成功导入</b></span>
+            <span class="result-miss__body"><b><em class="v3-num" id="resultMissCount">0</em> 条已丢弃，可看原因</b></span>
             <span class="result-miss__link">去查看</span>
             <svg class="result-miss__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
           </button>
           <div class="hidden" aria-hidden="true"><div id="resultStockList"></div></div>
         </div>
         <p class="result-archive-tip hidden" id="resultArchiveTip">
-          本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnResultArchive">去查看存档</button>
+          本批上传的表与照片已全部存档，随时可查。<button type="button" class="result-archive-tip__link" id="btnResultArchive">去查看存档</button>
         </p>
         <div class="import-foot import-foot--result">
           <div class="v3-foot__main v3-foot__main--split">
@@ -1057,7 +1053,7 @@
             <div class="hs-sum__stats">
               <div class="hs-sum__cell">
                 <b class="v3-num" id="historyPreviewCount">0</b>
-                <span>条待导入</span>
+                <span>条消费记录</span>
               </div>
               <div class="hs-sum__cell">
                 <b class="v3-num" id="historyPreviewTotal">¥0</b>
@@ -1446,7 +1442,7 @@
             </svg>
           </div>
           <p class="empty-hero__title">暂无原始存档</p>
-          <p class="empty-hero__hint">看不清或无法解析的原件会留在这里，导入后可在此查阅。</p>
+          <p class="empty-hero__hint">本次上传的表与照片都会留底，导入后也能在这里查阅。</p>
         </div>
       </div>
 
@@ -1479,7 +1475,7 @@
             </svg>
           </div>
           <p class="empty-hero__title">暂无识别摘要</p>
-          <p class="empty-hero__hint">能看出一些信息但还对不上系统字段时，会收在这里。</p>
+          <p class="empty-hero__hint">必填缺失或内容认不出的行会收在这里，只说明原因、不再补录。</p>
         </div>
       </div>
 
@@ -1841,8 +1837,8 @@
         <div class="invite-sheet__handle"></div>
         <h3 id="checkHelpTitle">问题标记说明</h3>
         <dl class="check-help-dl">
-          <dt class="is-err">需修正</dt>
-          <dd>必填缺失、格式不对、卡名称不存在。必须改或整行忽略。</dd>
+          <dt class="is-err">已丢弃</dt>
+          <dd>必填缺失或内容认不出，整行不导入；原因在「识别摘要」里。</dd>
           <dt class="is-warn">建议确认</dt>
           <dd>可导入，但建议看一眼：性别为空、余额 0、卡已过期等。</dd>
           <dt class="is-ai">AI 推断</dt>

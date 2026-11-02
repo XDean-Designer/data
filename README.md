@@ -24,6 +24,5 @@ npx --yes http-server . -p 8765 -c-1 --cors
 | `assets/` | 图片与图标 |
 | `excel模板/` | 官方 Excel 导入模板样品 |
 | `PRD-开店入驻与数据迁移.html` | 产品需求预览 |
-| `对标-登录入驻体验优化.html` | 对标研究 |
 
 仓库：[XDean-Designer/data](https://github.com/XDean-Designer/data)

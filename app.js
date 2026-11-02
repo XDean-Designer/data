@@ -14,6 +14,8 @@
     /* 三档识别结果（L1 原件 / L2 摘要 / L3 可导入） */
     tierResult: { l1: [], l2: [], l3Cats: [] },
     confirmItems: { cards: [], prices: [], acknowledged: false },
+    /* 必填缺失 / 无法识别 → 行级丢弃（不进核对页，只进识别摘要） */
+    discarded: { member: [], card: [], price: [], product: [] },
     archiveDomain: 'member',
     archiveReturn: 'members',
     digestId: null,
@@ -2642,20 +2644,20 @@
     var files = [];
     (state.pending.excel || []).forEach(function (f) {
       files.push(f.name);
-      if (excelReadablePct(f) < EXCEL_ARCHIVE_PCT) {
-        archive.push({ name: f.name, note: '可识别内容不足 ' + EXCEL_ARCHIVE_PCT + '%，整份仅存档备查' });
-      }
+      archive.push({
+        name: f.name,
+        note: excelReadablePct(f) < EXCEL_ARCHIVE_PCT
+          ? ('可识别内容不足 ' + EXCEL_ARCHIVE_PCT + '%，原件存档备查')
+          : ('已存档 · 本批识别出 ' + rows.length + ' 笔')
+      });
     });
     var photos = state.pending.photo || [];
     photos.forEach(function (p, i) {
       files.push('照片 ' + (i + 1));
+      archive.push({ name: '照片 ' + (i + 1), note: '已存档 · 与同批流水合并识别' });
     });
-    /* 演示：多张照片时留一张「字迹模糊」进原始存档 */
-    if (photos.length > 1) {
-      archive.push({ name: '照片 ' + photos.length + ' · 字迹模糊', note: '整张无法识别，仅存档备查' });
-    }
-    if (!photos.length) {
-      archive.push({ name: '纸质流水本扫描.pdf', note: '扫描件无法识别，仅存档' });
+    if (!photos.length && !(state.pending.excel || []).length) {
+      archive.push({ name: '纸质流水本扫描.pdf', note: '已存档备查' });
     }
     return {
       digest: rows.length,
@@ -2834,6 +2836,92 @@
     };
   }
 
+  /* 丢弃清单：全量保留，概览里只展示前几条 */
+  function buildDiscardDigest() {
+    var l2 = [];
+    ALL_CATS.forEach(function (k) {
+      ((state.discarded && state.discarded[k]) || []).forEach(function (r) {
+        l2.push(digestFromErrorRow(k, r));
+      });
+    });
+    return l2;
+  }
+
+  /* 全量原件存档：上传过的每个 Excel / 每张照片都留底，与识别成败无关 */
+  function buildArchiveEntries() {
+    var out = [];
+    var seen = {};
+    function push(it) {
+      if (!it || !it.name) return;
+      var key = it.name + '|' + it.kind;
+      if (seen[key]) return;
+      seen[key] = true;
+      out.push(it);
+    }
+    function catNote(k) {
+      var imp = state.importSelection[k] ? importableRows(k).length : 0;
+      var drop = ((state.discarded && state.discarded[k]) || []).length;
+      if (!imp && !drop) return '已存档备查';
+      return '已存档 · 本类可导入 ' + imp + ' 条' + (drop ? ' · 已丢弃 ' + drop + ' 条' : '');
+    }
+    state.pending.excel.forEach(function (f) {
+      var k = guessDomainFromFileName(f.name);
+      push({
+        id: f.id || ('a-xls-' + f.name),
+        domain: k,
+        name: f.name,
+        kind: 'excel',
+        size: f.size || '',
+        note: excelIsArchive(f) ? ('整份可识别不足 ' + EXCEL_ARCHIVE_PCT + '%，原件存档备查') : catNote(k)
+      });
+    });
+    ALL_CATS.forEach(function (k) {
+      (state.importFiles[k] || []).forEach(function (f) {
+        push({
+          id: f.id || ('a-xls-' + k + '-' + f.name),
+          domain: k,
+          name: f.name,
+          kind: 'excel',
+          size: f.size || '',
+          note: excelIsArchive(f) ? ('整份可识别不足 ' + EXCEL_ARCHIVE_PCT + '%，原件存档备查') : catNote(k)
+        });
+      });
+      (state.importPhotos[k] || []).forEach(function (p, i) {
+        if (!p || String(p.id || '').indexOf('demo-') === 0) return;
+        push({
+          id: 'a-ph-' + k + '-' + (p.id || i),
+          domain: k,
+          name: '拍照 ' + (i + 1) + ' · ' + (IMPORT_CAT_SHORT[k] || ''),
+          kind: 'photo',
+          size: '',
+          note: catNote(k)
+        });
+      });
+    });
+    if (!out.length && (state.pending.photo || []).length) {
+      state.pending.photo.forEach(function (p, i) {
+        push({
+          id: 'a-ph-pending-' + i,
+          domain: 'member',
+          name: '拍照 ' + (i + 1),
+          kind: 'photo',
+          size: '',
+          note: '已存档备查'
+        });
+      });
+    }
+    /* 演示兜底：没有真实文件时也给样例，避免常年空态 */
+    if (!out.length) {
+      push({ id: 'a-demo-blur', domain: 'member', name: '会员登记本（反光）.jpg', kind: 'photo', size: '0.8 MB', note: '反光严重，关键列不可读 · 原件存档' });
+      push({ id: 'a-demo-card', domain: 'card', name: '旧卡种对照表（手写）.jpg', kind: 'photo', size: '0.5 MB', note: '手写潦草，无法结构化 · 原件存档' });
+      push({ id: 'a-demo-mess', domain: 'price', name: '2019价目表扫描件.pdf', kind: 'excel', size: '0.4 MB', note: '整份可识别不足 30%，原件存档备查' });
+      push({ id: 'a-demo-prod', domain: 'product', name: '卖品进货单（模糊）.jpg', kind: 'photo', size: '0.7 MB', note: '字迹不清，无法结构化 · 原件存档' });
+    }
+    push({ id: 'a-order-xls', domain: 'order', name: '老店收银流水导出.xlsx', kind: 'excel', size: '1.1 MB', note: '已存档备查（历史消费）' });
+    push({ id: 'a-order-scan', domain: 'order', name: '纸质流水本扫描.pdf', kind: 'excel', size: '2.4 MB', note: '已存档备查（历史消费）' });
+    return out;
+  }
+
   function seedTierDemo() {
     ensureCheckData();
 
@@ -2845,104 +2933,10 @@
       if (state.checkData) delete state.checkData[k];
     });
 
-    var l1 = [];
-    var seenArch = {};
-    function pushArch(item) {
-      if (!item || !item.name || seenArch[item.name]) return;
-      seenArch[item.name] = true;
-      l1.push(item);
-    }
+    /* 全量原件存档：上传过的每个表 / 每张照片都留底，与识别成败无关 */
+    var l1 = buildArchiveEntries();
 
-    state.pending.excel.forEach(function (f) {
-      if (!excelIsArchive(f)) return;
-      pushArch({
-        id: f.id || ('a-xls-' + f.name),
-        domain: guessDomainFromFileName(f.name),
-        name: f.name,
-        kind: 'excel',
-        size: f.size || '',
-        note: '可识别已填内容约 ' + excelReadablePct(f) + '%（不足 ' + EXCEL_ARCHIVE_PCT + '%），整份仅存档'
-      });
-    });
-    ALL_CATS.forEach(function (k) {
-      (state.importFiles[k] || []).forEach(function (f) {
-        if (!excelIsArchive(f)) return;
-        pushArch({
-          id: f.id || ('a-xls-' + f.name),
-          domain: k,
-          name: f.name,
-          kind: 'excel',
-          size: f.size || '',
-          note: '可识别已填内容约 ' + excelReadablePct(f) + '%（不足 ' + EXCEL_ARCHIVE_PCT + '%），整份仅存档'
-        });
-      });
-    });
-
-    /* 演示：原始存档区至少有样例，避免常年空态 */
-    pushArch({
-      id: 'a-demo-blur',
-      domain: 'member',
-      name: '会员登记本（反光）.jpg',
-      kind: 'photo',
-      size: '0.8 MB',
-      note: '反光严重，关键列不可读'
-    });
-    pushArch({
-      id: 'a-demo-card',
-      domain: 'card',
-      name: '旧卡种对照表（手写）.jpg',
-      kind: 'photo',
-      size: '0.5 MB',
-      note: '手写潦草，无法结构化'
-    });
-    pushArch({
-      id: 'a-demo-mess',
-      domain: 'price',
-      name: '2019价目表扫描件.pdf',
-      kind: 'excel',
-      size: '0.4 MB',
-      note: '版式杂乱，可识别已填不足 30%，整份仅存档'
-    });
-    pushArch({
-      id: 'a-demo-prod',
-      domain: 'product',
-      name: '卖品进货单（模糊）.jpg',
-      kind: 'photo',
-      size: '0.7 MB',
-      note: '字迹不清，无法结构化'
-    });
-    pushArch({
-      id: 'a-order-xls',
-      domain: 'order',
-      name: '老店收银流水导出.xlsx',
-      kind: 'excel',
-      size: '1.1 MB',
-      note: '列名杂乱，无法结构化，仅作原始存档备查'
-    });
-    pushArch({
-      id: 'a-order-scan',
-      domain: 'order',
-      name: '纸质流水本扫描.pdf',
-      kind: 'excel',
-      size: '2.4 MB',
-      note: '扫描件无法识别，仅存档'
-    });
-    if (state.pending.photo.length) {
-      pushArch({ id: 'a-ph-1', domain: 'price', name: '墙贴价目（半张裁切）.jpg', kind: 'photo', size: '0.6 MB', note: '画面不全，无法结构化' });
-    }
-
-    var l2 = [];
-    var perCat = {};
-    ALL_CATS.forEach(function (k) {
-      if (!state.importSelection[k]) return;
-      recomputeCheck(k);
-      checkRows(k).forEach(function (r) {
-        if (r.ignored || !rowHasLevel(r, 'error')) return;
-        perCat[k] = (perCat[k] || 0) + 1;
-        if (perCat[k] > 4) return;
-        l2.push(digestFromErrorRow(k, r));
-      });
-    });
+    var l2 = buildDiscardDigest();
 
     var l3Cats = ALL_CATS.filter(function (k) {
       return state.importSelection[k] && checkStats(k).importable > 0;
@@ -3002,7 +2996,7 @@
         }).join('')
       : '<div class="tier-empty">本批没有可直接导入的数据</div>';
     var digBody = l2.length
-      ? '<ul class="tier-mute-list">' + l2.map(function (d) {
+      ? '<ul class="tier-mute-list">' + l2.slice(0, 4).map(function (d) {
           var reason = (d.fails && d.fails[0] && d.fails[0].v) || '不符合条件';
           return '<li><b>' + esc(d.title) + '</b><span>' + esc(DOMAIN_LABEL[d.domain] || IMPORT_CAT_SHORT[d.domain] || '') + ' · ' + esc(reason) + '</span></li>';
         }).join('') + '</ul>'
@@ -3019,14 +3013,14 @@
       '<section class="tier-sec tier-sec--mute">' +
         '<div class="tier-mute-card">' +
           '<div class="tier-sec__hd"><h3>识别摘要</h3><em>' + l2.length + ' 条</em></div>' +
-          '<p class="tier-mute-tip">缺必填，或已填的内容认不出来 / 数字解析失败。不会导入；可在业务页 ··· →「识别摘要」查看或补上。</p>' +
+          '<p class="tier-mute-tip">必填缺失，或已填内容认不出来 / 数字解析失败。这些行<strong>已直接丢弃</strong>，不会导入；这里只说明原因，不再提供补录。</p>' +
           digBody +
         '</div>' +
       '</section>' +
       '<section class="tier-sec tier-sec--mute">' +
         '<div class="tier-mute-card">' +
           '<div class="tier-sec__hd"><h3>原始存档</h3><em>' + l1.length + ' 份</em></div>' +
-          '<p class="tier-mute-tip">整份 Excel 可识别已填内容不足 ' + EXCEL_ARCHIVE_PCT + '%，或照片/表格无法解析。已留原件，可在 ··· →「原始存档」查看。</p>' +
+          '<p class="tier-mute-tip">本次上传的每个表、每张照片都<strong>全量留底</strong>，导入成功的也在内，与识别成败无关；可在 ··· →「原始存档」查看。</p>' +
           rawBody +
         '</div>' +
       '</section>';
@@ -3055,7 +3049,7 @@
       '<section class="tier-sec tier-sec--mute">' +
         '<div class="tier-mute-card">' +
           '<div class="tier-sec__hd"><h3>原始存档</h3><em>' + t.archive.length + ' 份</em></div>' +
-          '<p class="tier-mute-tip">无法解析的整份文件已留原件，可在历史订单页 ··· →「原始存档」查看。</p>' +
+          '<p class="tier-mute-tip">上传的每个文件与照片都已<strong>全量存档</strong>，与识别成败无关，可在历史订单页 ··· →「原始存档」查看。</p>' +
           rawBody +
         '</div>' +
       '</section>';
@@ -5251,6 +5245,7 @@
 
   function ensureCheckData() {
     if (state.checkData) return state.checkData;
+    state.discarded = { member: [], card: [], price: [], product: [] };
     var data = {};
     if (state.importSelection.member) data.member = buildMemberRows();
     if (state.importSelection.card) data.card = buildCardRows();
@@ -5258,8 +5253,12 @@
     if (state.importSelection.product) data.product = buildProductRows();
     if (!data.member && !data.card && !data.price && !data.product) data.member = buildMemberRows();
     state.checkData = data;
+    /* 级联方向：卡模板权益 → 价目（识别获取）；会员持卡 → 卡模板（识别带入） */
     enrichPriceFromCards();
+    enrichCardFromMembers();
     ALL_CATS.forEach(function (k) { if (state.checkData[k]) recomputeCheck(k); });
+    /* 必填缺失 / 无法识别 → 丢弃，不进核对页 */
+    pruneBlockedRows();
     return state.checkData;
   }
 
@@ -5328,6 +5327,149 @@
     if (!added.length) return;
     state.checkData.price = added.concat(state.checkData.price);
     state.importSelection.price = true;
+  }
+
+  /* 会员持卡里提到、卡模板却没有同名的卡 → 识别带入（价 0、默认下架、权益待完善） */
+  function enrichCardFromMembers() {
+    var members = (state.checkData && state.checkData.member) || [];
+    if (!members.length) return;
+    if (!state.checkData.card) state.checkData.card = [];
+    var existing = {};
+    function markName(rows) {
+      (rows || []).forEach(function (r) {
+        var n = String((r.f || {}).name || '').trim();
+        if (n) existing[n] = true;
+      });
+    }
+    markName(state.checkData.card);
+    CHECK_CARD_NAMES.forEach(function (n) { existing[n] = true; });
+
+    var added = [];
+    var seen = {};
+    members.forEach(function (m) {
+      var f = m.f || {};
+      var name = String(f.cardName || '').trim();
+      if (!name || isUnreadableText(name) || existing[name] || seen[name]) return;
+      seen[name] = true;
+      var type = CHECK_CARD_TYPES.indexOf(f.cardType) >= 0 ? f.cardType : '储值卡';
+      added.push({
+        id: 'fm-' + added.length + '-' + name.length,
+        f: {
+          type: type,
+          name: name,
+          price: '0',
+          rechargeDiscount: '',
+          bonus: '',
+          bonusDiscount: '',
+          discount: '',
+          times: '',
+          scope: '',
+          scopeItems: '',
+          pkgMode: '',
+          pkgItems: '',
+          pkgScopeTimes: '',
+          pkgScopeItems: '',
+          pkgCommonTimes: '',
+          includeItems: '',
+          validity: '',
+          gift: '',
+          memberPrice: '',
+          desc: '',
+          shopCode: '',
+          onShelf: '下架',
+          shelfOn: false
+        },
+        problems: [],
+        ignored: false,
+        aiFields: [],
+        source: 'fromMember'
+      });
+      existing[name] = true;
+    });
+    if (!added.length) return;
+    state.checkData.card = added.concat(state.checkData.card);
+    state.importSelection.card = true;
+  }
+
+  /* 必填缺失 / 无法识别 → 行级丢弃：移出核对页，只留丢弃清单 */
+  function pruneBlockedRows() {
+    if (!state.checkData) return 0;
+    var moved = 0;
+    ALL_CATS.forEach(function (cat) {
+      var rows = state.checkData[cat];
+      if (!rows || !rows.length) return;
+      var dropped = [];
+      var keep = [];
+      rows.forEach(function (r) {
+        if (!r.ignored && rowHasLevel(r, 'error')) dropped.push(r);
+        else keep.push(r);
+      });
+      if (!dropped.length) return;
+      if (!state.discarded[cat]) state.discarded[cat] = [];
+      dropped.forEach(function (r) {
+        r.discardedReason = (r.problems || []).filter(function (p) { return p.level === 'error'; })
+          .map(function (p) { return p.msg; }).join('；') || '必填缺失或无法识别';
+        if (state.discarded[cat].indexOf(r) === -1) state.discarded[cat].push(r);
+        moved += 1;
+      });
+      state.checkData[cat] = keep;
+    });
+    return moved;
+  }
+
+  /* 改名传播：卡名 → 会员持卡；价目名 → 卡模板权益 */
+  function nameTakenInBatch(cat, name, exceptRow) {
+    var rows = (state.checkData && state.checkData[cat]) || [];
+    return rows.some(function (r) { return r !== exceptRow && String((r.f || {}).name || '').trim() === name; });
+  }
+
+  function replaceTokenName(str, oldName, newName) {
+    if (!str || oldName === newName) return str;
+    return String(str).split(/([;；,，、])/).map(function (part) {
+      if (/^[;；,，、]$/.test(part)) return part;
+      var m = part.match(/^(\s*)([^:：]+?)(\s*(?:[:：][\s\S]*)?)$/);
+      if (!m || m[2].trim() !== oldName) return part;
+      return m[1] + newName + m[3];
+    }).join('');
+  }
+
+  var CARD_REF_KEYS = ['scope', 'scopeItems', 'pkgItems', 'pkgScopeItems', 'includeItems', 'gift', 'memberPrice'];
+
+  function applyPriceRename(row, newName) {
+    var cat = (state.checkData.product || []).indexOf(row) >= 0 ? 'product' : 'price';
+    var oldName = String((row.f || {}).name || '').trim();
+    if (!oldName || oldName === newName) { row.f.name = newName; return { ok: true, changed: oldName !== newName }; }
+    if (nameTakenInBatch('price', newName, row) || nameTakenInBatch('product', newName, row)) {
+      return { ok: false, msg: '本批已有同名项「' + newName + '」，请换一个名字' };
+    }
+    row.f.name = newName;
+    var touched = 0;
+    (state.checkData.card || []).forEach(function (c) {
+      CARD_REF_KEYS.forEach(function (k) {
+        var before = c.f[k];
+        var after = replaceTokenName(before, oldName, newName);
+        if (after !== before) { c.f[k] = after; touched += 1; }
+      });
+    });
+    return { ok: true, changed: true, touchedCards: touched };
+  }
+
+  function applyCardRename(row, newName) {
+    var oldName = String((row.f || {}).name || '').trim();
+    if (!oldName || oldName === newName) { row.f.name = newName; return { ok: true, changed: oldName !== newName }; }
+    if (nameTakenInBatch('card', newName, row) || CHECK_CARD_NAMES.indexOf(newName) >= 0) {
+      return { ok: false, msg: '已有同名卡「' + newName + '」，请换一个名字' };
+    }
+    row.f.name = newName;
+    var newType = row.f.type || '';
+    var touched = 0;
+    (state.checkData.member || []).forEach(function (m) {
+      if (String(m.f.cardName || '').trim() !== oldName) return;
+      m.f.cardName = newName;
+      if (newType) m.f.cardType = newType;
+      touched += 1;
+    });
+    return { ok: true, changed: true, touchedMembers: touched };
   }
 
   function checkCtx(cat, rows) {
@@ -5413,6 +5555,9 @@
 
     if (cat === 'card') {
       /* 按官方 5 sheet：卡名 + 充值余额/购买价格；权益列按类型至少一项 */
+      /* 会员持卡反推的卡模板是「下架空壳」：只校验卡名唯一，权益待完善不算丢弃 */
+      var derived = row.source === 'fromMember';
+      if (derived) add('', 'warn', '由会员持卡识别带入，权益待完善');
       var priceLabel = f.type === '储值卡' ? '充值余额' : '购买价格';
       if (fieldEmpty(f.name)) add('name', 'error', '卡名为空');
       else if (isUnreadableText(f.name)) markUnreadable(add, 'name', '卡名');
@@ -5426,13 +5571,13 @@
         else if (CHECK_CARD_TYPES.indexOf(f.type) === -1) markUnreadable(add, 'type', '卡类型');
       }
 
-      if (!cardHasBenefit(f)) {
+      if (!cardHasBenefit(f) && !derived) {
         var benefitKey = f.type === '计次卡' ? 'times' : (f.type === '折扣卡' ? 'discount' : (f.type === '周期卡' ? 'includeItems' : (f.type === '套餐卡' ? 'pkgItems' : 'gift')));
         add(benefitKey, 'error', '本类型权益至少填一项');
       }
 
-      if (f.type === '计次卡' && fieldEmpty(f.times)) add('times', 'error', '次数为空');
-      if (f.type === '折扣卡' && fieldEmpty(f.discount)) add('discount', 'error', '享受折扣为空');
+      if (f.type === '计次卡' && fieldEmpty(f.times) && !derived) add('times', 'error', '次数为空');
+      if (f.type === '折扣卡' && fieldEmpty(f.discount) && !derived) add('discount', 'error', '享受折扣为空');
 
       ['discount', 'rechargeDiscount', 'bonusDiscount'].forEach(function (dk) {
         if (fieldEmpty(f[dk])) return;
@@ -5871,6 +6016,7 @@
     if (!row) { state.inlineEdit = null; if (!silent) renderCheckList(); return false; }
     var nameEl = wrap.querySelector('[data-inline-input="name"]');
     var priceEl = wrap.querySelector('[data-inline-input="price"]');
+    var renamedRefs = 0;
     if (nameEl) {
       var nm = String(nameEl.value || '').trim();
       if (!nm) {
@@ -5878,7 +6024,17 @@
         nameEl.focus();
         return false;
       }
-      row.f.name = nm;
+      if ((cat === 'price' || cat === 'product') && nm !== String(row.f.name || '').trim()) {
+        var rn = applyPriceRename(row, nm);
+        if (!rn.ok) {
+          showToast(rn.msg || '改名失败');
+          nameEl.focus();
+          return false;
+        }
+        renamedRefs = rn.touchedCards || 0;
+      } else {
+        row.f.name = nm;
+      }
       if (row.aiFields && row.aiFields.length) {
         row.aiFields = row.aiFields.filter(function (k) { return k !== 'name'; });
       }
@@ -5897,11 +6053,14 @@
     }
     state.inlineEdit = null;
     state.checkOpen = null;
+    if (renamedRefs) recomputeCheck('card');
     recomputeCheck(cat);
     if (!silent) {
       renderCheckStats();
       renderCheckList();
-      showToast('已修改');
+      showToast(renamedRefs
+        ? '已改名，同步更新 ' + renamedRefs + ' 处卡模板引用'
+        : '已修改');
     }
     return true;
   }
@@ -6032,9 +6191,10 @@
       return '<div class="card-pass__stat"><span>' + esc(s.lab) + '</span><b>' + esc(s.val) + '</b></div>';
     }).join('');
     return '<article class="card-pass">' +
-      '<div class="card-pass__face">' +
+      '<button type="button" class="card-pass__face" data-card-tpl-goto="' + row.id + '" aria-label="打开添加卡模板 · ' + esc(type) + '">' +
         '<div class="card-pass__hd">' +
           '<b class="card-pass__name">' + esc(f.name || '未命名卡') + '</b>' +
+          (row.source === 'fromMember' ? '<span class="card-pass__src">会员带入</span>' : '') +
           '<span class="card-pass__type' + cardTypeClass(type) + '">' + esc(type) + '</span>' +
         '</div>' +
         '<div class="card-pass__hero">' +
@@ -6042,7 +6202,7 @@
           '<b class="card-pass__hero-num">' + cardHeroHtml(heroVal) + '</b>' +
         '</div>' +
         (statsHtml ? '<div class="card-pass__stats">' + statsHtml + '</div>' : '') +
-      '</div>' +
+      '</button>' +
       '<div class="card-pass__act">' + shelfSwitchHtml('card', row) + '</div>' +
     '</article>';
   }
@@ -6256,9 +6416,6 @@
     var rows = cat === 'price'
       ? importableRows('price').concat(importableRows('product'))
       : importableRows(cat);
-    var blocked = cat === 'price'
-      ? blockedRows('price').concat(blockedRows('product'))
-      : blockedRows(cat);
     var sum = $('#checkTabSum');
     if (sum) {
       sum.innerHTML = verifyTabMetrics(cat, rows).map(function (m) {
@@ -6295,24 +6452,18 @@
         '</section>';
       }).join('');
     }
-    if (blocked.length) {
+    var droppedN = cat === 'price'
+      ? ((state.discarded.price || []).length + (state.discarded.product || []).length)
+      : ((state.discarded[cat] || []).length);
+    if (droppedN) {
       html += '<section class="verify-group is-blocked">' +
-        '<div class="verify-group__hd"><b>不符合条件</b><span>' + blocked.length + ' 条</span></div>' +
-        '<p class="verify-group__hint">缺必填或含认不出的内容，确认导入时不会写入。</p>' +
-        blocked.slice(0, 6).map(function (r) {
-          var bCat = (state.checkData.price || []).indexOf(r) >= 0 ? 'price'
-            : ((state.checkData.product || []).indexOf(r) >= 0 ? 'product' : cat);
-          var msg = ((r.problems || []).filter(function (p) { return p.level === 'error'; })[0] || {}).msg || '不符合条件';
-          return '<div class="verify-row is-blocked"><span class="verify-row__main"><b>' +
-            esc((typeof checkRowTitle === 'function' ? checkRowTitle(bCat, r) : '') || '—') +
-            '</b><i>' + esc(msg) + '</i></span></div>';
-        }).join('') +
-        (blocked.length > 6 ? '<p class="verify-group__more">还有 ' + (blocked.length - 6) + ' 条未列出</p>' : '') +
+        '<div class="verify-group__hd"><b>已丢弃</b><span>' + droppedN + ' 条</span></div>' +
+        '<p class="verify-group__hint">必填缺失或内容认不出，已直接丢弃、不会导入；原因在「识别摘要」里可查。</p>' +
       '</section>';
     }
     host.innerHTML = html;
     var empty = $('#checkEmpty');
-    if (empty) empty.classList.toggle('hidden', rows.length > 0 || blocked.length > 0);
+    if (empty) empty.classList.toggle('hidden', rows.length > 0);
     var moreBtn = $('#btnCheckMore');
     if (moreBtn) moreBtn.classList.add('hidden');
   }
@@ -6496,9 +6647,11 @@
     if (row.f.name === undefined) row.f.name = '';
     recomputeCheck(cat);
     state.checkOpen = null;
+    var droppedNow = pruneBlockedRows();
+    if (droppedNow) state.tierResult.l2 = buildDiscardDigest();
     renderCheckStats();
     renderCheckList();
-    showToast('已保存');
+    showToast(droppedNow ? '必填缺失或认不出，已丢弃该行' : '已保存');
   }
 
   function toggleCheckIgnore(cat, id) {
@@ -6507,6 +6660,8 @@
     row.ignored = !row.ignored;
     recomputeCheck(cat);
     state.checkOpen = null;
+    var droppedOnToggle = pruneBlockedRows();
+    if (droppedOnToggle) state.tierResult.l2 = buildDiscardDigest();
     renderCheckStats();
     renderCheckList();
     showToast(row.ignored ? '已忽略此行' : '已恢复此行');
@@ -6808,12 +6963,21 @@
   function openCheckTransfer() {
     if (state.transferRunning) return;
     if (!state.checkData) ensureCheckData();
+    /* 导入前最后一道：必填缺失 / 无法识别的行统一丢弃 */
+    var droppedNow = pruneBlockedRows();
+    if (droppedNow) {
+      ALL_CATS.forEach(function (k) { if (state.checkData[k]) recomputeCheck(k); });
+      state.tierResult.l2 = buildDiscardDigest();
+      renderCheckStats();
+      renderCheckList();
+    }
     var all = checkAllStats();
     var total = all.importable;
     if (!total) {
       showToast(all.error ? '没有符合条件的数据' : '没有可导入的数据');
       return;
     }
+    if (droppedNow) showToast('已丢弃 ' + droppedNow + ' 条必填缺失 / 认不出的数据');
 
     state.transferRunning = true;
     state.pendingStockApply = true;
@@ -8136,6 +8300,13 @@
           focusInlineInput();
           return;
         }
+        var tplGoto = e.target.closest('[data-card-tpl-goto]');
+        if (tplGoto) {
+          var tplRow = checkFindRow('card', tplGoto.getAttribute('data-card-tpl-goto'));
+          var tplType = (tplRow && tplRow.f && tplRow.f.type) || '储值卡';
+          showToast('演示占位 · 打开「添加卡模板 · ' + tplType + '」');
+          return;
+        }
         var openBtn = e.target.closest('[data-check-open]');
         if (openBtn) {
           var oid = openBtn.getAttribute('data-check-open');
@@ -8749,7 +8920,7 @@
     var screen = $('#screen-digest-list');
     if (host) {
       var tip = rows.length
-        ? '<p class="digest-list-tip">点进详情可把缺的信息补上，补好就能导入。</p>'
+        ? '<p class="digest-list-tip">这些行已直接丢弃、不会导入；点进详情看原因，可一键复制。</p>'
         : '';
       var showKind = state.archiveDomain === 'price';
       host.innerHTML = tip + rows.map(function (d) {
@@ -8757,11 +8928,8 @@
         var kind = showKind ? domainKindTag(d.domain) : '';
         var metaBits = d.fields.map(function (f) { return f.k + ' ' + f.v; }).slice(0, 2);
         if (kind) metaBits.unshift(kind);
-        if (d.promoted) {
-          metaBits.push(d.skippedCount ? '已导入（' + d.skippedCount + ' 项未填）' : '已导入');
-        } else if (miss) {
-          metaBits.push('缺 ' + miss + ' 项可补');
-        }
+        if (miss) metaBits.push('未导入 · ' + miss + ' 项原因');
+        else metaBits.push('已丢弃');
         return '<button type="button" class="arch-row" data-digest-id="' + d.id + '">' +
           '<span class="arch-row__ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h11M8 12h11M8 18h7"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>' +
           '<span class="arch-row__body"><span class="arch-row__title">' + esc(d.title) +
@@ -8873,27 +9041,13 @@
       host.innerHTML = '<p class="proto-note">未找到该摘要</p>';
       return;
     }
-    (d.fails || []).forEach(function (f) {
-      if (f.edit === undefined) f.edit = '';
-      /* 旧数据没有必填标记：保守当作必填，不提供跳过 */
-      if (f.req === undefined) f.req = true;
-    });
     var failList = d.fails || [];
     var recognized = d.fields || [];
-    var reqFails = failList.filter(function (f) { return f.req; });
-    /* 必填都认出来了、缺的只是选填 → 允许忽略这几项直接导入 */
-    var canSkip = failList.length > 0 && !reqFails.length;
-    var directCtx = digestPromoteDirectWrite();
-    var tip = canSkip
-      ? '没对上的都是可以空着的项：补好再导入，或直接跳过。'
-      : (reqFails.length
-        ? '「' + reqFails[0].k + '」还没认出来，补上才能导入。'
-        : (directCtx
-          ? '补好后点下方按钮，即可导入。'
-          : '补好后点下方按钮，进入「核对导入」。'));
-    var doneLab = d.promotedDirect
-      ? (d.skippedCount ? '已导入（' + d.skippedCount + ' 项未填）' : '已导入')
-      : (d.skippedCount ? '已加入本批（' + d.skippedCount + ' 项未填）' : '已加入本批导入');
+    var copyLines = [d.title || '未命名记录'];
+    copyLines.push('类别：' + (DOMAIN_LABEL[d.domain] || IMPORT_CAT_SHORT[d.domain] || d.domain || '—'));
+    recognized.forEach(function (f) { copyLines.push(f.k + '：' + f.v); });
+    failList.forEach(function (f) { copyLines.push('未导入原因（' + (f.k || '内容') + '）：' + f.v); });
+    var copyAll = copyLines.join('\n');
     host.innerHTML =
       '<div class="digest-block"><div class="digest-block__hd">已认出来的内容</div>' +
         (recognized.length
@@ -8902,14 +9056,10 @@
           }).join('')
           : '<p class="digest-edit-tip">这一条暂时没有能直接用的内容。</p>') +
       '</div>' +
-      '<div class="digest-block"><div class="digest-block__hd">这几项还没对上 · 可以补</div>' +
-        '<p class="digest-edit-tip">把缺的信息补上，就能导入。</p>' +
-        failList.map(function (f, i) {
-          return '<label class="digest-edit">' +
-            '<span class="digest-edit__lab">' + esc(f.k) + '</span>' +
-            '<span class="digest-edit__hint">' + esc(f.v) + '</span>' +
-            '<input class="digest-edit__inp" type="text" data-digest-fail="' + i + '" value="' + esc(f.edit || '') + '" placeholder="在此填写">' +
-          '</label>';
+      '<div class="digest-block"><div class="digest-block__hd">为什么没导入</div>' +
+        '<p class="digest-edit-tip">必填缺失或内容认不出，这一条已直接丢弃，不会进入核对。</p>' +
+        failList.map(function (f) {
+          return '<div class="digest-kv is-fail"><b>' + esc(f.k || '内容') + '</b><span>' + esc(f.v) + '</span></div>';
         }).join('') +
       '</div>' +
       '<button type="button" class="digest-source" id="btnDigestSource">' +
@@ -8917,13 +9067,8 @@
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg>' +
       '</button>' +
       '<div class="digest-foot">' +
-        '<p class="digest-foot__tip">' + esc(tip) + '</p>' +
-        '<button type="button" class="btn-primary" id="btnDigestPromote"' + (d.promoted ? ' disabled' : '') + '>' +
-          (d.promoted ? doneLab : '补好了，导入') +
-        '</button>' +
-        (canSkip && !d.promoted
-          ? '<button type="button" class="digest-skip" id="btnDigestSkip">这几项先不填，直接导入</button>'
-          : '') +
+        '<p class="digest-foot__tip">原件已全量存档，可在「原始存档」里回看；这里只说明原因，不再提供补录。</p>' +
+        '<button type="button" class="btn-primary" id="btnDigestCopyAll">复制全部</button>' +
       '</div>';
     var srcBtn = $('#btnDigestSource');
     if (srcBtn) {
@@ -8931,28 +9076,37 @@
         openSourcePreview(d.source, 'digest-detail');
       };
     }
-    $all('[data-digest-fail]', host).forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        var i = Number(inp.getAttribute('data-digest-fail'));
-        if (d.fails[i]) d.fails[i].edit = inp.value;
-      });
-    });
-    var promote = $('#btnDigestPromote');
-    if (promote && !d.promoted) {
-      promote.onclick = function () {
-        var misses = (d.fails || []).filter(function (f) { return !String(f.edit || '').trim(); });
-        if (misses.length) {
-          showToast('还有 ' + misses.length + ' 项未补充：' + misses[0].k);
-          return;
-        }
-        promoteDigestToCheck(d);
-      };
+    var copyBtn = $('#btnDigestCopyAll');
+    if (copyBtn) {
+      copyBtn.onclick = function () { copyText(copyAll); };
     }
-    var skipBtn = $('#btnDigestSkip');
-    if (skipBtn && !d.promoted) {
-      skipBtn.onclick = function () {
-        promoteDigestToCheck(d, { skipFails: true });
-      };
+  }
+
+  function copyText(text) {
+    var str = String(text || '');
+    if (!str) return;
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = str;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(str).then(function () {
+        showToast('已复制');
+      }, function () {
+        fallback();
+        showToast('已复制');
+      });
+    } else {
+      fallback();
+      showToast('已复制');
     }
   }
 

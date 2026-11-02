@@ -10065,7 +10065,14 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   background: #FAFAFA;
   border: 1px solid rgba(0, 0, 0, .08);
   box-shadow: none;
+  /* v2.70：卡面本身是按钮（点进「添加卡模板」），清掉按钮默认样式 */
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
+.card-pass__face:active { background: #F2F2F2; }
 /* 品牌行：卡名左 + 类型 chip 右 */
 .card-pass__hd {
   display: flex;
@@ -10091,6 +10098,18 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
 .card-pass__type.is-discount { color: #5B44A8; background: #F0ECFB; }
 .card-pass__type.is-package { color: #8A6413; background: #FBF3E2; }
 .card-pass__type.is-period { color: #A85A2F; background: #FDEEE7; }
+.card-pass__src {
+  flex: 0 0 auto;
+  height: 18px;
+  padding: 0 6px;
+  margin-right: 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #3B82C4;
+  background: #EAF2FA;
+}
 .card-pass__name {
   flex: 1 1 auto;
   min-width: 0;
