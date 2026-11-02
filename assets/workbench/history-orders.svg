@@ -1,0 +1,18 @@
+<svg preserveAspectRatio="xMidYMid meet" style="display: block;" width="42" height="42" viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="history-orders">
+    <path d="M91 60.5L91 32.79C91 30.0956 88.2857 28 85.2321 28H40.7857H39.7679C36.7143 28 34 30.0956 34 32.79V97.7547C34 95.9584 36.375 94.7609 38.0714 95.659L45.875 99.5509C47.2321 100.15 48.9286 100.15 50.2857 99.5509L58.4286 95.3597L66.5714 99.5509" stroke="#1A1A1A" stroke-width="5.1" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M47.2002 46.2002H77.8002M47.2002 58.8002H77.8002M47.2002 71.4002H65.8002" stroke="#1A1A1A" stroke-width="4.65" stroke-linecap="round"/>
+    <path d="M88.8002 106.8C99.0727 106.8 107.4 98.4726 107.4 88.2001C107.4 77.9276 99.0727 69.6001 88.8002 69.6001C78.5277 69.6001 70.2002 77.9276 70.2002 88.2001C70.2002 98.4726 78.5277 106.8 88.8002 106.8Z" fill="white" stroke="url(#history_grad_ring)" stroke-width="5.4"/>
+    <path d="M88.8 79.8V89.1L95.1 93" stroke="url(#history_grad)" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <defs>
+    <linearGradient id="history_grad_ring" x1="70.2002" y1="83.5501" x2="103.68" y2="103.08" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6582"/>
+      <stop offset="1" stop-color="#F61928"/>
+    </linearGradient>
+    <linearGradient id="history_grad" x1="88.8" y1="84.75" x2="95.8528" y2="86.7136" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6582"/>
+      <stop offset="1" stop-color="#F61928"/>
+    </linearGradient>
+  </defs>
+</svg>

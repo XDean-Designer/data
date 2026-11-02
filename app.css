@@ -9851,9 +9851,9 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   color: var(--brand);
 }
 .result-miss__chev { flex: 0 0 auto; color: #A3A3A3; }
-/* 完成页底栏：存档提示居中在按钮上方 */
+/* 完成页底栏：仅按钮；存档提示独立贴在 bar 上方 */
 .import-foot--result {
-  gap: 10px;
+  gap: 0;
   padding-top: 10px;
   padding-bottom: calc(14px + var(--safe-bottom));
 }
@@ -9861,29 +9861,42 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
 #screen-history-import-result .import-body {
   padding-bottom: calc(132px + var(--safe-bottom));
 }
+#screen-import-result:has(.result-archive-tip:not(.hidden)) .import-body,
+#screen-history-import-result:has(.result-archive-tip:not(.hidden)) .import-body {
+  padding-bottom: calc(164px + var(--safe-bottom));
+}
 .result-archive-tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(68px + var(--safe-bottom) + var(--kb-h, 0px));
+  z-index: 6;
   margin: 0;
-  padding: 2px 8px 0;
+  padding: 8px 16px 6px;
   text-align: center;
   font-size: 13px;
   line-height: 20px;
   color: #6B6B6B;
+  background: linear-gradient(to top, var(--bg-page) 65%, rgba(248, 249, 250, 0));
+  pointer-events: none;
 }
-.import-foot--result .result-archive-tip.hidden {
-  display: none;
+.result-archive-tip.hidden {
+  display: none !important;
 }
 .result-archive-tip__link {
   display: inline;
   margin: 0;
   padding: 0;
   border: 0;
+  border-bottom: 1px dashed #929292;
   background: none;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  font-weight: 500;
-  color: #2563EB;
+  font-weight: 400;
+  color: #6B6B6B;
   cursor: pointer;
+  pointer-events: auto;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -9903,6 +9916,13 @@ button.verify-row.is-edit:active { background: var(--n-50, #F7F7F7); }
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
+}
+.v3-foot__main--split .btn-outline--wrap {
+  white-space: normal;
+  line-height: 1.25;
+  height: auto;
+  min-height: 48px;
+  padding: 8px 12px;
 }
 .v3-foot__main--split .btn-primary {
   flex: 1;

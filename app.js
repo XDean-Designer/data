@@ -52,7 +52,7 @@
     /* 左侧「空态」导航强制预览：null | history-true | history-filter | archive | digest */
     emptyPreview: null,
     historyImported: false,
-    histMonthOpen: null,
+    histMonthCollapsed: {},
     /* v2.56：历史消费 × 会员 —— 手机号或会员编号命中后再校验姓名；不再提供解除 */
     importMode: 'main',
     historyUnmatched: {},
@@ -2630,7 +2630,7 @@
     state.importSelection = { member: false, card: false, price: false, product: false };
     state.tierResult = { l1: [], l2: [], l3Cats: [] };
     state.historyTier = buildHistoryTier();
-    state.histMonthOpen = null;
+    state.histMonthCollapsed = {};
     renderCards();
     setImportStage('check', 'history-import-preview');
     go('history-import-preview');
@@ -2715,7 +2715,7 @@
     state.importPhotos = { member: [], card: [], price: [], product: [] };
     state.analysisCats = ['history'];
     state.historyTier = buildHistoryTier();
-    state.histMonthOpen = null;
+    state.histMonthCollapsed = {};
     state.importTask = { started: true, stage: 'check', resumeFlow: 'history-import-preview', entry: 'home' };
     renderImportBanner();
   }
@@ -4756,22 +4756,7 @@
   }
 
   function renderResultSources() {
-    var el = $('#importResultSources');
-    if (!el) return;
-    if (state.importMode === 'history') {
-      var t = state.historyTier || buildHistoryTier();
-      var names = (t.files && t.files.length) ? t.files.join('、') : '历史消费.xlsx';
-      el.textContent = '本批来源：' + names + ' · AI 识别';
-      return;
-    }
-    var plan = collectPlan();
-    var files = totalFiles(plan.excel);
-    var shots = plan.photo.reduce(function (s, k) { return s + state.importPhotos[k].length; }, 0);
-    var parts = [];
-    if (files) parts.push('Excel ' + files + ' 个');
-    if (shots) parts.push('照片 ' + shots + ' 张');
-    if (files || shots) parts.push('AI 识别');
-    el.textContent = '本批来源：' + (parts.join(' · ') || '演示数据');
+    /* v2.68：完成页已下线「本批来源」行 */
   }
 
   /* ===== v2.0 标准表转换 · 数据概览 · 仪式感传输 ===== */
@@ -5969,7 +5954,24 @@
 
   function cardMoneyText(v) {
     if (v === undefined || v === null || String(v).trim() === '') return '';
-    return '¥' + String(v).replace(/^[¥￥]\s*/, '');
+    var raw = String(v).replace(/^[¥￥]\s*/, '').replace(/,/g, '').trim();
+    if (!raw || raw === '—' || raw === '-') return '';
+    var n = Number(raw);
+    if (!isFinite(n)) return '¥' + raw;
+    /* 整数（含 500.00）不显示小数；有真实小数才保留 */
+    if (Math.abs(n - Math.round(n)) < 1e-9) return '¥' + String(Math.round(n));
+    return '¥' + String(n);
+  }
+
+  function fmtCountPlain(n) {
+    return String(Number(n || 0));
+  }
+
+  function fmtMoneyPlain(n) {
+    var x = Number(n || 0);
+    if (!isFinite(x)) return '¥0';
+    if (Math.abs(x - Math.round(x)) < 1e-9) return '¥' + String(Math.round(x));
+    return '¥' + String(x);
   }
 
   /* 主权益拆「数字 + 单位」（Figma 607:332：¥ 14/#6B727B，数字 18/Bold） */
@@ -6104,9 +6106,9 @@
     var mainJump = interactive ? ' data-check-jump="member" aria-label="查看会员数据列表"' : '';
     var cardJump = interactive ? ' data-check-jump="card" aria-label="查看卡模板数据列表"' : '';
     var priceJump = interactive ? ' data-check-jump="price" aria-label="查看价目表数据列表"' : '';
-    var memberN = (opts.memberN != null ? opts.memberN : 0).toLocaleString('zh-CN');
-    var cardN = (opts.cardN != null ? opts.cardN : 0).toLocaleString('zh-CN');
-    var priceN = (opts.priceN != null ? opts.priceN : 0).toLocaleString('zh-CN');
+    var memberN = fmtCountPlain(opts.memberN != null ? opts.memberN : 0);
+    var cardN = fmtCountPlain(opts.cardN != null ? opts.cardN : 0);
+    var priceN = fmtCountPlain(opts.priceN != null ? opts.priceN : 0);
     return '<div class="verify-dash' + (interactive ? '' : ' is-static') + '">' +
       '<' + tag + typeAttr + ' class="verify-dash__main"' + mainJump + '>' +
         '<span class="verify-dash__top">' + verifyDashBadge('member') + '<span class="verify-dash__lab">会员信息</span></span>' +
@@ -6139,7 +6141,7 @@
         '<span class="verify-dash__top">' + verifyDashBadge('history') + '<span class="verify-dash__lab">历史订单</span></span>' +
         '<span class="verify-dash__metric">' +
           '<span class="verify-dash__metric-lab">已写入</span>' +
-          '<b class="verify-dash__num">' + Number(count || 0).toLocaleString('zh-CN') + '</b>' +
+          '<b class="verify-dash__num">' + fmtCountPlain(count) + '</b>' +
         '</span>' +
         '<span class="verify-dash__sub">' + esc(totalText || '') + (subText ? ' · ' + esc(subText) : '') + '</span>' +
       '</div></div>';
@@ -6372,7 +6374,7 @@
 
   /* 通用核对页里的部件在历史模式下收起 / 恢复 */
   function syncCheckModeUI(isHist) {
-    ['#checkVerifyMetrics', '#checkTabs', '#checkTabSum', '#checkShelfTip', '#checkClearWarn'].forEach(function (sel) {
+    ['#checkVerifyMetrics', '#checkTabs', '#checkTabSum', '#checkClearWarn'].forEach(function (sel) {
       var el = $(sel);
       if (el) el.classList.toggle('hidden', !!isHist);
     });
@@ -6414,7 +6416,7 @@
     order.sort().reverse();
     list.innerHTML = order.map(function (mk) {
       var g = months[mk];
-      var open = state.histMonthOpen === mk;
+      var open = !state.histMonthCollapsed[mk];
       var samples = g.rows.slice(0, 4).map(function (r) {
         return '<div class="hist-month__sample">' +
           '<span>' + esc(r.name || '未留姓名') + '</span>' +
@@ -6444,24 +6446,11 @@
     var batchN = HISTORY_ROWS.length;
     var written = state.historyDeleted ? 0 : (state.storeStock.history || batchN);
     var archN = (t.archive || []).length;
-    var lead = $('#historyResultLead');
-    if (lead) {
-      lead.textContent = state.historyDeleted
-        ? '本批历史消费已删除，可重新导入。'
-        : '历史订单已导入，可在「工作台 · 店铺管理 · 历史订单」查看。';
-    }
-    var sources = $('#historyResultSources');
-    if (sources) {
-      var parts = [];
-      if (t.excelCount) parts.push('Excel ' + t.excelCount + ' 个');
-      if (t.photoCount) parts.push('照片 ' + t.photoCount + ' 张');
-      sources.textContent = '本批来源：' + (parts.length ? parts.join(' · ') + ' · AI 识别' : '演示数据');
-    }
     var dash = $('#historyResultDash');
     if (dash) {
       dash.innerHTML = historyResultDashHtml(
         written,
-        written ? ('合计 ' + fmtMoney(t.total)) : '合计 ¥0',
+        written ? ('合计 ' + fmtMoneyPlain(t.total)) : '合计 ¥0',
         '只读核对，不影响业绩'
       );
     }
@@ -7373,7 +7362,8 @@
       var cm = e.target.closest('[data-hist-month]');
       if (cm) {
         var mk = cm.getAttribute('data-hist-month');
-        state.histMonthOpen = state.histMonthOpen === mk ? null : mk;
+        if (state.histMonthCollapsed[mk]) delete state.histMonthCollapsed[mk];
+        else state.histMonthCollapsed[mk] = true;
         renderHistoryPreview();
         return;
       }
@@ -8445,9 +8435,7 @@
       state.pendingStockApply = false;
     }
     var title = $('#importResultTitle');
-    var lead = $('#importResultLead');
     if (title) title.textContent = '本批处理完成';
-    if (lead) lead.textContent = '可导入的已写入；其余已按档存档，可随时查阅。';
     renderResultTierSummary();
     var stockHost = $('#resultStockList');
     if (stockHost) {
@@ -8455,7 +8443,6 @@
       var wrap = stockHost.closest('.v3-stock');
       if (wrap) wrap.classList.add('hidden');
     }
-    renderResultSources();
     setImportStage('done', 'import-result');
   }
 
@@ -9253,11 +9240,29 @@
     if (!cap) return;
     document.documentElement.classList.add('capture-mode');
     var style = document.createElement('style');
-    // 藏导航，并清掉 .stage 的桌面台面边距（否则 html-to-design 会把
-    // margin-left:200 / padding:24 20 40 收进画框，导致内容偏移溢出）
+    // 藏导航 + 清 stage 台面边距；关闭态 sheet 必须 display:none（不能只靠
+    // translateY），否则 html-to-design 会把屏外半屏全导出到帧下方。
     style.textContent =
       '.capture-mode .site-nav,.capture-mode .nav-drawer-mask,.capture-mode .nav-edge-hit{display:none!important}' +
-      '.capture-mode .stage{margin-left:0!important;padding:0!important}';
+      '.capture-mode .stage{margin-left:0!important;padding:0!important}' +
+      '.capture-mode .invite-sheet:not(.show),' +
+      '.capture-mode .filter-sheet:not(.show),' +
+      '.capture-mode .fail-fix-sheet:not(.show),' +
+      '.capture-mode .preview-detail-sheet:not(.show),' +
+      '.capture-mode .overlay-mask:not(.show),' +
+      '.capture-mode .dialog-mask:not(.show),' +
+      '.capture-mode .loc-explain-dialog:not(.show),' +
+      '.capture-mode .loc-sys-dialog:not(.show),' +
+      '.capture-mode .del-batch-dialog:not(.show),' +
+      '.capture-mode .v3-sheet:not(.on),' +
+      '.capture-mode .v3-sheet-mask:not(.on),' +
+      '.capture-mode .wechat-tip:not(.show),' +
+      '.capture-mode .import-progress.hidden,' +
+      '.capture-mode .coach-layer[hidden]{display:none!important}' +
+      /* 邀请动画定格：数据块飞入半空（约 4.6s × 38%） */ +
+      '.capture-mode .inv-anim.is-freeze-chips,' +
+      '.capture-mode .inv-anim.is-freeze-chips *{' +
+        'animation-delay:-1.75s!important;animation-play-state:paused!important}';
     document.head.appendChild(style);
 
     var step = function (fn, ms) {
@@ -9292,6 +9297,16 @@
     if (cap === 'invite') {
       go('home');
       step(showInviteSheet, 320);
+      return;
+    }
+    /* 邀请 sheet · 数据块飞入定格（故事板用） */
+    if (cap === 'invite-chips') {
+      go('home');
+      step(function () {
+        showInviteSheet();
+        var anim = document.querySelector('#inviteSheet .inv-anim');
+        if (anim) anim.classList.add('is-freeze-chips');
+      }, 360);
       return;
     }
     // 首页数据导入 banner（待开始）
@@ -9521,7 +9536,7 @@
     // 核对历史：独立核对屏（历史模式 · 按月样例）
     if (cap === 'history-import-preview' || cap === 'history-import-preview-open') {
       seedHistoryDemoBatch();
-      if (cap === 'history-import-preview-open') state.histMonthOpen = historyMonthKey(HISTORY_ROWS[0].date);
+      if (cap === 'history-import-preview-open') state.histMonthCollapsed = {};
       go('history-import-preview');
       return;
     }

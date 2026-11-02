@@ -60,11 +60,11 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 <tbody>
 <tr>
 <td>文档版本</td>
-<td>v2.67</td>
+<td>v2.68</td>
 </tr>
 <tr>
 <td>日期</td>
-<td>2026-11-01</td>
+<td>2026-11-02</td>
 </tr>
 <tr>
 <td>交互原型（唯一可视依据）</td>
@@ -95,6 +95,11 @@ table img{max-width:min(260px,100%);width:auto;height:auto;border-radius:10px;bo
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v2.68</td>
+<td>2026-11-02</td>
+<td><strong>完成/核对文案收敛 + 历史月卡默认展开 + 工作台两枚新图标</strong>。<strong>① 核对卡模板</strong>：金额为整数（含 <code>500.00</code>）时显示为整元（如 <code>¥500</code>），有真实小数才保留；删除上架说明句「卡模板与价目可用右侧开关…不论状态都会导入。」。<strong>② 主链完成页</strong>：去掉 hero 副标题与「本批来源」行；存档提示移出底栏、贴在 bar 上方；「去查看存档」改为灰字 + 下虚线；看板数字去千分位；左按钮改为「继续导入历史消费」（可换行）。<strong>③ 历史核对</strong>：顶栏标题「已识别的数据」；删除「按月对一下账本」说明区；月卡默认全展开，点击收起（<code>histMonthCollapsed</code>）。历史完成页对齐主链完成页结构改动（无副标题 / 无来源行 / 存档提示上移 / 数字去千分位）。<strong>④ 工作台</strong>：「数据导入」「历史订单」改用新 SVG（黑线 + 红渐变点缀，见 <code>assets/workbench/migrate.svg</code> / <code>history-orders.svg</code>）。<strong>⑤ 口径</strong>：改 <code>index.html</code> / <code>app.js</code> / <code>app.css</code> / 资源 + 本 PRD；已做 <code>node --check</code>；未跑断言、<strong>未提交</strong>。</td>
+</tr>
 <tr>
 <td>v2.67</td>
 <td>2026-11-01</td>
@@ -3793,17 +3798,12 @@ flowchart LR
 </tr>
 <tr>
 <td>成功区</td>
-<td><code>.v3-done.v3-done--illust</code>：清单 + 勾插图；标题「本批处理完成」；副文「可导入的已写入；其余已按档存档，可随时查阅。」</td>
-<td>静态</td>
-</tr>
-<tr>
-<td>本批来源行</td>
-<td><code>.v3-batch</code>：「本批来源：Excel N 个 · 照片 M 张 · AI 识别」（按实际拼接）</td>
+<td><code>.v3-done.v3-done--illust</code>：清单 + 勾插图；标题「本批处理完成」；<strong>无副标题</strong></td>
 <td>静态</td>
 </tr>
 <tr>
 <td>已导入看板</td>
-<td>复用核对页同款 <code>.verify-dash</code>（左大「会员人数」+ 右叠「卡模板 / 价目表」），加 <code>.is-static</code>：<strong>只读、不可点</strong>；数字口径与核对顶卡一致（本批可写入人数 / 卡模板数 / 价目项目∪产品数）</td>
+<td>复用核对页同款 <code>.verify-dash</code>（左大「会员人数」+ 右叠「卡模板 / 价目表」），加 <code>.is-static</code>：<strong>只读、不可点</strong>；数字口径与核对顶卡一致；<strong>数字不加千分位</strong></td>
 <td>无跳转</td>
 </tr>
 <tr>
@@ -3812,9 +3812,14 @@ flowchart LR
 <td>「去查看」→ 识别摘要列表（域默认会员，<code>archiveReturn=import-result</code>）</td>
 </tr>
 <tr>
+<td>存档提示</td>
+<td><code>.result-archive-tip</code> 贴在底栏<strong>上方</strong>（不在 bar 内）：灰字「本批另有原始文件已存档，可随时查阅。」+「去查看存档」（灰字 + 下虚线）；仅 L1&gt;0 出现</td>
+<td>「去查看存档」→ 原始存档列表（返回本页）</td>
+</tr>
+<tr>
 <td>底栏</td>
-<td><code>.import-foot--result</code>（可加高）：上方 <code>.result-archive-tip</code> 灰字「本批另有原始文件已存档，可随时查阅。」+ 蓝链「去查看存档」，<strong>水平居中</strong>，仅 L1&gt;0 出现（无存档不占位）；下方 <code>.v3-foot__main--split</code> 左次「导入历史消费」+ 右主「返回首页」</td>
-<td>蓝链 → 原始存档列表（返回本页）；左 → 历史模式选源（§6.23；有存量先确认半屏）；右 → 首页并出导入壳</td>
+<td><code>.import-foot--result</code>：<code>.v3-foot__main--split</code> 左次「继续导入历史消费」（可换行）+ 右主「返回首页」</td>
+<td>左 → 历史模式选源（§6.23；有存量先确认半屏）；右 → 首页并出导入壳</td>
 </tr>
 <tr>
 <td>历史模式误入</td>
@@ -4308,19 +4313,19 @@ flowchart LR
 </thead>
 <tbody>
 <tr>
-<td>说明节</td>
-<td><code>.hs-sec</code>：24×24 线描图标（清单 + 勾，品牌红）+ 标题 17px / 650 + 副文 13px / 次级灰；<code>.hs-sec__txt</code> 左对齐</td>
-<td>静态</td>
+<td>标题栏</td>
+<td>返回；标题「已识别的数据」</td>
+<td>返回 → 选源 / 识别链路</td>
 </tr>
 <tr>
 <td>汇总卡</td>
-<td><code>.hs-sum</code> 白卡：上排两格——「<em class="num-em" id="historyPreviewCount">16</em> / 条待导入」「<em class="num-em">¥9,450</em> / 合计金额」（数值 20px / 700 等宽，标签 12px / 次级灰，格间 1px 发丝线）；下排「日期范围」+「2023-05-26 ~ 2025-12-28」（<code>.hs-sum__range</code>，13px / 等宽）</td>
+<td><code>.hs-sum</code> 白卡：上排两格——「条待导入 / 合计金额」；下排「日期范围」</td>
 <td>只读；数值随真实行数 / 金额 / 最早最晚日期计算</td>
 </tr>
 <tr>
 <td>月份折叠卡</td>
-<td><code>.hist-month</code>（整卡是 <code>button</code>，圆角 14、白底、<code>0 0 0 .5px rgba(0,0,0,.05)</code>、间距 8–10px）：卡头 <code>.hist-month__hd</code> 左「2025-12」（15px / 600），右「2 笔 · ¥1,448」（13px 次级灰，等宽数字）+ chevron；展开后卡内出现 <strong>最多 4 行</strong> <code>.hist-month__sample</code>（姓名 14px / 500 · 支付方式 12px 次级灰 · 金额 14px / 600 右对齐，行间发丝线）</td>
-<td>点卡头展开 / 收起；<strong>同一时刻只展开一个月</strong>（<code>state.histMonthOpen</code>），切月自动收起上一个；<strong>默认全收起</strong>；月份降序（最新在上），日期未识别的归为「日期未识别」置后</td>
+<td><code>.hist-month</code>（整卡是 <code>button</code>）：卡头月份 +「N 笔 · 金额」；展开后最多 4 行样例</td>
+<td>点卡头展开 / 收起；<strong>默认全部展开</strong>；可多月同时展开；收起状态记在 <code>state.histMonthCollapsed</code>；月份降序，日期未识别归「日期未识别」置后</td>
 </tr>
 <tr>
 <td>失败提示条</td>
@@ -4349,23 +4354,23 @@ flowchart LR
 <tbody>
 <tr>
 <td>成功块</td>
-<td><code>.v3-done.v3-done--illust</code>；标题「导入成功」；引导语 <code>#historyResultLead</code>「历史订单已导入，可在「工作台 · 店铺管理 · 历史订单」查看。」</td>
-<td>静态</td>
-</tr>
-<tr>
-<td>本批来源</td>
-<td><code>#historyResultSources</code>：Excel / 照片份数 + AI 识别</td>
+<td><code>.v3-done.v3-done--illust</code>；标题「导入成功」；<strong>无副标题</strong></td>
 <td>静态</td>
 </tr>
 <tr>
 <td>已写入看板</td>
-<td><code>.verify-dash.verify-dash--solo.is-static</code> 单格：标签「已写入历史订单」+ 大号笔数 + 次行「合计 ¥x · 只读核对，不影响业绩」；<strong>不套</strong>会员/卡/价目三格</td>
+<td><code>.verify-dash.verify-dash--solo.is-static</code> 单格：标签「历史订单」+ 大号笔数（<strong>无千分位</strong>）+ 次行「合计 ¥x · 只读核对，不影响业绩」；<strong>不套</strong>会员/卡/价目三格</td>
 <td>只读；笔数取本批写入量（清空再导后 = 本批条数）</td>
 </tr>
 <tr>
+<td>存档提示</td>
+<td>与主链同：<code>.result-archive-tip</code> 贴在底栏上方；「去查看存档」灰字 + 下虚线；有「仅存档」才出</td>
+<td>→ order 域原始存档</td>
+</tr>
+<tr>
 <td>底栏</td>
-<td>与主链同：上方居中存档提示（有「仅存档」才出）+ 左次「查看历史订单」+ 右主「返回工作台」</td>
-<td>蓝链 → order 域原始存档；左 → <code>history-orders</code>（<code>viewReturn=history-import-result</code>）；右 → 工作台并复位 <code>importMode=main</code></td>
+<td>左次「查看历史订单」+ 右主「返回工作台」</td>
+<td>左 → <code>history-orders</code>（<code>viewReturn=history-import-result</code>）；右 → 工作台并复位 <code>importMode=main</code></td>
 </tr>
 </tbody>
 </table>

@@ -75,7 +75,7 @@
   </div>
   <div class="nav-group grow">
     <div class="g-t">文档</div>
-    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.67</a>
+    <a class="nav-link" href="PRD-开店入驻与数据迁移.html" target="_blank"><span class="idx">P</span>PRD v2.68</a>
   </div>
 </aside>
 <div class="nav-drawer-mask" id="navDrawerMask" aria-hidden="true"></div>
@@ -538,8 +538,8 @@
               <button type="button" class="wb-tile" data-wb="device"><span class="wb-tile__icon"><img src="assets/workbench/device.png" alt="" width="42" height="42"></span><span class="wb-tile__label">设备管理</span></button>
               <button type="button" class="wb-tile" data-wb="popup"><span class="wb-tile__icon"><img src="assets/workbench/popup.png" alt="" width="42" height="42"></span><span class="wb-tile__label">小程序弹窗</span></button>
               <button type="button" class="wb-tile" data-wb="tuangou-set"><span class="wb-tile__icon"><img src="assets/workbench/tuangou-set.svg" alt="" width="42" height="42"></span><span class="wb-tile__label">团购设置</span></button>
-              <button type="button" class="wb-tile" data-wb="migrate"><span class="wb-tile__icon"><img src="assets/workbench/stock.png" alt="" width="42" height="42"></span><span class="wb-tile__label">数据导入</span></button>
-              <button type="button" class="wb-tile" data-wb="history"><span class="wb-tile__icon"><img src="assets/workbench/flow.png" alt="" width="42" height="42"></span><span class="wb-tile__label">历史订单</span></button>
+              <button type="button" class="wb-tile" data-wb="migrate"><span class="wb-tile__icon"><img src="assets/workbench/migrate.svg" alt="" width="42" height="42"></span><span class="wb-tile__label">数据导入</span></button>
+              <button type="button" class="wb-tile" data-wb="history"><span class="wb-tile__icon"><img src="assets/workbench/history-orders.svg" alt="" width="42" height="42"></span><span class="wb-tile__label">历史订单</span></button>
             </div>
           </section>
           <section class="wb-sec">
@@ -981,7 +981,6 @@
         <div class="scroll-body import-body check-body" id="checkBody">
           <ol class="v3-step v3-step--slim" aria-label="导入进度：第 3 步，共 3 步"><li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">提供</span></li><li class="v3-step__item is-done"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">识别</span></li><li class="v3-step__item is-now"><span class="v3-step__ico"><svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.1667 16.8333 13.5 20.1667 21.8333 11.8333"/></svg></span><span class="v3-step__label">核对</span></li></ol>
           <div class="soft-tip soft-tip--warn hidden" id="checkClearWarn" role="status"></div>
-          <p class="check-shelf-tip" id="checkShelfTip">卡模板与价目可用右侧开关切换<strong>上架 / 下架</strong>；默认下架，不论状态都会导入。</p>
           <div class="check-verify-wrap" id="checkVerifyMetrics"></div>
           <div class="hidden" aria-hidden="true">
             <div id="checkSubNav"></div>
@@ -1025,9 +1024,7 @@
               </svg>
             </span>
             <h2 class="v3-done__title" id="importResultTitle">本批处理完成</h2>
-            <p class="v3-done__lead" id="importResultLead">可导入的已写入；其余已按档存档，可随时查阅。</p>
           </div>
-          <p class="v3-batch" id="importResultSources">本批来源：Excel 3 个</p>
           <div class="result-dash-host" id="resultTierSummary"></div>
           <button type="button" class="result-miss hidden" id="btnResultMiss" aria-hidden="true">
             <span class="result-miss__body"><b><em class="v3-num" id="resultMissCount">0</em> 条未能成功导入</b></span>
@@ -1036,12 +1033,12 @@
           </button>
           <div class="hidden" aria-hidden="true"><div id="resultStockList"></div></div>
         </div>
+        <p class="result-archive-tip hidden" id="resultArchiveTip">
+          本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnResultArchive">去查看存档</button>
+        </p>
         <div class="import-foot import-foot--result">
-          <p class="result-archive-tip hidden" id="resultArchiveTip">
-            本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnResultArchive">去查看存档</button>
-          </p>
           <div class="v3-foot__main v3-foot__main--split">
-            <button type="button" class="btn-outline btn-outline--compact" id="btnImportHistory">导入历史消费</button>
+            <button type="button" class="btn-outline btn-outline--compact btn-outline--wrap" id="btnImportHistory">继续导入历史消费</button>
             <button type="button" class="btn-primary" id="btnImportBackHome">返回首页</button>
           </div>
         </div>
@@ -1053,16 +1050,9 @@
           <button type="button" class="back" id="btnHistoryPreviewBack" aria-label="返回">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="title">核对历史数据</span>
+          <span class="title">已识别的数据</span>
         </header>
         <div class="scroll-body import-body import-body--note">
-          <div class="hs-sec">
-            <span class="hs-sec__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 6.4h9.2M4.6 12h9.2M4.6 17.6h9.2"/><path d="M17 8.6l2.2 2.2 3-3.4" stroke-width="1.9"/></svg></span>
-            <div class="hs-sec__txt">
-              <h2>按月对一下账本</h2>
-              <p>差不太多就可以导。点某月可看几条样例。</p>
-            </div>
-          </div>
           <div class="hs-sum">
             <div class="hs-sum__stats">
               <div class="hs-sum__cell">
@@ -1107,15 +1097,13 @@
               </svg>
             </span>
             <h2 class="v3-done__title">导入成功</h2>
-            <p class="v3-done__lead" id="historyResultLead">历史订单已导入，可在「工作台 · 店铺管理 · 历史订单」查看。</p>
           </div>
-          <p class="v3-batch" id="historyResultSources"></p>
           <div class="result-dash-host" id="historyResultDash"></div>
         </div>
+        <p class="result-archive-tip hidden" id="historyArchiveTip">
+          本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnHistoryArchive">去查看存档</button>
+        </p>
         <div class="import-foot import-foot--result">
-          <p class="result-archive-tip hidden" id="historyArchiveTip">
-            本批另有原始文件已存档，可随时查阅。<button type="button" class="result-archive-tip__link" id="btnHistoryArchive">去查看存档</button>
-          </p>
           <div class="v3-foot__main v3-foot__main--split">
             <button type="button" class="btn-outline btn-outline--compact" id="btnHistoryViewOrders">查看历史订单</button>
             <button type="button" class="btn-primary" id="btnHistoryBackWb">返回工作台</button>
